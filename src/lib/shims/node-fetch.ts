@@ -1,8 +1,11 @@
-// Minimal shim for client builds to avoid bundling node-fetch and whatwg-url
-export default function fetchShim(..._args: any[]) {
-  throw new Error('node-fetch is not available in the browser environment');
-}
-export const Headers = globalThis.Headers as any;
-export const Request = globalThis.Request as any;
-export const Response = globalThis.Response as any;
+// Minimal shim that re-exports global fetch/Headers/Request/Response
+// Works in Node >=18 and in browsers without pulling whatwg-url
+const boundFetch = (globalThis as any).fetch?.bind(globalThis) || ((): any => {
+  throw new Error('Global fetch is not available in this environment');
+});
+
+export default boundFetch as typeof fetch;
+export const Headers = (globalThis as any).Headers as typeof globalThis.Headers;
+export const Request = (globalThis as any).Request as typeof globalThis.Request;
+export const Response = (globalThis as any).Response as typeof globalThis.Response;
 

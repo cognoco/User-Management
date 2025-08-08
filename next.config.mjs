@@ -57,6 +57,7 @@ const nextConfig = {
         'whatwg-url/lib/public-api.js': false,
         'whatwg-url/lib/url-state-machine.js': false,
         '@supabase/supabase-js/dist/module/lib/fetch.js': path.resolve(__dirname, 'src/lib/shims/supabase-fetch.ts'),
+        '@/lib/database/supabase': path.resolve(__dirname, 'src/lib/shims/supabase-client-browser.ts'),
         // Use a lightweight fetch-based shim for axios in the browser
         axios: path.resolve(__dirname, 'src/lib/api/axios-browser.ts'),
         // Also ensure our internal axios wrapper resolves to the browser shim on client

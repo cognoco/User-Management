@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { getSupabaseClient } from '../supabase';
+// Client store must not import supabase; use API routes instead
 
 interface UserProfile {
   id: string;
@@ -78,17 +78,15 @@ export const useUserStore = create<UserState>((set, get) => ({
   updateProfile: async (data) => {
     try {
       set({ isLoading: true, error: null });
-
-      const client = await getSupabaseClient();
-      const { data: user, error } = await client.auth.getUser();
-      if (error) throw error;
-
-      const { error: updateError } = await client
-        .from('profiles')
-        .update(data)
-        .eq('id', user.user.id);
-
-      if (updateError) throw updateError;
+      const res = await fetch('/api/profile/personal', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) {
+        const e = await res.json().catch(() => ({}));
+        throw new Error(e?.error || e?.message || 'Failed to update profile');
+      }
 
       set((state) => ({
         profile: state.profile ? { ...state.profile, ...data } : null,
@@ -104,17 +102,15 @@ export const useUserStore = create<UserState>((set, get) => ({
   updateSettings: async (data) => {
     try {
       set({ isLoading: true, error: null });
-
-      const client = await getSupabaseClient();
-      const { data: user, error } = await client.auth.getUser();
-      if (error) throw error;
-
-      const { error: updateError } = await client
-        .from('user_settings')
-        .update(data)
-        .eq('user_id', user.user.id);
-
-      if (updateError) throw updateError;
+      const res = await fetch('/api/profile/preferences', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) {
+        const e = await res.json().catch(() => ({}));
+        throw new Error(e?.error || e?.message || 'Failed to update settings');
+      }
 
       set((state) => ({
         settings: state.settings ? { ...state.settings, ...data } : null,
@@ -130,27 +126,27 @@ export const useUserStore = create<UserState>((set, get) => ({
   uploadAvatar: async (file) => {
     try {
       set({ isLoading: true, error: null });
-
-      const client = await getSupabaseClient();
-      const { data: user, error: userError } = await client.auth.getUser();
-      if (userError) throw userError;
-
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${user.user.id}-${Date.now()}.${fileExt}`;
-
-      const { error: uploadError } = await client.storage
-        .from('avatars')
-        .upload(fileName, file);
-
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = client.storage
-        .from('avatars')
-        .getPublicUrl(fileName);
-
-      // Update profile with new avatar URL
+      const formData = new FormData();
+      formData.append('document', file);
+      // Our avatar API expects base64 or predefined id; use base64 for now
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result));
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+      const res = await fetch('/api/profile/avatar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ avatar: base64, filename: file.name }),
+      });
+      if (!res.ok) {
+        const e = await res.json().catch(() => ({}));
+        throw new Error(e?.error || e?.message || 'Failed to upload avatar');
+      }
+      const dataResp = await res.json();
+      const publicUrl = dataResp?.avatarUrl as string;
       await get().updateProfile({ avatar_url: publicUrl });
-
       return publicUrl;
     } catch (err: any) {
       set({ error: err.response?.data?.error || err.response?.data?.message || (err instanceof Error ? err.message : 'Failed to upload avatar') });
@@ -163,19 +159,12 @@ export const useUserStore = create<UserState>((set, get) => ({
   fetchProfile: async () => {
     try {
       set({ isLoading: true, error: null });
-
-      const client = await getSupabaseClient();
-      const { data: user, error: userError } = await client.auth.getUser();
-      if (userError) throw userError;
-
-      const { data: profile, error: profileError } = await client
-        .from('profiles')
-        .select('*')
-        .eq('id', user.user.id)
-        .single();
-
-      if (profileError) throw profileError;
-
+      const res = await fetch('/api/profile');
+      if (!res.ok) {
+        const e = await res.json().catch(() => ({}));
+        throw new Error(e?.error || e?.message || 'Failed to fetch profile');
+      }
+      const profile = await res.json();
       set({ profile });
     } catch (err: any) {
       set({ error: err.response?.data?.error || err.response?.data?.message || (err instanceof Error ? err.message : 'Failed to fetch profile') });
@@ -188,19 +177,12 @@ export const useUserStore = create<UserState>((set, get) => ({
   fetchSettings: async () => {
     try {
       set({ isLoading: true, error: null });
-
-      const client = await getSupabaseClient();
-      const { data: user, error: userError } = await client.auth.getUser();
-      if (userError) throw userError;
-
-      const { data: settings, error: settingsError } = await client
-        .from('user_settings')
-        .select('*')
-        .eq('user_id', user.user.id)
-        .single();
-
-      if (settingsError) throw settingsError;
-
+      const res = await fetch('/api/profile/preferences');
+      if (!res.ok) {
+        const e = await res.json().catch(() => ({}));
+        throw new Error(e?.error || e?.message || 'Failed to fetch settings');
+      }
+      const settings = await res.json();
       set({ settings });
     } catch (err: any) {
       set({ error: err.response?.data?.error || err.response?.data?.message || (err instanceof Error ? err.message : 'Failed to fetch settings') });
@@ -247,10 +229,6 @@ export const useUserStore = create<UserState>((set, get) => ({
   exportUserAuditLogs: async (filters, format = 'csv') => {
     try {
       set({ isLoading: true, error: null });
-
-      const { data: user, error: userError } = await supabase.auth.getUser();
-      if (userError) throw userError;
-
       // Build query parameters
       const params = new URLSearchParams();
       Object.entries(filters).forEach(([key, value]) => {
@@ -258,8 +236,6 @@ export const useUserStore = create<UserState>((set, get) => ({
           params.append(key, value.toString());
         }
       });
-      // Always filter by current user
-      params.append('userId', user.user.id);
       params.append('format', format);
 
       const response = await fetch(`/api/audit/user-actions/export?${params.toString()}`);

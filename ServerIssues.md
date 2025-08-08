@@ -316,3 +316,47 @@ The issue is **not with the application code** but with the Next.js framework's 
 
 ### Status after changes
 - Dev server starts; compilation then fails due to remaining client-side inclusion of server-only modules (see blockers above). Fixing `domainMatcher` lazy import will likely remove the Nodemailer/fs error chain. Keeping Axios out of the client eliminates the `asynckit/async.js` path.
+
+---
+
+## Addendum – Actions Performed on 2025-08-09 (Client/Server Separation hardening)
+
+### New Build Blocker Observed
+- Webpack error chain referencing `whatwg-url` via `@supabase/node-fetch` → `@supabase/supabase-js` was still being pulled into the client bundle.
+- Import traces consistently pointed to client entrypoints transitively importing server-only Supabase code.
+
+### Concrete Findings (where server-only leaked into client)
+- `app/RootLayoutClient.tsx` imported `initializeErrorSystem` → `src/lib/monitoring/error-system.ts` → `src/lib/audit/error-logger.ts`/`auditLogger.ts` → `src/lib/database/index.ts` which imports and initializes Supabase. This dragged `@supabase/node-fetch`/`whatwg-url` into the client graph.
+- Multiple client components/stores imported Supabase directly:
+  - `src/ui/headless/dashboard/Dashboard.tsx` (now refactored to call API routes)
+  - `src/lib/stores/user.store.ts` (fully refactored to API routes; no Supabase client)
+  - `src/lib/stores/profile.store.ts` fallback path (removed; now API-only)
+  - Several admin/realtime hooks/components (client usage removed or no-op pending SSE)
+
+### Remediations Implemented
+- Eliminated client Supabase usage:
+  - `src/lib/stores/user.store.ts`: switched `updateProfile`, `updateSettings`, `uploadAvatar`, `fetchProfile`, `fetchSettings`, export/import flows to `/api/...` endpoints.
+  - `src/lib/stores/profile.store.ts`: removed Supabase fallback; uses API for both business and personal profile.
+  - `src/ui/headless/dashboard/Dashboard.tsx`: removed Supabase; stubbed CRUD via `/api/items` placeholders and `/api/admin/dashboard` for reads.
+  - `src/hooks/admin/useAdminRealtimeChannel.ts`: removed Supabase realtime from client (temporary no-op, to be replaced with SSE/WebSocket via API route).
+- Webpack/browser shims:
+  - Added `src/lib/shims/supabase-client-browser.ts` and aliased `@/lib/database/supabase` to it for client builds to prevent bundling Supabase (and `whatwg-url`).
+  - Ensured `@supabase/supabase-js/dist/module/lib/fetch.js` resolves to a minimal fetch shim; `@supabase/node-fetch` resolved to a global-fetch shim.
+  - Converted Radix UI primitives to dynamic client imports; replaced `label` and `separator` with native equivalents to avoid version/export issues.
+- UI import hygiene:
+  - Removed `Toaster` render from `UserManagementClientBoundary` to reduce client bundle surface.
+
+### Remaining Work (next steps)
+- In `app/RootLayoutClient.tsx`, remove or lazy-load `initializeErrorSystem` so client tree no longer pulls `auditLogger` → `src/lib/database/index.ts` (Supabase).
+- Add an explicit client alias for `@supabase/realtime-js` to `false` (some traces indicate realtime still attempts to resolve). Server can keep it as external if/when needed.
+- Verify no other client entry imports `src/lib/database/index.ts`. If any do, route them through API or guard behind server-only dynamic imports.
+
+### Current Status
+- Client bundles are significantly cleaner; most direct Supabase imports in client code paths have been removed or stubbed.
+- Build now fails only where client still references monitoring/audit chains that touch `src/lib/database/index.ts` (via `RootLayoutClient`). Addressing that import should remove the remaining `whatwg-url` errors.
+
+### Action Checklist
+- [ ] Update `app/RootLayoutClient.tsx` to drop or lazy-load error system on client.
+- [ ] Ensure `@supabase/realtime-js` is aliased to `false` on client builds in `next.config.mjs`.
+- [ ] Re-run `npm run build` and confirm `whatwg-url` chain no longer appears.
+

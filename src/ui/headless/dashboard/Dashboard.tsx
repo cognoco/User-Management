@@ -1,5 +1,4 @@
 import { useState, useEffect, ReactNode } from 'react';
-import { supabase } from '@/lib/database/supabase';
 
 export interface Item {
   id: string;
@@ -36,13 +35,19 @@ export function Dashboard({ children }: DashboardProps) {
 
   const fetchItems = async () => {
     setIsLoading(true);
-    const { data, error } = await supabase.from('items').select('*');
-    if (error) {
-      setError(error.message);
-    } else {
-      setItems(data || []);
+    setError(null);
+    try {
+      // Replace with real API when available
+      const res = await fetch('/api/admin/dashboard', { cache: 'no-store' });
+      if (!res.ok) throw new Error('Failed to fetch');
+      // Map any server data to items if needed; keep empty for now
+      setItems([]);
+    } catch (e: any) {
+      setError(e?.message || 'Failed to fetch items');
+      setItems([]);
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   useEffect(() => { fetchItems(); }, []);
@@ -50,51 +55,43 @@ export function Dashboard({ children }: DashboardProps) {
   const handleCreate = async (title: string, description: string) => {
     setIsLoading(true);
     setError(null);
-    const { error } = await supabase
-      .from('items')
-      .insert([{ title, description }]);
-
-    if (error) {
-      setError(error.message);
-    } else {
+    try {
+      await fetch('/api/items', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title, description }) });
       await fetchItems();
       setIsEditing(false);
+    } catch (e: any) {
+      setError(e?.message || 'Failed to create item');
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   const handleUpdate = async (id: string, title: string, description: string) => {
     setIsLoading(true);
     setError(null);
-    const { error } = await supabase
-      .from('items')
-      .update({ title, description })
-      .eq('id', id);
-
-    if (error) {
-      setError(error.message);
-    } else {
+    try {
+      await fetch(`/api/items/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title, description }) });
       await fetchItems();
       setIsEditing(false);
       setCurrentItem(null);
+    } catch (e: any) {
+      setError(e?.message || 'Failed to update item');
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   const handleDelete = async (id: string) => {
     setIsLoading(true);
     setError(null);
-    const { error } = await supabase
-      .from('items')
-      .delete()
-      .eq('id', id);
-
-    if (error) {
-      setError(error.message);
-    } else {
+    try {
+      await fetch(`/api/items/${id}`, { method: 'DELETE' });
       await fetchItems();
+    } catch (e: any) {
+      setError(e?.message || 'Failed to delete item');
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   return (
