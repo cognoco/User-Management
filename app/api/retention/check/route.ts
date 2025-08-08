@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getSession } from '@/lib/auth/session';
+import { getSessionFromRequest } from '@/lib/auth/session';
 import { retentionService } from '@/lib/services/retention.service';
 
 /**
@@ -8,10 +8,10 @@ import { retentionService } from '@/lib/services/retention.service';
  * GET /api/retention/check
  * Returns the user's retention status
  */
-export async function GET() {
+export async function GET(req: Request) {
   try {
     // Get user session 
-    const session = await getSession();
+    const session = await getSessionFromRequest(req as any);
     
     if (!session?.userId) {
       return NextResponse.json(

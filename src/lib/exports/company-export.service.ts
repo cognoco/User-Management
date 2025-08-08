@@ -1,6 +1,10 @@
 import { v4 as uuidv4 } from 'uuid';
 import { addHours } from 'date-fns';
-import { supabase } from '@/lib/supabase';
+// Server-only: import supabase dynamically when needed to avoid client bundling
+async function getServerSupabase() {
+  const { getServiceSupabase } = await import('@/lib/database/supabase');
+  return getServiceSupabase();
+}
 import { sendEmail } from '@/lib/email/sendEmail';
 import { logUserAction } from '@/lib/audit/auditLogger';
 import Papa from 'papaparse';
@@ -33,6 +37,7 @@ const EXPORT_RATE_LIMIT_MINUTES = 15;
  * @returns Boolean indicating if company is rate limited
  */
 export async function isCompanyRateLimited(companyId: string): Promise<boolean> {
+  const supabase = await getServerSupabase();
   const rateWindowDate = new Date();
   rateWindowDate.setMinutes(rateWindowDate.getMinutes() - EXPORT_RATE_LIMIT_MINUTES);
   
@@ -63,6 +68,7 @@ export async function createCompanyDataExport(
   options: Partial<ExportOptions> = {}
 ): Promise<CompanyDataExport | null> {
   try {
+    const supabase = await getServerSupabase();
     const exportOptions = { ...DEFAULT_EXPORT_OPTIONS, ...options };
     const expiresAt = addHours(new Date(), exportOptions.expiryHours || 24);
     
@@ -117,6 +123,7 @@ export async function processCompanyDataExport(
   userId: string
 ): Promise<void> {
   try {
+    const supabase = await getServerSupabase();
     // Get export record to determine format
     const exportRecord = await getCompanyDataExportById(exportId);
     if (!exportRecord) throw new Error('Export record not found');
@@ -314,6 +321,7 @@ export async function sendCompanyExportNotification(
 ): Promise<boolean> {
   try {
     // Get export details
+    const supabase = await getServerSupabase();
     const { data: export_, error } = await supabase
       .from('company_data_exports')
       .select('*, company_profiles:company_id!inner(name)')
@@ -368,6 +376,7 @@ export async function sendCompanyExportNotification(
  */
 export async function getCompanyDataExportByToken(token: string): Promise<CompanyDataExport | null> {
   try {
+    const supabase = await getServerSupabase();
     const { data, error } = await supabase
       .from('company_data_exports')
       .select('*')
@@ -408,6 +417,7 @@ export async function getCompanyDataExportByToken(token: string): Promise<Compan
  */
 export async function getCompanyDataExportById(exportId: string): Promise<CompanyDataExport | null> {
   try {
+    const supabase = await getServerSupabase();
     const { data, error } = await supabase
       .from('company_data_exports')
       .select('*')
@@ -444,7 +454,9 @@ export async function getCompanyDataExportById(exportId: string): Promise<Compan
  * @param filePath File path in storage
  * @returns Download URL
  */
-export function getCompanyExportDownloadUrl(filePath: string): string {
+export async function getCompanyExportDownloadUrl(filePath: string): Promise<string> {
+  // Public URL helper: use server client on demand
+  const supabase = await getServerSupabase();
   const { data } = supabase.storage
     .from(DataExportStorageBucket.COMPANY_EXPORTS)
     .getPublicUrl(filePath);
@@ -459,6 +471,7 @@ export function getCompanyExportDownloadUrl(filePath: string): string {
  */
 export async function getCompanyExportData(companyId: string): Promise<CompanyExportData> {
   // Get company profile
+  const supabase = await getServerSupabase();
   const { data: companyProfile } = await supabase
     .from('company_profiles')
     .select('*, company_addresses(*)')

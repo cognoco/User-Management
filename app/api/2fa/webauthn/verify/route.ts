@@ -1,3 +1,4 @@
+export const runtime = 'nodejs';
 import { z } from 'zod';
 import { withSecurity } from '@/middleware/with-security';
 import { createApiHandler } from '@/lib/api/route-helpers';

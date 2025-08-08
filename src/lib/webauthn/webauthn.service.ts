@@ -1,9 +1,4 @@
-import {
-  generateRegistrationOptions,
-  verifyRegistrationResponse,
-  generateAuthenticationOptions,
-  verifyAuthenticationResponse,
-} from '@simplewebauthn/server';
+// Server-only: dynamically import simplewebauthn in functions to avoid eager bundling
 import type {
   RegistrationCredentialJSON,
   AuthenticationCredentialJSON,
@@ -15,6 +10,9 @@ const rpID = process.env.NEXT_PUBLIC_RP_ID || 'localhost';
 const origin = process.env.NEXT_PUBLIC_ORIGIN || `https://${rpID}`;
 
 export async function generateRegistration(userId: string) {
+  const {
+    generateRegistrationOptions,
+  } = await import('@simplewebauthn/server');
   const supabase = getServiceSupabase();
 
   const { data: existingCredentials } = await supabase
@@ -54,6 +52,7 @@ export async function verifyRegistration(
   userId: string,
   credential: RegistrationCredentialJSON,
 ) {
+  const { verifyRegistrationResponse } = await import('@simplewebauthn/server');
   const supabase = getServiceSupabase();
 
   const { data: challengeData, error: challengeError } = await supabase
@@ -106,6 +105,7 @@ export async function verifyRegistration(
 }
 
 export async function generateAuthentication(userId: string) {
+  const { generateAuthenticationOptions } = await import('@simplewebauthn/server');
   const supabase = getServiceSupabase();
 
   const { data: existingCredentials } = await supabase
@@ -143,6 +143,7 @@ export async function verifyAuthentication(
   userId: string,
   credential: AuthenticationCredentialJSON,
 ) {
+  const { verifyAuthenticationResponse } = await import('@simplewebauthn/server');
   const supabase = getServiceSupabase();
 
   const { data: challengeData, error: challengeError } = await supabase

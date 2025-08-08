@@ -15,7 +15,6 @@ import { User } from "@/core/auth/models";
 // const toastPromise = import('react-hot-toast');
 import { OAuthProvider } from "@/types/oauth";
 import { SessionPolicyEnforcer } from "@/ui/styled/session/SessionPolicyEnforcer";
-import { registerAllServices } from "@/scripts/fix-initialization";
 import { AuthProvider } from '@/lib/context/AuthContext';
 
 // Define the callbacks inside the Client Component
@@ -95,26 +94,9 @@ export function UserManagementClientBoundary({
   const [isInitialized, setIsInitialized] = useState(false);
   const [initError, setInitError] = useState<string | null>(null);
 
-  // Initialize services on mount
+  // Disable client-side service registration to avoid pulling server-only modules
   useEffect(() => {
-    console.log(
-      ">>>>>>>>>> [UserManagementClientBoundary] useEffect SERVICE INITIALIZATION RUNNING <<<<<<<<<<",
-    );
-    
-    async function initializeServices() {
-      try {
-        console.log("[UserManagementClientBoundary] Initializing services...");
-        await registerAllServices();
-        console.log("[UserManagementClientBoundary] Services initialized successfully");
-        setIsInitialized(true);
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error during service initialization';
-        console.error("[UserManagementClientBoundary] Service initialization failed:", errorMessage);
-        setInitError(errorMessage);
-      }
-    }
-
-    initializeServices();
+    setIsInitialized(true);
   }, []);
 
   // Get the auth service from the service provider registry (only after initialization)

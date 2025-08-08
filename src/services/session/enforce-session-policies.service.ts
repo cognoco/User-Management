@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient } from '@supabase/ssr';
+// Server-only dynamic import to avoid eager bundling issues
 import { createSessionProvider } from '@/adapters/session/factory';
 import { getSessionTimeout, getMaxSessionsPerUser } from '@/lib/security/security-policy.service';
 
@@ -21,6 +21,7 @@ export async function enforceSessionPolicies(
     }
   });
 
+  const { createServerClient } = await import('@supabase/ssr');
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,

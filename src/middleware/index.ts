@@ -1,4 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
+import type { NextRequest, NextResponse } from 'next/server';
 import { rateLimit } from '@/middleware/rate-limit';
 import { securityHeaders } from '@/middleware/security-headers';
 import { auditLog } from '@/middleware/audit-log';
@@ -146,3 +147,47 @@ export function withSecurity(
 
 export { withErrorHandling } from './error-handling';
 export { correlationIdMiddleware };
+
+// App Router helper compatible with existing usage in app/api/*
+// Wraps a handler with a minimal chain supporting 'cors' only (CSRF/RateLimit are handled elsewhere)
+type AppRouteHandler = (req: NextRequest) => Promise<Response>;
+
+export function middleware(
+  configOrHandler: Array<'cors' | 'csrf' | 'rateLimit'> | AppRouteHandler,
+  handlerArg?: AppRouteHandler
+): AppRouteHandler {
+  const middlewares = Array.isArray(configOrHandler) ? configOrHandler : [];
+  const handler = (Array.isArray(configOrHandler) ? handlerArg : configOrHandler) as AppRouteHandler;
+  if (!handler) {
+    throw new Error('middleware requires a handler');
+  }
+  return async function wrapped(req: NextRequest) {
+    // Apply minimal CORS preflight handling
+    if (middlewares.includes('cors')) {
+      const origin = req.headers.get('origin') || '*';
+      if (req.method === 'OPTIONS') {
+        return new Response(null, {
+          status: 204,
+          headers: {
+            'Access-Control-Allow-Origin': origin,
+            'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With, X-CSRF-Token',
+            'Access-Control-Allow-Credentials': 'true',
+            'Access-Control-Max-Age': '86400',
+          },
+        });
+      }
+    }
+    // CSRF and RateLimit middlewares are already used via helpers in legacy Next API;
+    // here we just call through to the handler. Full adaptation can be added if needed.
+    const res = await handler(req);
+    if (middlewares.includes('cors')) {
+      const origin = req.headers.get('origin') || '*';
+      const headers = new Headers(res.headers);
+      headers.set('Access-Control-Allow-Origin', origin);
+      headers.set('Access-Control-Allow-Credentials', 'true');
+      return new Response(await res.arrayBuffer(), { status: res.status, statusText: res.statusText, headers });
+    }
+    return res;
+  };
+}

@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/ui/
 import { Button } from '@/ui/primitives/button';
 
 // Import from our new architecture
-import { MFAManagementSection } from '@/ui/styled/auth/MFAManagementSection';
+import MFAManagementSection from '@/ui/styled/auth/MFAManagementSection';
 
 export default function SecuritySettingsPage() {
   const { t } = useTranslation();

@@ -18,11 +18,12 @@ import { createPermissionService } from "@/services/permission";
 import { createWebhookService } from "@/services/webhooks";
 
 // Import adapter factories
-import { createSupabaseAuthProvider } from "@/adapters/auth";
-import { createSupabaseUserProvider } from "@/adapters/user";
-import { createSupabaseTeamProvider } from "@/adapters/team";
-import { createSupabasePermissionProvider } from "@/adapters/permission";
-import { createSupabaseWebhookProvider } from "@/adapters/webhooks";
+// Server-only: import adapters dynamically when used server-side
+let createSupabaseAuthProvider: any;
+let createSupabaseUserProvider: any;
+let createSupabaseTeamProvider: any;
+let createSupabasePermissionProvider: any;
+let createSupabaseWebhookProvider: any;
 
 // Function to check if a service is registered
 function checkServiceRegistration(serviceName: string): boolean {
@@ -52,7 +53,14 @@ function registerAllServices() {
       throw new Error(`Missing Supabase environment variables: ${missingVars.join(', ')}`);
     }
 
-    // Create data providers (adapters)
+    // Create data providers (adapters). Load dynamically to avoid client bundling
+    if (!createSupabaseAuthProvider) {
+      ({ createSupabaseAuthProvider } = await import('@/adapters/auth'));
+      ({ createSupabaseUserProvider } = await import('@/adapters/user'));
+      ({ createSupabaseTeamProvider } = await import('@/adapters/team'));
+      ({ createSupabasePermissionProvider } = await import('@/adapters/permission'));
+      ({ createSupabaseWebhookProvider } = await import('@/adapters/webhooks'));
+    }
     const authProvider = createSupabaseAuthProvider(
       supabaseUrl,
       supabaseKey

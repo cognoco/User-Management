@@ -1,4 +1,5 @@
 import { type NextRequest } from 'next/server'
+export const runtime = 'nodejs'
 import { z } from 'zod'
 import { createApiHandler, emptySchema } from '@/lib/api/route-helpers'
 import { createSuccessResponse, createCreatedResponse, createServerError, ApiError, ERROR_CODES } from '@/lib/api/common'

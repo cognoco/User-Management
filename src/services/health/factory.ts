@@ -1,12 +1,13 @@
-import { IHealthService } from '../../core/health/interfaces';
-import { DefaultHealthService } from './default-health.service';
+import type { HealthMonitoringService } from '@/core/health/interfaces';
+import { DefaultHealthMonitoringService } from './default-health.service';
 import { AdapterRegistry } from '../../adapters/registry';
 
-export function createHealthService(): IHealthService {
-  const adapter = AdapterRegistry.getInstance().getAdapter('health');
-  return new DefaultHealthService(adapter);
+export function createHealthService(): HealthMonitoringService {
+  // Adapter kept for future extension; not used by default implementation
+  AdapterRegistry.getInstance();
+  return new DefaultHealthMonitoringService();
 }
 
-export function getHealthService(): IHealthService {
+export function getHealthService(): HealthMonitoringService {
   return createHealthService();
 }

@@ -8,7 +8,6 @@ import dynamic from 'next/dynamic';
 import { useGlobalError } from '@/lib/state/errorStore';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 // Import directly to avoid pulling in server-only modules (like Nodemailer) via the barrel
-import { initializeErrorSystem } from '@/lib/monitoring/error-system';
 import { initializeCsrf } from '@/lib/api/csrf';
 
 const GlobalErrorDisplay = dynamic(
@@ -26,9 +25,7 @@ export default function RootLayoutClient({
   useKeyboardShortcuts({
     "shift+?": () => setDialogOpen(true),
   });
-  useEffect(() => {
-    initializeErrorSystem();
-  }, []);
+  // Client-side error system removed to avoid pulling server-only audit/database code
   return (
     <>
       <SkipLink />

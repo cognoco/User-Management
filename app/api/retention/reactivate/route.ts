@@ -1,4 +1,6 @@
 import { NextResponse } from 'next/server';
+export const runtime = 'nodejs';
+import { getSessionFromRequest } from '@/lib/auth/session';
 import { getSession } from '@/lib/auth/session';
 import { retentionService } from '@/lib/services/retention.service';
 
@@ -8,10 +10,10 @@ import { retentionService } from '@/lib/services/retention.service';
  * POST /api/retention/reactivate
  * Reactivates the user's account if it's in an inactive state
  */
-export async function POST() {
+export async function POST(req: Request) {
   try {
     // Get user session 
-    const session = await getSession();
+    const session = await getSessionFromRequest(req as any);
     
     if (!session?.userId) {
       return NextResponse.json(

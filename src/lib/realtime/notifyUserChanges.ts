@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase';
+import { getServiceSupabase } from '@/lib/database/supabase';
 
 export async function notifyUserChanges(
   eventType: 'UPDATE' | 'INSERT' | 'DELETE',
@@ -18,6 +18,7 @@ export async function notifyUserChanges(
       },
     };
 
+    const supabase = getServiceSupabase();
     await supabase.channel('admin_notifications').send({
       type: 'broadcast',
       event: 'user_change',

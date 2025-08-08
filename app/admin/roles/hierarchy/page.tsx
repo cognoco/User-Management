@@ -1,4 +1,4 @@
-import RoleHierarchyTree from '@/ui/styled/permission/RoleHierarchyTree';
+import { RoleHierarchyTree } from '@/ui/styled/permission/RoleHierarchyTree';
 
 export default function RoleHierarchyPage() {
   return (

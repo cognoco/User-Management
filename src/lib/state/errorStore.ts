@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { logApiError } from '@/lib/audit/error-logger';
+// Client should not import server-side loggers; no-op sync on client
 
 export interface ErrorEntry {
   id: string;
@@ -50,9 +50,7 @@ export const useErrorStore = create<ErrorState>((set, get) => ({
       setTimeout(() => get().removeError(id, entry.section), entry.dismissAfter);
     }
 
-    if (entry.sync) {
-      void logApiError(new Error(entry.message), { path: 'client' });
-    }
+    // optional server sync removed from client to avoid pulling audit/database
 
     return id;
   },

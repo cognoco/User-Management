@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import { addHours } from 'date-fns';
-import { supabase } from '@/lib/supabase';
+import { getServiceSupabase } from '@/lib/database/supabase';
 import { sendEmail } from '@/lib/email/sendEmail';
 import { logUserAction } from '@/lib/audit/auditLogger';
 import Papa from 'papaparse';
@@ -36,6 +36,7 @@ export async function isUserRateLimited(userId: string): Promise<boolean> {
   const rateWindowDate = new Date();
   rateWindowDate.setMinutes(rateWindowDate.getMinutes() - EXPORT_RATE_LIMIT_MINUTES);
   
+  const supabase = getServiceSupabase();
   const { count, error } = await supabase
     .from('user_data_exports')
     .select('*', { count: 'exact', head: true })
@@ -64,6 +65,7 @@ export async function createUserDataExport(
     const exportOptions = { ...DEFAULT_EXPORT_OPTIONS, ...options };
     const expiresAt = addHours(new Date(), exportOptions.expiryHours || 24);
     
+    const supabase = getServiceSupabase();
     const { data, error } = await supabase
       .from('user_data_exports')
       .insert({
@@ -113,6 +115,7 @@ export async function processUserDataExport(exportId: string, userId: string): P
     if (!exportRecord) throw new Error('Export record not found');
     
     // Update status to processing
+    const supabase = getServiceSupabase();
     await supabase
       .from('user_data_exports')
       .update({
@@ -151,7 +154,8 @@ export async function processUserDataExport(exportId: string, userId: string): P
     const filePath = `${userId}/${filename}`;
     
     // Upload to storage
-    const { error: uploadError } = await supabase.storage
+    const supabase2 = getServiceSupabase();
+    const { error: uploadError } = await supabase2.storage
       .from(DataExportStorageBucket.USER_EXPORTS)
       .upload(filePath, fileContent, {
         contentType,
@@ -161,7 +165,8 @@ export async function processUserDataExport(exportId: string, userId: string): P
     if (uploadError) throw uploadError;
     
     // Update export record
-    await supabase
+    const supabase3 = getServiceSupabase();
+    await supabase3
       .from('user_data_exports')
       .update({
         status: ExportStatus.COMPLETED,
@@ -186,6 +191,7 @@ export async function processUserDataExport(exportId: string, userId: string): P
     console.error('Error processing user data export:', error);
     
     // Update export record with error
+    const supabase = getServiceSupabase();
     await supabase
       .from('user_data_exports')
       .update({
@@ -290,6 +296,7 @@ export async function sendExportNotification(
 ): Promise<boolean> {
   try {
     // Get export details
+    const supabase = getServiceSupabase();
     const { data: export_, error } = await supabase
       .from('user_data_exports')
       .select('*')
@@ -319,7 +326,8 @@ export async function sendExportNotification(
     });
     
     // Update notification status
-    await supabase
+    const supabase2 = getServiceSupabase();
+    await supabase2
       .from('user_data_exports')
       .update({
         notification_sent: true,
@@ -341,6 +349,7 @@ export async function sendExportNotification(
  */
 export async function getUserDataExportByToken(token: string): Promise<UserDataExport | null> {
   try {
+    const supabase = getServiceSupabase();
     const { data, error } = await supabase
       .from('user_data_exports')
       .select('*')
@@ -380,6 +389,7 @@ export async function getUserDataExportByToken(token: string): Promise<UserDataE
  */
 export async function getUserDataExportById(exportId: string): Promise<UserDataExport | null> {
   try {
+    const supabase = getServiceSupabase();
     const { data, error } = await supabase
       .from('user_data_exports')
       .select('*')
@@ -416,6 +426,7 @@ export async function getUserDataExportById(exportId: string): Promise<UserDataE
  * @returns Download URL
  */
 export function getUserExportDownloadUrl(filePath: string): string {
+  const supabase = getServiceSupabase();
   const { data } = supabase.storage
     .from(DataExportStorageBucket.USER_EXPORTS)
     .getPublicUrl(filePath);
@@ -430,6 +441,7 @@ export function getUserExportDownloadUrl(filePath: string): string {
  */
 export async function getUserExportData(userId: string): Promise<UserExportData> {
   // Get profile data
+  const supabase = getServiceSupabase();
   const { data: profile } = await supabase
     .from('profiles')
     .select('*')
