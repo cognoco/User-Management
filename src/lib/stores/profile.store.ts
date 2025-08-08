@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { api } from '@/lib/api/axios';
-import { supabase } from '../supabase';
+// Supabase must not be used from client; rely on API
 import {
     ProfileState,
 } from '@/types/profile';
@@ -56,13 +56,8 @@ const profileStoreBase = create<ProfileInternalState & {
       } catch (businessError: any) {
           console.log('Failed to fetch business profile, trying fallback...', businessError.response?.status);
           try {
-             const { data: sbData, error: sbError } = await supabase
-                .from('profiles')
-                .select('*')
-                .eq('userId', userId)
-                .single();
-             if(sbError) throw sbError;
-             profileData = sbData as DbProfile;
+             const fb = await api.get(`/api/profile/personal?userId=${encodeURIComponent(userId)}`);
+             profileData = fb.data as DbProfile;
           } catch (fallbackError) {
              console.error("Error fetching profile fallback:", fallbackError);
              if (businessError.response?.status && businessError.response?.status !== 403 && businessError.response?.status !== 404) {
