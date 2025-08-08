@@ -51,6 +51,7 @@ const nextConfig = {
         '@supabase/node-fetch': path.resolve(__dirname, 'src/lib/shims/node-fetch.ts'),
         '@supabase/node-fetch/lib/index.js': path.resolve(__dirname, 'src/lib/shims/node-fetch.ts'),
         'node-fetch': false,
+        // Ensure whatwg-url never enters client bundles via supabase/node-fetch
         'whatwg-url': false,
         'whatwg-url/lib/URL.js': false,
         'whatwg-url/lib/public-api.js': false,
@@ -60,6 +61,7 @@ const nextConfig = {
         axios: path.resolve(__dirname, 'src/lib/api/axios-browser.ts'),
         // Also ensure our internal axios wrapper resolves to the browser shim on client
         '@/lib/api/axios': path.resolve(__dirname, 'src/lib/api/axios-browser.ts'),
+        // Radix components should resolve normally; do not alias to false or they will be missing
       };
       
       // Completely exclude nodemailer from client bundle

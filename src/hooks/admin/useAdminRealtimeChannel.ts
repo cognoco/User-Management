@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getSupabaseClient } from '@/lib/supabase';
+// Avoid direct supabase in client; rely on server-sent events or noop for now
 import { useAuth } from '@/hooks/auth/useAuth';
 
 interface AdminRealtimeOptions {
@@ -25,40 +25,9 @@ export function useAdminRealtimeChannel(options: AdminRealtimeOptions = {}) {
 
   useEffect(() => {
     if (!user || !enabled) return;
-
-    let unsubscribe: (() => void) | undefined;
-
-    getSupabaseClient().then((client) => {
-      const channel = client.channel('admin_notifications', {
-        config: { broadcast: { self: false } },
-      });
-
-      channel.on('broadcast', { event: 'user_change' }, (payload) => {
-        console.log('Received user change broadcast:', payload);
-        userChangeListeners.forEach((listener) => {
-          try {
-            listener(payload);
-          } catch (error) {
-            console.error('Error in user change listener:', error);
-          }
-        });
-      });
-
-      channel.subscribe((status) => {
-        console.log('Admin realtime channel status:', status);
-        setIsConnected(status === 'SUBSCRIBED');
-      });
-
-      unsubscribe = () => {
-        try { channel.unsubscribe(); } catch {}
-        setIsConnected(false);
-      };
-    });
-
-    return () => {
-      try { unsubscribe?.(); } catch {}
-    };
-  }, [user, enabled, userChangeListeners]);
+    // TODO: replace with SSE/WebSocket via API route; for now mark disconnected
+    setIsConnected(false);
+  }, [user, enabled]);
 
   return { isConnected, addUserChangeListener };
 }

@@ -1,3 +1,4 @@
+// Server-only Supabase client factory; do not import from client bundles
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 // Ensure you have these environment variables set in your .env file

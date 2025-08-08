@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { supabase } from '@/lib/supabase';
+// Supabase calls are proxied via API to avoid bundling supabase-js in client
 import type { User as BaseUser } from '@/types/user';
 
 // Extend User type for admin table compatibility
@@ -45,9 +45,10 @@ export function AdminUsers({ fetchUsers, handleRoleChange, children }: AdminUser
     setLoading(true);
     setError(null);
     try {
-      const { data, error } = await supabase.from('users').select('*').order('created_at', { ascending: false });
-      if (error) throw error;
-      setUsers(data || []);
+      const res = await fetch('/api/admin/users');
+      if (!res.ok) throw new Error('Failed to fetch users');
+      const data = await res.json();
+      setUsers(Array.isArray(data?.users) ? data.users : []);
     } catch (err: any) {
       setError(err.message || 'Failed to fetch users');
       setUsers([]);
@@ -61,8 +62,12 @@ export function AdminUsers({ fetchUsers, handleRoleChange, children }: AdminUser
     setLoading(true);
     setError(null);
     try {
-      const { error } = await supabase.from('users').update({ role: newRole }).eq('id', user.id);
-      if (error) throw error;
+      const res = await fetch('/api/admin/users/role', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: user.id, role: newRole })
+      });
+      if (!res.ok) throw new Error('Failed to update user role');
       // Refetch users after update
       await (fetchUsers || defaultFetchUsers)();
     } catch (err: any) {
