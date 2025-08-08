@@ -22,7 +22,7 @@ function getSupabaseClient() {
 
 // Export getter instead of direct client
 export const supabase = new Proxy({} as ReturnType<typeof createClient>, {
-  get(target, prop) {
+  get(_target, prop) {
     const client = getSupabaseClient();
     const value = (client as any)[prop];
     return typeof value === 'function' ? value.bind(client) : value;

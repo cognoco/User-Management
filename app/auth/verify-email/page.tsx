@@ -3,7 +3,18 @@
 import { useEffect, useState, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation'; // Import useSearchParams
 import { useAuth } from '@/hooks/auth/useAuth'; // Adjust path if needed
-import { supabase } from '@/lib/database/supabase'; // Corrected import path
+// IMPORTANT: Use supabase-js browser client directly to avoid pulling node-fetch into client bundle
+// Replace direct Supabase usage with API calls to avoid bundling node-fetch in client
+async function apiGetSession() {
+  const res = await fetch('/api/auth/session', { credentials: 'include' });
+  if (!res.ok) return null;
+  return res.json();
+}
+async function apiGetUser() {
+  const res = await fetch('/api/auth/account', { credentials: 'include' });
+  if (!res.ok) return null;
+  return res.json();
+}
 import { Button } from '@/ui/primitives/button';
 import { Alert, AlertDescription, AlertTitle } from '@/ui/primitives/alert';
 import { Loader2, AlertCircle, MailWarning, CheckCircle } from 'lucide-react'; // Added icons
@@ -54,7 +65,7 @@ export default function VerifyEmailPage() {
           if (verificationTimeoutRef.current) clearTimeout(verificationTimeoutRef.current);
           // Attempt to get email from state for resend button if needed (useful if query param wasn't passed)
           if (!email) {
-             supabase.auth.getUser().then(({ data: { user } }) => {
+             apiGetUser().then((user) => {
                 if (user?.email) {
                    setEmail((user.email as string | null) || null);
                 }
@@ -83,21 +94,20 @@ export default function VerifyEmailPage() {
 
 
     // --- Auth State Listener ---
-    const { data: { subscription: authListener } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('Auth State Change Event:', event, 'Session:', session);
-      // Clear timeouts using refs
-      if (sessionCheckTimeoutRef.current) clearTimeout(sessionCheckTimeoutRef.current);
-      if (verificationTimeoutRef.current) clearTimeout(verificationTimeoutRef.current);
-
-      if (event === 'SIGNED_IN') {
+    // Poll for session change as a lightweight client fallback
+    const poll = async () => {
+      const session = await apiGetSession();
+      if (session?.user?.email_confirmed_at) {
         setStatus('success');
         setErrorMessage(null);
-      } else if (event === 'USER_UPDATED' && session?.user?.email_confirmed_at) {
-         setStatus('success');
-         setErrorMessage(null);
+        return true;
       }
-      // Consider handling SIGNED_OUT or TOKEN_REFRESHED if needed
-    });
+      return false;
+    };
+    const interval = setInterval(async () => {
+      const done = await poll();
+      if (done) clearInterval(interval);
+    }, 1500);
     // --- End Auth State Listener ---
 
     // --- Fallback Timers (Only if no error in fragment) ---
@@ -105,7 +115,7 @@ export default function VerifyEmailPage() {
         // Initial check if already verified
         sessionCheckTimeoutRef.current = setTimeout(async () => {
             try {
-                const { data: { session } } = await supabase.auth.getSession();
+                const session = await apiGetSession();
                 if (session && session.user?.email_confirmed_at) {
                     console.log("Already verified via session check.");
                     setStatus('success');
@@ -130,11 +140,9 @@ export default function VerifyEmailPage() {
                  setErrorMessage(null); // Clear generic timeout error
                  // Try to get email if still missing
                  if (!email) {
-                     supabase.auth.getUser().then(({ data: { user } }) => {
-                        if (user?.email) {
-                           setEmail((user.email as string | null) || null);
-                        }
-                     });
+                      apiGetUser().then((user) => {
+                        if (user?.email) setEmail(user.email as string);
+                      });
                  }
             }
         }, 8000); 
@@ -142,7 +150,7 @@ export default function VerifyEmailPage() {
     // --- End Fallback Timers ---
 
     return () => {
-      authListener?.unsubscribe();
+      try { clearInterval(interval); } catch {}
       // Clear timeouts using refs on cleanup
       if (sessionCheckTimeoutRef.current) clearTimeout(sessionCheckTimeoutRef.current);
       if (verificationTimeoutRef.current) clearTimeout(verificationTimeoutRef.current);

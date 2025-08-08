@@ -3,8 +3,8 @@ import { initializeCsrf, getCsrfToken } from './csrf';
 
 const { env } = clientConfig;
 
-// In the browser, avoid importing axios (brings Node FormData/asynckit). Use fetch wrapper.
-function createBrowserApi() {
+// Universal fetch-based API wrapper for both server and client to avoid axios/node shims
+function createFetchApi() {
   const baseURL = env.apiBaseUrl;
   const withBase = (url: string) => (url.startsWith('http') ? url : `${baseURL}${url}`);
   const commonHeaders = { 'Content-Type': 'application/json' } as Record<string, string>;
@@ -49,36 +49,10 @@ function createBrowserApi() {
     defaults: { baseURL },
     interceptors: {},
   } as any;
-  // prime CSRF in background
+  // prime CSRF in background for browsers only
   if (typeof window !== 'undefined') initializeCsrf().catch(() => {});
   return api;
 }
 
-async function createServerApi() {
-  const axios = (await import('axios')).default;
-  const instance = axios.create({
-    baseURL: env.apiBaseUrl,
-    headers: { 'Content-Type': 'application/json' },
-    withCredentials: true,
-    timeout: env.apiTimeout,
-  });
-  return instance as any;
-}
-
-export const api: any = typeof window === 'undefined' ? (awaitProxyServerApi()) : createBrowserApi();
-
-function awaitProxyServerApi() {
-  // Lazy proxy to avoid top-level await
-  let cached: any;
-  const handler: ProxyHandler<any> = {
-    get(_, prop) {
-      return async (...args: any[]) => {
-        if (!cached) cached = await createServerApi();
-        return (cached as any)[prop](...args);
-      };
-    },
-  };
-  return new Proxy({}, handler);
-}
-
+export const api: any = createFetchApi();
 export default api;

@@ -1,6 +1,10 @@
 import * as React from 'react';
-import * as CheckboxPrimitive from '@radix-ui/react-checkbox';
-import { CheckIcon } from '@radix-ui/react-icons';
+import dynamic from 'next/dynamic';
+const CheckboxPrimitive = {
+  Root: dynamic(() => import('@radix-ui/react-checkbox').then(m => m.Root), { ssr: false }) as any,
+  Indicator: dynamic(() => import('@radix-ui/react-checkbox').then(m => m.Indicator), { ssr: false }) as any,
+};
+const CheckIcon = dynamic(() => import('@radix-ui/react-icons').then(m => m.CheckIcon), { ssr: false }) as any;
 import { cn } from '@/lib/utils';
 
 // Simple implementation without any state management to avoid issues

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/lib/supabase';
+import { getSupabaseClient } from '@/lib/supabase';
 import { useAuth } from '@/hooks/auth/useAuth';
 
 interface AdminRealtimeOptions {
@@ -26,29 +26,37 @@ export function useAdminRealtimeChannel(options: AdminRealtimeOptions = {}) {
   useEffect(() => {
     if (!user || !enabled) return;
 
-    const channel = supabase.channel('admin_notifications', {
-      config: { broadcast: { self: false } },
-    });
+    let unsubscribe: (() => void) | undefined;
 
-    channel.on('broadcast', { event: 'user_change' }, (payload) => {
-      console.log('Received user change broadcast:', payload);
-      userChangeListeners.forEach((listener) => {
-        try {
-          listener(payload);
-        } catch (error) {
-          console.error('Error in user change listener:', error);
-        }
+    getSupabaseClient().then((client) => {
+      const channel = client.channel('admin_notifications', {
+        config: { broadcast: { self: false } },
       });
-    });
 
-    channel.subscribe((status) => {
-      console.log('Admin realtime channel status:', status);
-      setIsConnected(status === 'SUBSCRIBED');
+      channel.on('broadcast', { event: 'user_change' }, (payload) => {
+        console.log('Received user change broadcast:', payload);
+        userChangeListeners.forEach((listener) => {
+          try {
+            listener(payload);
+          } catch (error) {
+            console.error('Error in user change listener:', error);
+          }
+        });
+      });
+
+      channel.subscribe((status) => {
+        console.log('Admin realtime channel status:', status);
+        setIsConnected(status === 'SUBSCRIBED');
+      });
+
+      unsubscribe = () => {
+        try { channel.unsubscribe(); } catch {}
+        setIsConnected(false);
+      };
     });
 
     return () => {
-      channel.unsubscribe();
-      setIsConnected(false);
+      try { unsubscribe?.(); } catch {}
     };
   }, [user, enabled, userChangeListeners]);
 

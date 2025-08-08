@@ -1,5 +1,15 @@
 import * as React from 'react';
-import * as DialogPrimitive from '@radix-ui/react-dialog';
+import dynamic from 'next/dynamic';
+const DialogPrimitive = {
+  Root: dynamic(() => import('@radix-ui/react-dialog').then(m => m.Root), { ssr: false }) as any,
+  Trigger: dynamic(() => import('@radix-ui/react-dialog').then(m => m.Trigger), { ssr: false }) as any,
+  Portal: dynamic(() => import('@radix-ui/react-dialog').then(m => m.Portal), { ssr: false }) as any,
+  Close: dynamic(() => import('@radix-ui/react-dialog').then(m => m.Close), { ssr: false }) as any,
+  Overlay: dynamic(() => import('@radix-ui/react-dialog').then(m => m.Overlay), { ssr: false }) as any,
+  Content: dynamic(() => import('@radix-ui/react-dialog').then(m => m.Content), { ssr: false }) as any,
+  Title: dynamic(() => import('@radix-ui/react-dialog').then(m => m.Title), { ssr: false }) as any,
+  Description: dynamic(() => import('@radix-ui/react-dialog').then(m => m.Description), { ssr: false }) as any,
+} as const;
 import { Cross2Icon } from '@radix-ui/react-icons';
 
 import { cn } from '@/lib/utils';

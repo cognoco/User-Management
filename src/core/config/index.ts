@@ -135,7 +135,9 @@ export * from './config-context';
 // Server code should import from '@/core/config/adapter-config' directly when needed.
 export * from './client-config';
 export * from './environment';
-export * from './runtime-config';
+// IMPORTANT: Import server-only runtime-config directly from server code
+// to avoid bringing Node modules (fs/path) into client bundles.
+// export * from './runtime-config';
 export * from './AppInitializer';
 
 // Export a singleton instance for convenience

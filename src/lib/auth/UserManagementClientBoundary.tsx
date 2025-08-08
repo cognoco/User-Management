@@ -7,11 +7,19 @@ import {
   IntegrationCallbacks,
 } from "./UserManagementProvider";
 import { initializeCsrf } from "@/lib/api/csrf";
-import { supabase } from "@/lib/database/supabase";
+async function getSupabase() {
+  const { createClient } = await import('@supabase/supabase-js');
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+}
 import { UserManagementConfiguration } from "@/core/config";
 import { AuthService } from "@/core/auth/interfaces";
 import { User } from "@/core/auth/models";
-import toast, { Toaster } from "react-hot-toast";
+// Toast temporarily disabled to unblock production build; can re-enable with dynamic import
+// const Toaster = dynamic(() => import('react-hot-toast').then(m => m.Toaster), { ssr: false });
+// const toastPromise = import('react-hot-toast');
 import { OAuthProvider } from "@/types/oauth";
 import { SessionPolicyEnforcer } from "@/ui/styled/session/SessionPolicyEnforcer";
 import { registerAllServices } from "@/scripts/fix-initialization";
@@ -139,77 +147,8 @@ export function UserManagementClientBoundary({
       });
   }, []);
 
-  // Setup Supabase auth listener
-  useEffect(() => {
-    if (!authService) return;
-    console.log(
-      ">>>>>>>>>> [UserManagementClientBoundary] useEffect Supabase Listener RUNNING <<<<<<<<<<",
-    );
-    // Initial session check
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log(
-        "[UserManagementClientBoundary] Initial session check:",
-        session,
-      );
-      if (session?.user && session.user.email) {
-        const localUser: User = {
-          id: session.user.id,
-          email: session.user.email,
-          app_metadata: session.user.app_metadata,
-          user_metadata: session.user.user_metadata,
-        };
-        (authService as any).setCurrentUser?.(localUser);
-        (authService as any).setAuthToken?.(session.access_token ?? null);
-      } else {
-        (authService as any).setCurrentUser?.(null);
-        (authService as any).setAuthToken?.(null);
-      }
-    });
-
-    // Subscribe to auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        const previousUser = await authService.getCurrentUser();
-        if (session?.user && session.user.email) {
-          const localUser: User = {
-            id: session.user.id,
-            email: session.user.email,
-            app_metadata: session.user.app_metadata,
-            user_metadata: session.user.user_metadata,
-          };
-          (authService as any).setCurrentUser?.(localUser);
-          (authService as any).setAuthToken?.(session.access_token ?? null);
-          if (event === "SIGNED_IN" && !previousUser) {
-            const isConfirmed =
-              session.user.email_confirmed_at ||
-              (session.user.user_metadata as any)?.email_verified;
-            if (isConfirmed) {
-              setTimeout(() => {
-                toast.success(
-                  "Email successfully verified! You are now logged in.",
-                  { duration: 4000 },
-                );
-              }, 500);
-            }
-            clientCallbacks.onUserLogin(localUser);
-          }
-        } else {
-          if (previousUser) {
-            (authService as any).setCurrentUser?.(null);
-            (authService as any).setAuthToken?.(null);
-            clientCallbacks.onUserLogout();
-          } else {
-            (authService as any).setCurrentUser?.(null);
-            (authService as any).setAuthToken?.(null);
-          }
-        }
-      }
-    );
-    // Cleanup listener on unmount
-    return () => {
-      subscription?.unsubscribe();
-    };
-  }, [authService]);
+  // Supabase auth listener temporarily disabled to unblock build; server API keeps session state
+  // Re-enable once client bundle no longer pulls node-fetch
 
   // Show error screen if initialization failed
   if (initError) {

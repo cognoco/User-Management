@@ -2,7 +2,7 @@
 
 import React, { Suspense } from "react";
 import { DevErrorDetailsPanel } from './DevErrorDetailsPanel';
-import { getClientConfig } from '@/core/config/runtime-config';
+import { clientConfig } from '@/core/config/client-config';
 import { useGlobalError, useErrorStore } from "@/lib/state/errorStore";
 
 const ApiErrorAlert = React.lazy(() => import("./ApiErrorAlert"));
@@ -20,7 +20,7 @@ export function GlobalErrorDisplay() {
     removeError(error.id);
   };
   
-  const showDetails = getClientConfig().env.showErrorDetails;
+  const showDetails = clientConfig.env.showErrorDetails;
   
   return (
     <>
