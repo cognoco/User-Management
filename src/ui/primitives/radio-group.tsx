@@ -1,5 +1,10 @@
 import * as React from 'react';
-import * as RadioGroupPrimitive from '@radix-ui/react-radio-group';
+import dynamic from 'next/dynamic';
+const RadioGroupPrimitive = {
+  Root: dynamic(() => import('@radix-ui/react-radio-group').then(m => m.Root), { ssr: false }) as any,
+  Item: dynamic(() => import('@radix-ui/react-radio-group').then(m => m.Item), { ssr: false }) as any,
+  Indicator: dynamic(() => import('@radix-ui/react-radio-group').then(m => m.Indicator), { ssr: false }) as any,
+} as const;
 import { Circle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 

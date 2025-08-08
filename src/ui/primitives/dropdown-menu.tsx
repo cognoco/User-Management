@@ -1,5 +1,22 @@
 import * as React from 'react';
-import * as DropdownMenuPrimitive from '@radix-ui/react-dropdown-menu';
+import dynamic from 'next/dynamic';
+const DropdownMenuPrimitive = {
+  Root: dynamic(() => import('@radix-ui/react-dropdown-menu').then(m => m.Root), { ssr: false }) as any,
+  Trigger: dynamic(() => import('@radix-ui/react-dropdown-menu').then(m => m.Trigger), { ssr: false }) as any,
+  Group: dynamic(() => import('@radix-ui/react-dropdown-menu').then(m => m.Group), { ssr: false }) as any,
+  Portal: dynamic(() => import('@radix-ui/react-dropdown-menu').then(m => m.Portal), { ssr: false }) as any,
+  Sub: dynamic(() => import('@radix-ui/react-dropdown-menu').then(m => m.Sub), { ssr: false }) as any,
+  RadioGroup: dynamic(() => import('@radix-ui/react-dropdown-menu').then(m => m.RadioGroup), { ssr: false }) as any,
+  SubTrigger: dynamic(() => import('@radix-ui/react-dropdown-menu').then(m => m.SubTrigger), { ssr: false }) as any,
+  SubContent: dynamic(() => import('@radix-ui/react-dropdown-menu').then(m => m.SubContent), { ssr: false }) as any,
+  Content: dynamic(() => import('@radix-ui/react-dropdown-menu').then(m => m.Content), { ssr: false }) as any,
+  Item: dynamic(() => import('@radix-ui/react-dropdown-menu').then(m => m.Item), { ssr: false }) as any,
+  CheckboxItem: dynamic(() => import('@radix-ui/react-dropdown-menu').then(m => m.CheckboxItem), { ssr: false }) as any,
+  ItemIndicator: dynamic(() => import('@radix-ui/react-dropdown-menu').then(m => m.ItemIndicator), { ssr: false }) as any,
+  RadioItem: dynamic(() => import('@radix-ui/react-dropdown-menu').then(m => m.RadioItem), { ssr: false }) as any,
+  Label: dynamic(() => import('@radix-ui/react-dropdown-menu').then(m => m.Label), { ssr: false }) as any,
+  Separator: dynamic(() => import('@radix-ui/react-dropdown-menu').then(m => m.Separator), { ssr: false }) as any,
+} as const;
 import {
   CheckIcon,
   ChevronRightIcon,

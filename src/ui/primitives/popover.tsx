@@ -1,5 +1,12 @@
 import * as React from 'react';
-import * as PopoverPrimitive from '@radix-ui/react-popover';
+import dynamic from 'next/dynamic';
+const PopoverPrimitive = {
+  Root: dynamic(() => import('@radix-ui/react-popover').then(m => m.Root), { ssr: false }) as any,
+  Trigger: dynamic(() => import('@radix-ui/react-popover').then(m => m.Trigger), { ssr: false }) as any,
+  Anchor: dynamic(() => import('@radix-ui/react-popover').then(m => m.Anchor), { ssr: false }) as any,
+  Portal: dynamic(() => import('@radix-ui/react-popover').then(m => m.Portal), { ssr: false }) as any,
+  Content: dynamic(() => import('@radix-ui/react-popover').then(m => m.Content), { ssr: false }) as any,
+} as const;
 
 import { cn } from '@/lib/utils';
 

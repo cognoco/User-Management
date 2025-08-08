@@ -179,7 +179,6 @@ export function UserManagementClientBoundary({
   return (
     <UserManagementProvider config={clientConfig}>
       <AuthProvider authService={authService}>
-        <Toaster position="top-center" reverseOrder={false} />
         <SessionPolicyEnforcer>{children}</SessionPolicyEnforcer>
       </AuthProvider>
     </UserManagementProvider>
