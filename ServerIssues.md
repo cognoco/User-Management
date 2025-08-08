@@ -265,3 +265,54 @@ The issue is **not with the application code** but with the Next.js framework's 
 *Environment: WSL2/Docker on Windows*
 *Node Version: v20.19.3*
 *Next.js Versions Tested: 15.3.3, 14.2.16, 14.2.31*
+
+---
+
+## Addendum – Actions Performed on 2025-08-08 (Windows native)
+
+### What I changed
+- Removed duplicate root files to stop dev-server restarts and routing conflicts:
+  - Deleted `app/page.js` and `app/layout.js` (kept TypeScript versions)
+- Prevented server-only code from leaking into the client bundle (root cause of fs/nodemailer errors):
+  - In `app/RootLayoutClient.tsx`, switched import to `@/lib/monitoring/error-system` (avoid `@/lib/monitoring` barrel that pulls Nodemailer transitively)
+  - In `app/layout.tsx`, commented out `initializeErrorSystem()` and `initializeMonitoringSystem()` to avoid dev deadlocks
+  - Added client-only CSRF helper `src/lib/api/csrf.ts` and used it in `RootLayoutClient` to avoid importing Axios’ Node FormData path on the client
+  - Updated `src/adapters/index.ts` to stop re-exporting `./data-export` (server-only path that eventually imports email sending/Nodemailer)
+  - Updated `src/core/config/index.ts` to stop re-exporting `adapter-config` from the barrel (prevents accidental client pulls of server-only adapters)
+
+### What I observed
+- Next.js now boots reliably on a clean port (e.g., 3060) but build still fails with:
+  - "Module not found: Can't resolve 'fs'" from Nodemailer via `sendEmail` -> `sendCompanyNotification` -> `domainMatcher` -> `default-auth.service` -> used by client boundary
+  - "Module not found: Can't resolve './async.js'" surfaced via Axios’ Node FormData path when Axios is bundled on the client
+
+### Current blockers identified
+- `src/lib/auth/domainMatcher.ts` imports `sendCompanyNotification` at top-level. That file imports `sendEmail` (which `import('nodemailer')` on demand). Even with runtime guards (`typeof window !== 'undefined'`), top-level imports force the client bundle to include Nodemailer and its `fs` dependency, causing the crash.
+- `src/scripts/fix-initialization.ts` previously imported `@/lib/api/axios`; although the import was removed, any client path that still references server-only services may bring back Axios’ Node platform shim (which pulls `form-data`/`asynckit`).
+
+### Proposed targeted fixes (next steps)
+1) Make server-only features lazily imported and gated:
+   - In `src/lib/auth/domainMatcher.ts`, remove the top-level import of `sendCompanyNotification` and dynamically import it only on the server path where it’s used:
+     ```ts
+     // before
+     // import { sendCompanyNotification } from '@/lib/notifications/sendCompanyNotification';
+     // after (inside server-only block)
+     if (typeof window === 'undefined') {
+       const { sendCompanyNotification } = await import('@/lib/notifications/sendCompanyNotification');
+       await sendCompanyNotification({ ... });
+     }
+     ```
+   - Ensure any other server-only utilities (email/export) are imported inside server-only code paths (API routes, server actions) and never top-level in files used by client components/hooks.
+
+2) Keep Axios out of the client bundle:
+   - Client code should use the lightweight `fetch`-based `src/lib/api/csrf.ts` for CSRF initialization.
+   - Added a browser shim `src/lib/api/axios-browser.ts` and wired an alias in `next.config.mjs` so client imports of `@/lib/api/axios` resolve to a minimal fetch wrapper (no Node form-data/asynckit).
+   - Any service using Axios should be executed from API routes or server-side code only.
+
+3) Port hygiene:
+   - When a port is stuck (EADDRINUSE), free it in PowerShell:
+     ```powershell
+     $pid=(Get-NetTCPConnection -LocalPort 3060 -State Listen -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess); if($pid){ Stop-Process -Id $pid -Force }
+     ```
+
+### Status after changes
+- Dev server starts; compilation then fails due to remaining client-side inclusion of server-only modules (see blockers above). Fixing `domainMatcher` lazy import will likely remove the Nodemailer/fs error chain. Keeping Axios out of the client eliminates the `asynckit/async.js` path.

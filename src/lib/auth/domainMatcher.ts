@@ -1,5 +1,4 @@
 import { getServiceSupabase } from '@/lib/database/supabase';
-import { sendCompanyNotification } from '@/lib/notifications/sendCompanyNotification';
 
 /**
  * Checks if an email domain matches any verified company domains
@@ -138,13 +137,16 @@ export async function associateUserWithCompanyByDomain(userId: string, email: st
       };
     }
 
-    // Send notification to company admins
-    await sendCompanyNotification({
-      companyId,
-      notificationType: 'new_member_domain',
-      subject: 'New Team Member Joined',
-      content: `A new user (${email}) has joined your company via verified domain.`
-    });
+    // Send notification to company admins (server-only lazy import to avoid bundling nodemailer/fs)
+    if (typeof window === 'undefined') {
+      const { sendCompanyNotification } = await import('@/lib/notifications/sendCompanyNotification');
+      await sendCompanyNotification({
+        companyId,
+        notificationType: 'new_member_domain',
+        subject: 'New Team Member Joined',
+        content: `A new user (${email}) has joined your company via verified domain.`,
+      });
+    }
 
     return {
       success: true,

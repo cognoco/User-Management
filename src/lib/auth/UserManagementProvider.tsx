@@ -3,7 +3,7 @@
 import React, { createContext, useContext, ReactNode, useEffect, useMemo } from 'react';
 import { ThemeProvider } from '@/ui/primitives/theme-provider';
 // import { Toaster } from '@/ui/primitives/toaster'; // Comment out unused import
-import { api } from '@/lib/api/axios';
+// Avoid importing axios directly in provider; use fetch in consumer code or server routes
 // import { useAuth } from '@/hooks/auth/useAuth'; // Commented out
 import { 
   /* initializeNotifications, */ // Keep type imports, comment out function if problematic

@@ -5,7 +5,7 @@
  */
 import { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { api } from '@/lib/api/axios';
+// import { api } from '@/lib/api/axios'; // Do not import axios in client bundle
 import { useAuth } from '@/hooks/auth/useAuth';
 
 export interface SessionPolicyEnforcerProps {

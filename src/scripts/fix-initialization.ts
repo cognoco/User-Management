@@ -7,7 +7,8 @@
  */
 
 import { UserManagementConfiguration } from "@/core/config";
-import { api } from "@/lib/api/axios";
+// Avoid importing axios into the client bundle; email/webhooks use server-side fetch or api when invoked server-side.
+// Import lazily where needed.
 
 // Import factory functions
 import { createAuthService } from "@/services/auth";

@@ -1,3 +1,8 @@
+import path from 'path';
+import { fileURLToPath } from 'url';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
@@ -29,8 +34,21 @@ const nextConfig = {
         url: false,
         util: false,
       };
+
+      // Prevent bundling server-only packages into client builds
+      config.resolve.alias = {
+        ...(config.resolve.alias || {}),
+        nodemailer: false,
+        'form-data': false,
+        asynckit: false,
+        // Use a lightweight fetch-based shim for axios in the browser
+        axios: path.resolve(__dirname, 'src/lib/api/axios-browser.ts'),
+        // Also ensure our internal axios wrapper resolves to the browser shim on client
+        '@/lib/api/axios': path.resolve(__dirname, 'src/lib/api/axios-browser.ts'),
+      };
       
       // Completely exclude nodemailer from client bundle
+      // Ensure nodemailer is never included in client bundle
       config.externals = config.externals || {};
       config.externals.nodemailer = 'nodemailer';
     }
