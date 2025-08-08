@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { supabase } from '../supabase';
+import { getSupabaseClient } from '../supabase';
 
 interface UserProfile {
   id: string;
@@ -79,10 +79,11 @@ export const useUserStore = create<UserState>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
 
-      const { data: user, error } = await supabase.auth.getUser();
+      const client = await getSupabaseClient();
+      const { data: user, error } = await client.auth.getUser();
       if (error) throw error;
 
-      const { error: updateError } = await supabase
+      const { error: updateError } = await client
         .from('profiles')
         .update(data)
         .eq('id', user.user.id);
@@ -104,10 +105,11 @@ export const useUserStore = create<UserState>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
 
-      const { data: user, error } = await supabase.auth.getUser();
+      const client = await getSupabaseClient();
+      const { data: user, error } = await client.auth.getUser();
       if (error) throw error;
 
-      const { error: updateError } = await supabase
+      const { error: updateError } = await client
         .from('user_settings')
         .update(data)
         .eq('user_id', user.user.id);
@@ -129,19 +131,20 @@ export const useUserStore = create<UserState>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
 
-      const { data: user, error: userError } = await supabase.auth.getUser();
+      const client = await getSupabaseClient();
+      const { data: user, error: userError } = await client.auth.getUser();
       if (userError) throw userError;
 
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.user.id}-${Date.now()}.${fileExt}`;
 
-      const { error: uploadError } = await supabase.storage
+      const { error: uploadError } = await client.storage
         .from('avatars')
         .upload(fileName, file);
 
       if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
+      const { data: { publicUrl } } = client.storage
         .from('avatars')
         .getPublicUrl(fileName);
 
@@ -161,10 +164,11 @@ export const useUserStore = create<UserState>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
 
-      const { data: user, error: userError } = await supabase.auth.getUser();
+      const client = await getSupabaseClient();
+      const { data: user, error: userError } = await client.auth.getUser();
       if (userError) throw userError;
 
-      const { data: profile, error: profileError } = await supabase
+      const { data: profile, error: profileError } = await client
         .from('profiles')
         .select('*')
         .eq('id', user.user.id)
@@ -185,10 +189,11 @@ export const useUserStore = create<UserState>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
 
-      const { data: user, error: userError } = await supabase.auth.getUser();
+      const client = await getSupabaseClient();
+      const { data: user, error: userError } = await client.auth.getUser();
       if (userError) throw userError;
 
-      const { data: settings, error: settingsError } = await supabase
+      const { data: settings, error: settingsError } = await client
         .from('user_settings')
         .select('*')
         .eq('user_id', user.user.id)
@@ -209,7 +214,8 @@ export const useUserStore = create<UserState>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
 
-      const { data: user, error: userError } = await supabase.auth.getUser();
+      const client = await getSupabaseClient();
+      const { data: user, error: userError } = await client.auth.getUser();
       if (userError) throw userError;
 
       // Build query parameters

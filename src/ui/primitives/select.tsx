@@ -5,7 +5,24 @@ import {
   ChevronDownIcon,
   ChevronUpIcon,
 } from '@radix-ui/react-icons';
-import * as SelectPrimitive from '@radix-ui/react-select';
+import dynamic from 'next/dynamic';
+const SelectPrimitive = {
+  Root: dynamic(() => import('@radix-ui/react-select').then(m => m.Root), { ssr: false }) as any,
+  Group: dynamic(() => import('@radix-ui/react-select').then(m => m.Group), { ssr: false }) as any,
+  Value: dynamic(() => import('@radix-ui/react-select').then(m => m.Value), { ssr: false }) as any,
+  Trigger: dynamic(() => import('@radix-ui/react-select').then(m => m.Trigger), { ssr: false }) as any,
+  Icon: dynamic(() => import('@radix-ui/react-select').then(m => m.Icon), { ssr: false }) as any,
+  ScrollUpButton: dynamic(() => import('@radix-ui/react-select').then(m => m.ScrollUpButton), { ssr: false }) as any,
+  ScrollDownButton: dynamic(() => import('@radix-ui/react-select').then(m => m.ScrollDownButton), { ssr: false }) as any,
+  Portal: dynamic(() => import('@radix-ui/react-select').then(m => m.Portal), { ssr: false }) as any,
+  Content: dynamic(() => import('@radix-ui/react-select').then(m => m.Content), { ssr: false }) as any,
+  Viewport: dynamic(() => import('@radix-ui/react-select').then(m => m.Viewport), { ssr: false }) as any,
+  Item: dynamic(() => import('@radix-ui/react-select').then(m => m.Item), { ssr: false }) as any,
+  ItemIndicator: dynamic(() => import('@radix-ui/react-select').then(m => m.ItemIndicator), { ssr: false }) as any,
+  ItemText: dynamic(() => import('@radix-ui/react-select').then(m => m.ItemText), { ssr: false }) as any,
+  Label: dynamic(() => import('@radix-ui/react-select').then(m => m.Label), { ssr: false }) as any,
+  Separator: dynamic(() => import('@radix-ui/react-select').then(m => m.Separator), { ssr: false }) as any,
+} as const;
 
 import { cn } from '@/lib/utils';
 

@@ -1,5 +1,12 @@
 import * as React from 'react';
-import * as ScrollAreaPrimitive from '@radix-ui/react-scroll-area';
+import dynamic from 'next/dynamic';
+const ScrollAreaPrimitive = {
+  Root: dynamic(() => import('@radix-ui/react-scroll-area').then(m => m.Root), { ssr: false }) as any,
+  Viewport: dynamic(() => import('@radix-ui/react-scroll-area').then(m => m.Viewport), { ssr: false }) as any,
+  Corner: dynamic(() => import('@radix-ui/react-scroll-area').then(m => m.Corner), { ssr: false }) as any,
+  ScrollAreaScrollbar: dynamic(() => import('@radix-ui/react-scroll-area').then(m => m.ScrollAreaScrollbar), { ssr: false }) as any,
+  ScrollAreaThumb: dynamic(() => import('@radix-ui/react-scroll-area').then(m => m.ScrollAreaThumb), { ssr: false }) as any,
+} as const;
 
 import { cn } from '@/lib/utils';
 

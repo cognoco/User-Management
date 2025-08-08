@@ -7,13 +7,6 @@ import {
   IntegrationCallbacks,
 } from "./UserManagementProvider";
 import { initializeCsrf } from "@/lib/api/csrf";
-async function getSupabase() {
-  const { createClient } = await import('@supabase/supabase-js');
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
-}
 import { UserManagementConfiguration } from "@/core/config";
 import { AuthService } from "@/core/auth/interfaces";
 import { User } from "@/core/auth/models";

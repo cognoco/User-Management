@@ -1,5 +1,11 @@
 import * as React from 'react';
-import * as TabsPrimitive from '@radix-ui/react-tabs';
+import dynamic from 'next/dynamic';
+const TabsPrimitive = {
+  Root: dynamic(() => import('@radix-ui/react-tabs').then(m => m.Root), { ssr: false }) as any,
+  List: dynamic(() => import('@radix-ui/react-tabs').then(m => m.List), { ssr: false }) as any,
+  Trigger: dynamic(() => import('@radix-ui/react-tabs').then(m => m.Trigger), { ssr: false }) as any,
+  Content: dynamic(() => import('@radix-ui/react-tabs').then(m => m.Content), { ssr: false }) as any,
+} as const;
 
 import { cn } from '@/lib/utils';
 
