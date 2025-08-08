@@ -2,9 +2,10 @@ import type { Metadata, Viewport } from 'next';
 import RootLayoutClient from './RootLayoutClient';
 import './globals.css';
 import { initializeErrorSystem, initializeMonitoringSystem } from '@/lib/monitoring';
-
-initializeErrorSystem();
-initializeMonitoringSystem();
+// Temporarily disable top-level initialization to avoid potential dev-server deadlocks.
+// Client-side error system is initialized in `RootLayoutClient`.
+// initializeErrorSystem();
+// initializeMonitoringSystem();
 
 export const viewport: Viewport = {
   width: 'device-width',

@@ -130,7 +130,9 @@ export function getServiceProvider<T>(providerName: string): T | undefined {
 // Export the interfaces and default values
 export * from './interfaces';
 export * from './config-context';
-export * from './adapter-config';
+// Avoid exporting adapter configuration in the client bundle to prevent
+// accidental inclusion of server-only adapters (which may import email/nodemailer).
+// Server code should import from '@/core/config/adapter-config' directly when needed.
 export * from './client-config';
 export * from './environment';
 export * from './runtime-config';

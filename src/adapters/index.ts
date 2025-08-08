@@ -14,7 +14,9 @@ export * from './auth';
 export * from './company-notification';
 export * from './consent';
 export * from './csrf';
-export * from './data-export';
+ // Server-only: data-export pulls email sending (nodemailer). Do not export in the browser bundle.
+ // If needed on the server, import from 'src/adapters/data-export' directly.
+ // export * from './data-export';
 export * from './database';
 export * from './gdpr';
 export * from './notification';

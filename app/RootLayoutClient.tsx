@@ -7,7 +7,8 @@ import { KeyboardShortcutsDialog } from '@/ui/styled/common/KeyboardShortcutsDia
 import dynamic from 'next/dynamic';
 import { useGlobalError } from '@/lib/state/errorStore';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
-import { initializeErrorSystem } from '@/lib/monitoring';
+// Import directly to avoid pulling in server-only modules (like Nodemailer) via the barrel
+import { initializeErrorSystem } from '@/lib/monitoring/error-system';
 
 const GlobalErrorDisplay = dynamic(
   () => import('@/ui/styled/common/GlobalErrorDisplay'),
