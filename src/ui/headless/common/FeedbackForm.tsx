@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { supabase } from '@/lib/database/supabase';
 import { feedbackCategoryEnum } from '@/types/feedback';
 
 /**
@@ -47,21 +46,21 @@ export function FeedbackForm({ onSuccess, onError, render }: FeedbackFormProps) 
     let screenshotUrl: string | null = null;
     try {
       if (screenshot) {
-        const fileExt = screenshot.name.split('.').pop();
-        const fileName = `screenshot-${Date.now()}.${fileExt}`;
-        const { error: uploadError } = await supabase.storage
-          .from('screenshots')
-          .upload(`feedback/${fileName}`, screenshot, { upsert: true });
-        if (uploadError) throw new Error(uploadError.message);
-        const { data: publicUrlData } = supabase.storage
-          .from('screenshots')
-          .getPublicUrl(`feedback/${fileName}`);
-        screenshotUrl = publicUrlData?.publicUrl || null;
+        // upload screenshot via storage endpoint
+        const form = new FormData();
+        form.append('file', screenshot);
+        const uploadResp = await fetch('/api/storage/upload', { method: 'POST', body: form });
+        const uploadJson = await uploadResp.json();
+        if (!uploadResp.ok) throw new Error(uploadJson.error || 'Upload failed');
+        screenshotUrl = uploadJson.url;
       }
-      const { error: insertError } = await supabase.from('feedback').insert([
-        { category, message, screenshotUrl, createdAt: new Date().toISOString() }
-      ]);
-      if (insertError) throw new Error(insertError.message);
+      const resp = await fetch('/api/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ category, message, screenshotUrl }),
+      });
+      const json = await resp.json();
+      if (!resp.ok) throw new Error(json.error || 'Submit failed');
       setSuccess(true);
       setCategory('');
       setMessage('');
