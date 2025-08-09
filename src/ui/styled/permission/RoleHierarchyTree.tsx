@@ -1,4 +1,6 @@
 
+"use client";
+
 import React, { useMemo, useCallback } from 'react';
 import ReactFlow, { Background, Controls, MiniMap, Node, Edge, ReactFlowProvider } from 'reactflow';
 import 'reactflow/dist/style.css';

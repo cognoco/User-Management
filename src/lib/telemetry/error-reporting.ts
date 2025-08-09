@@ -161,8 +161,9 @@ export class ErrorReporter {
     /* istanbul ignore next -- integration optional */
     if (process.env.SENTRY_DSN) {
       try {
-        const mod = '@sentry/node';
-        const Sentry = await import(/* @vite-ignore */ mod);
+        // Wrap in runtime guard to avoid bundling if not present
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const Sentry = require('@sentry/node');
         Sentry.init({
           dsn: process.env.SENTRY_DSN,
           environment: this.options.environment,

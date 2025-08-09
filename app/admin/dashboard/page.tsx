@@ -1,12 +1,9 @@
-import { Metadata } from 'next';
+"use client";
 import { AdminDashboard } from '@/ui/styled/admin/AdminDashboard';
 import { Button } from '@/ui/primitives/button';
 import Link from 'next/link';
 
-export const metadata: Metadata = {
-  title: 'Admin Dashboard',
-  description: 'Manage your organization',
-};
+// Note: metadata export is not allowed in client components
 
 export default function AdminDashboardPage(): JSX.Element {
   return (

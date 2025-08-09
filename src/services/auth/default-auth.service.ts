@@ -38,7 +38,8 @@ import { BrowserAuthStorage } from './auth-storage';
 import { DefaultSessionTracker, type SessionTracker } from './session-tracker';
 import { DefaultMFAHandler, type MFAHandler } from './mfa-handler';
 import { logUserAction } from '@/lib/audit/auditLogger';
-import { authConfig } from '@/lib/auth/config';
+// Import only the plain config (no TSX) to avoid pulling client code into server bundles
+import { authConfig } from '@/lib/config';
 import { withRetry } from '@/lib/utils/retry';
 import { isNetworkError } from '@/lib/utils/error';
 import { associateUserWithCompanyByDomain } from '@/lib/auth/domainMatcher';

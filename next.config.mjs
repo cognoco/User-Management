@@ -58,6 +58,7 @@ const nextConfig = {
         nodemailer: false,
         'form-data': false,
         asynckit: false,
+        '@sentry/node': false,
         '@supabase/node-fetch': path.resolve(__dirname, 'src/lib/shims/node-fetch.ts'),
         '@supabase/node-fetch/lib/index.js': path.resolve(__dirname, 'src/lib/shims/node-fetch.ts'),
         'node-fetch': false,
@@ -86,6 +87,7 @@ const nextConfig = {
     if (isServer) {
       config.resolve.alias = {
         ...(config.resolve.alias || {}),
+        '@sentry/node': false,
         '@supabase/node-fetch': path.resolve(__dirname, 'src/lib/shims/node-fetch.ts'),
         '@supabase/node-fetch/lib/index.js': path.resolve(__dirname, 'src/lib/shims/node-fetch.ts'),
         // Ensure any node-fetch usage resolves to global fetch shim to avoid whatwg-url
@@ -93,6 +95,8 @@ const nextConfig = {
         'node-fetch/lib/index.mjs': path.resolve(__dirname, 'src/lib/shims/node-fetch.ts'),
         'cross-fetch': path.resolve(__dirname, 'src/lib/shims/cross-fetch.ts'),
         'cross-fetch/dist/node-ponyfill.js': path.resolve(__dirname, 'src/lib/shims/cross-fetch.ts'),
+        // Prevent react-i18next (React context) from entering server bundles
+        'react-i18next': path.resolve(__dirname, 'src/lib/shims/react-i18next-server-stub.ts'),
       };
     }
     

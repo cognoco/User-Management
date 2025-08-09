@@ -1,7 +1,8 @@
 // Application-wide error factory and utilities
 import { VALIDATION_ERROR_CODES, AUTH_ERROR_CODES, SERVER_ERROR_CODES, USER_ERROR_CODES } from '@/lib/api/common/error-codes';
 import type { ErrorCode } from '@/lib/api/common/error-codes';
-import type { LanguageCode } from '@/lib/i18n';
+// Avoid importing i18n index (which initializes react-i18next) on server bundles
+export type LanguageCode = 'en' | 'es' | 'fr';
 import { formatErrorMessage } from '@/lib/i18n/messages';
 
 export interface ApplicationError extends Error {

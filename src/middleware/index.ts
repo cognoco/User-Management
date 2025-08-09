@@ -5,7 +5,7 @@ import { securityHeaders } from '@/middleware/security-headers';
 import { auditLog } from '@/middleware/audit-log';
 import { cors } from '@/middleware/cors';
 import { csrf } from '@/middleware/csrf';
-import { correlationIdMiddleware } from '@/lib/monitoring';
+import { correlationIdMiddleware } from '@/lib/monitoring/correlation-id-middleware';
 
 type NextFunction = () => Promise<void>;
 

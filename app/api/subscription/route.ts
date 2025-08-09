@@ -1,4 +1,4 @@
-import { stripe, createCustomer, createSubscription } from '@/lib/payments/stripe';
+import { getSubscription as getStripeSubscription, createCustomer, createSubscription } from '@/lib/payments/stripe';
 import { createSupabaseSubscriptionProvider } from '@/adapters/subscription/factory';
 import { z } from 'zod';
 import { NextResponse, type NextRequest } from 'next/server';
@@ -20,7 +20,7 @@ async function handleGet(_req: NextRequest, auth: RouteAuthContext) {
   let stripeSub = null;
   if (subscription.stripe_subscription_id) {
     try {
-      stripeSub = await stripe.subscriptions.retrieve(subscription.stripe_subscription_id);
+      stripeSub = await getStripeSubscription(subscription.stripe_subscription_id);
     } catch (e) {
       // Ignore if not found
     }

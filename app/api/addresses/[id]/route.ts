@@ -1,3 +1,4 @@
+export const runtime = 'nodejs';
 import { type NextRequest } from 'next/server';
 import { addressSchema } from '@/core/address/validation';
 import {

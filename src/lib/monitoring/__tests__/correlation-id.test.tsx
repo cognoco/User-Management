@@ -6,10 +6,10 @@ import {
   generateCorrelationId,
   runWithCorrelationId,
   getCorrelationId,
-  correlationIdMiddleware,
   CorrelationIdProvider,
   useCorrelationId,
 } from '../correlation-id';
+import { correlationIdMiddleware } from '../correlation-id-middleware';
 import { render, screen } from '@testing-library/react';
 
 const DisplayId = () => {

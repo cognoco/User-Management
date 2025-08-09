@@ -7,8 +7,8 @@ import {
   IntegrationCallbacks,
 } from "./UserManagementProvider";
 import { initializeCsrf } from "@/lib/api/csrf";
-import { UserManagementConfiguration } from "@/core/config";
 import { AuthService } from "@/core/auth/interfaces";
+import { getApiAuthService } from "@/services/auth/factory";
 import { User } from "@/core/auth/models";
 // Toast temporarily disabled to unblock production build; can re-enable with dynamic import
 // const Toaster = dynamic(() => import('react-hot-toast').then(m => m.Toaster), { ssr: false });
@@ -94,13 +94,11 @@ export function UserManagementClientBoundary({
   const [isInitialized, setIsInitialized] = useState(false);
   const [initError, setInitError] = useState<string | null>(null);
 
-  // Disable client-side service registration to avoid pulling server-only modules
+  // Initialize immediately; factory is client-safe and uses browser storage
+  const authService: AuthService = getApiAuthService();
   useEffect(() => {
     setIsInitialized(true);
   }, []);
-
-  // Get the auth service from the service provider registry (only after initialization)
-  const authService = isInitialized ? UserManagementConfiguration.getServiceProvider<AuthService>("authService") : null;
 
   // Initialize CSRF token fetching on mount
   useEffect(() => {
@@ -143,7 +141,7 @@ export function UserManagementClientBoundary({
   }
 
   // Show loading indicator while initializing
-  if (!isInitialized || !authService) {
+  if (!isInitialized) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>

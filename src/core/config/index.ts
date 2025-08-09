@@ -129,7 +129,9 @@ export function getServiceProvider<T>(providerName: string): T | undefined {
 
 // Export the interfaces and default values
 export * from './interfaces';
-export * from './config-context';
+// IMPORTANT: Do NOT export client-only config context from the core config barrel,
+// to avoid pulling React/TSX into server bundles.
+// import and use './config-context' directly from client components instead.
 // Avoid exporting adapter configuration in the client bundle to prevent
 // accidental inclusion of server-only adapters (which may import email/nodemailer).
 // Server code should import from '@/core/config/adapter-config' directly when needed.
@@ -138,7 +140,8 @@ export * from './environment';
 // IMPORTANT: Import server-only runtime-config directly from server code
 // to avoid bringing Node modules (fs/path) into client bundles.
 // export * from './runtime-config';
-export * from './AppInitializer';
+// IMPORTANT: Do NOT export client-only AppInitializer from the barrel to keep
+// server imports of '@/core/config' free of React/TSX.
 
 // Export a singleton instance for convenience
 export const UserManagementConfiguration = {

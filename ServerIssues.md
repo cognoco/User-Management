@@ -1,3 +1,19 @@
+### Fix: React context leak into server route build (addresses API)
+
+- Symptom: Next build failed while collecting page data for `/api/addresses` with `TypeError: createContext is not a function` originating from server bundle chunks. Also saw critical dependency warnings for dynamic requires.
+- Root cause: A client-only React context module `src/lib/monitoring/correlation-id.tsx` was exported from the monitoring barrel and indirectly imported by server middleware via `src/middleware/index.ts` using `import { correlationIdMiddleware } from '@/lib/monitoring'`. This pulled React/Radix context code into the server bundle during API route compilation.
+- Changes:
+  - Added a server-only middleware implementation `src/lib/monitoring/correlation-id-middleware.ts` (no React).
+  - Updated `src/lib/monitoring/index.ts` to stop exporting the TSX client module and instead export `correlationIdMiddleware` from the new server-only file. Kept other server-safe exports.
+  - Switched `src/middleware/index.ts` to import `correlationIdMiddleware` directly from `@/lib/monitoring/correlation-id-middleware`.
+  - Hardened core config barrel to avoid exporting client TSX:
+    - Removed re-export of `config-context.tsx` and `AppInitializer.tsx` from `src/core/config/index.ts` so server code importing `@/core/config` doesn't pull React.
+  - Set Node runtime explicitly for address API routes:
+    - `app/api/addresses/route.ts`
+    - `app/api/addresses/[id]/route.ts`
+    - `app/api/addresses/default/[id]/route.ts`
+- Result: Prevents client UI/React from being included in server routes; ensures Node runtime for these endpoints. Proceeded to rebuild.
+
 # Server Issues - Comprehensive Troubleshooting Report
 
 ## Executive Summary
@@ -431,6 +447,61 @@ The issue is **not with the application code** but with the Next.js framework's 
 - Marked WebAuthn API routes with `export const runtime = 'nodejs'`.
 
 ---
+
+## Addendum – 2025-08-10 (Server i18n stub + Stripe lazy init + build progression)
+
+### What I changed
+- Server-side i18n isolation:
+  - Added a server-only alias for `react-i18next` so it never enters server bundles.
+  - Created a minimal no-op stub module that safely exports `useTranslation`, `initReactI18next`, `Trans`, and `I18nextProvider` for server usage.
+- Client-only UI separation:
+  - Marked `RoleHierarchyTree` as a client component to prevent React context usage during SSR.
+- Stripe initialization hardening (avoid build-time env throw):
+  - Replaced top-level Stripe client creation with a lazy `getStripe()` getter and moved the env check inside it.
+  - Updated API routes to use the lazy getter or helpers that call it.
+
+### Files edited
+- `next.config.mjs`
+  - For server builds (`isServer`), added alias: `react-i18next` → `src/lib/shims/react-i18next-server-stub.ts`.
+- `src/lib/shims/react-i18next-server-stub.ts` (new)
+  - Server stub for `react-i18next` exports to avoid React `createContext` on server.
+- `src/ui/styled/permission/RoleHierarchyTree.tsx`
+  - Added `'use client'` directive to ensure ReactFlow/UI render only on client.
+- `src/lib/payments/stripe.ts`
+  - Replaced eager
+    ```ts
+    export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2023-10-16' });
+    ```
+    with
+    ```ts
+    export function getStripe() { /* lazy init + env check */ }
+    ```
+  - Updated helpers to call `getStripe()` internally.
+- `app/api/webhooks/stripe/route.ts`
+  - Switched to `getStripe().webhooks.constructEvent(...)`.
+- `app/api/subscription/route.ts`
+  - Replaced direct `stripe.subscriptions.retrieve` with `getSubscription(id)` helper (which uses `getStripe()`).
+- `app/api/subscriptions/checkout/route.ts`
+  - Uses `createCheckoutSession` helper (already updated to call `getStripe()`).
+- `app/api/subscriptions/portal/route.ts`
+  - Uses `createBillingPortalSession` helper (calls `getStripe()`).
+
+### Why
+- Prevents client-only React context (`createContext`) and i18n hooks from leaking into server chunks via indirect imports.
+- Avoids build-time crashes when `STRIPE_SECRET_KEY` is not set; errors now surface only when Stripe is actually used at runtime.
+
+### Result
+- The previous `(createContext) is not a function` during API route page-data collection was resolved after:
+  - Server alias for `react-i18next` and
+  - Marking `RoleHierarchyTree` as client-only.
+- Build then progressed and encountered a new failure unrelated to i18n/React contexts:
+  - Prerender error on `/settings/security`: `ReferenceError: api is not defined`.
+    - Likely due to a module referenced in that route using `api.*` without importing `api` from `@/lib/api/axios`, or executing in an SSR path where a client-only global is assumed.
+
+### Next steps (pending)
+- Trace the `/settings/security` import graph to identify the source of `api` global usage during SSR prerender and replace with a proper import (`@/lib/api/axios`) or guard behind client-only execution.
+- Re-run `npm run build` to confirm a fully green build after addressing the `api` reference.
+
 
 ## Addendum – 2025-08-09 (Build green fixes applied)
 

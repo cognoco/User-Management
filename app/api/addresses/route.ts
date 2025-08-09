@@ -1,3 +1,4 @@
+export const runtime = 'nodejs';
 import { NextRequest } from 'next/server';
 import { createApiHandler, emptySchema } from '@/lib/api/route-helpers';
 import { addressSchema } from '@/core/address/validation';

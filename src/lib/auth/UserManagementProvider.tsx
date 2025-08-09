@@ -1,6 +1,7 @@
 'use client'; // This component uses context and hooks, so it must be a Client Component
 
 import React, { createContext, useContext, ReactNode, useEffect, useMemo } from 'react';
+import { api } from '@/lib/api/axios';
 import { ThemeProvider } from '@/ui/primitives/theme-provider';
 // import { Toaster } from '@/ui/primitives/toaster'; // Comment out unused import
 // Avoid importing axios directly in provider; use fetch in consumer code or server routes

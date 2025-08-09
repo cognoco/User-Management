@@ -55,29 +55,6 @@ export function runWithCorrelationId<T>(id: string, fn: () => T): T {
   }
 }
 
-export function correlationIdMiddleware() {
-  return async function (
-    req: NextApiRequest,
-    res: NextApiResponse,
-    next: () => Promise<void>
-  ) {
-    const parentId = getCorrelationId();
-    const incomingId = (req.headers['x-correlation-id'] as string) || undefined;
-    const id = incomingId || generateCorrelationId(parentId);
-
-    setCorrelationId(id);
-    (req as any).correlationId = id;
-    res.setHeader('X-Correlation-Id', id);
-
-    try {
-      await runWithCorrelationId(id, async () => {
-        await next();
-      });
-    } catch (error: any) {
-      if (error && typeof error === 'object') {
-        error.correlationId = id;
-      }
-      throw error;
-    }
-  };
-}
+// Note: Server middleware implementation lives in './correlation-id-middleware'.
+// This TSX module intentionally does not export server middleware to avoid
+// pulling React code into server bundles.

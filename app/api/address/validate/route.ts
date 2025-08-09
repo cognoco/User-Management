@@ -1,3 +1,4 @@
+export const runtime = 'nodejs';
 import { type NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { checkRateLimit } from '@/middleware/rate-limit';
