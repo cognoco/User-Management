@@ -1,5 +1,4 @@
-// AccountSwitcher API abstraction for Supabase (easy to swap for other backends)
-import { supabase } from './supabase';
+// AccountSwitcher API abstraction that talks to backend API routes (no direct Supabase)
 
 // Types
 export interface Account {
@@ -17,38 +16,50 @@ export interface OrganizationMember {
 
 // Fetch all accounts for the current user
 export async function fetchAccounts(): Promise<Account[]> {
-  // Replace with your actual Supabase query
-  const { data, error } = await supabase.from('accounts').select('*');
-  if (error) throw error;
-  return data;
+  const resp = await fetch('/api/accounts');
+  const json = await resp.json();
+  if (!resp.ok) throw new Error(json.error || 'Failed to fetch accounts');
+  return json.accounts || [];
 }
 
 // Switch to a different account
 export async function switchAccount(accountId: string): Promise<void> {
-  const { error } = await supabase.rpc('switch_account', { account_id: accountId });
-  if (error) throw error;
+  const resp = await fetch('/api/account/switch', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ accountId }),
+  });
+  if (!resp.ok) {
+    const json = await resp.json();
+    throw new Error(json.error || 'Switch failed');
+  }
 }
 
 // Create a new organization
-export async function createOrganization(name: string, ownerId: string): Promise<Account> {
-  const { data, error } = await supabase.from('accounts').insert({
-    name,
-    type: 'organization',
-    owner_id: ownerId,
-  }).select().single();
-  if (error) throw error;
-  return data;
+export async function createOrganization(name: string): Promise<Account> {
+  const resp = await fetch('/api/accounts', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name }),
+  });
+  const json = await resp.json();
+  if (!resp.ok) throw new Error(json.error || 'Create organization failed');
+  return json.organization;
 }
 
 // Fetch members of an organization
 export async function fetchOrganizationMembers(orgId: string): Promise<OrganizationMember[]> {
-  const { data, error } = await supabase.from('organization_members').select('*').eq('organization_id', orgId);
-  if (error) throw error;
-  return data;
+  const resp = await fetch(`/api/organizations/${orgId}/members`);
+  const json = await resp.json();
+  if (!resp.ok) throw new Error(json.error || 'Failed to list members');
+  return json.members || [];
 }
 
 // Leave an organization
 export async function leaveOrganization(orgId: string): Promise<void> {
-  const { error } = await supabase.rpc('leave_organization', { organization_id: orgId });
-  if (error) throw error;
+  const resp = await fetch(`/api/organizations/${orgId}/leave`, { method: 'POST' });
+  if (!resp.ok) {
+    const json = await resp.json();
+    throw new Error(json.error || 'Leave failed');
+  }
 } 

@@ -15,7 +15,6 @@ import {
   Account, 
   OrganizationMember 
 } from '@/lib/accountSwitcherApi';
-import { supabase } from '@/lib/database/supabase';
 
 export interface AccountSwitcherProps {
   /**
@@ -102,15 +101,7 @@ export function AccountSwitcher({ render }: AccountSwitcherProps) {
     setOrgLoading(true);
     setOrgError(null);
     try {
-      // Dynamically fetch user id from Supabase
-      const { data: userData, error: userError } = await supabase.auth.getUser();
-      if (userError || !userData?.user?.id) {
-        setOrgError('User not authenticated');
-        setOrgLoading(false);
-        return;
-      }
-      const ownerId = userData.user.id;
-      const newOrg = await createOrganization(orgName, ownerId);
+      const newOrg = await createOrganization(orgName);
       setAccounts((prev) => [...prev, newOrg]);
       setShowOrgDialog(false);
       setOrgName('');

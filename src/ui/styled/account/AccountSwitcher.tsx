@@ -5,7 +5,6 @@ import { Button } from '@/ui/primitives/button';
 import { Input } from '@/ui/primitives/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/ui/primitives/dialog';
 import { Alert } from '@/ui/primitives/alert';
-import { supabase } from '@/lib/database/supabase';
 
 interface AccountSwitcherProps {
   showDetails?: boolean;
@@ -66,15 +65,7 @@ export const AccountSwitcher: React.FC<AccountSwitcherProps> = ({ showDetails = 
     setOrgLoading(true);
     setOrgError(null);
     try {
-      // Dynamically fetch user id from Supabase
-      const { data: userData, error: userError } = await supabase.auth.getUser();
-      if (userError || !userData?.user?.id) {
-        setOrgError(t('error.userNotAuthenticated', 'User not authenticated'));
-        setOrgLoading(false);
-        return;
-      }
-      const ownerId = userData.user.id;
-      const newOrg = await createOrganization(orgName, ownerId);
+      const newOrg = await createOrganization(orgName);
       setAccounts((prev) => [...prev, newOrg]);
       setShowOrgDialog(false);
       setOrgName('');
