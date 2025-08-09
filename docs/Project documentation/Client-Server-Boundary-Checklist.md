@@ -32,6 +32,7 @@ Links
 ### Completed
 - [x] Make `logUserAction` client-safe (dynamic server import; browser POST fallback)
   - Edit: [src/lib/audit/auditLogger.ts](mdc:src/lib/audit/auditLogger.ts)
+- - [x] Client bundle audit: confirmed no `@supabase/supabase-js`, `fs`, `path`, or other server-only modules imported by `src/ui/**` or `src/hooks/**` after migration (2025-08-09)
 
 ### Phase 1 — Config boundary split
 - [ ] Create `src/lib/config.server.ts` that re-exports `getConfig/getServerConfig` from `src/core/config/runtime-config` (server-only)

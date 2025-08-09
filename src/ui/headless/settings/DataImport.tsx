@@ -4,7 +4,7 @@
  * Handles file parsing and optional upload logic without UI.
  */
 import { useState } from 'react';
-import { supabase } from '@/lib/database/supabase';
+// Removed direct Supabase dependency; use backend API
 
 export interface DataImportProps {
   onSuccess?: (summary: any) => void;
@@ -36,8 +36,14 @@ export function DataImport({ onSuccess, onError, render }: DataImportProps) {
     setError(null);
     try {
       const data = await parseFile(file);
-      await supabase.from('imports').insert({ data });
-      onSuccess?.(data);
+      const resp = await fetch('/api/import-data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ data }),
+      });
+      const result = await resp.json();
+      if (!resp.ok) throw new Error(result.error || 'Import failed');
+      onSuccess?.(result.inserted);
     } catch (err: any) {
       setError(err.message);
       onError?.(err.message);

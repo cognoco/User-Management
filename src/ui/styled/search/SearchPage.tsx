@@ -4,7 +4,7 @@ import { Button } from '@/ui/primitives/button';
 import { Checkbox } from '@/ui/primitives/checkbox';
 import { Label } from '@/ui/primitives/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/ui/primitives/card';
-import { supabase } from '@/lib/database/supabase';
+// Search now goes through backend API route instead of client Supabase
 import { SearchPage as HeadlessSearchPage } from '../../headless/search/SearchPage';
 
 interface SearchItem {
@@ -22,15 +22,19 @@ const SearchPage: React.FC = () => {
 
   const onSearch = useCallback(
     async (query: string) => {
-      let q = supabase.from('items').select('*');
-      if (query) q = q.ilike('title', `%${query}%`);
-      if (selectedCategories.length) q = q.in('category', selectedCategories);
-      if (startDate) q = q.gte('date', startDate.toISOString().split('T')[0]);
-      if (endDate) q = q.lte('date', endDate.toISOString().split('T')[0]);
-      const { data, error } = await q;
-      if (error) throw error;
-      setItems(data || []);
-      return data || [];
+      const resp = await fetch('/api/search/items', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          query,
+          categories: selectedCategories,
+          startDate: startDate?.toISOString().split('T')[0],
+          endDate: endDate?.toISOString().split('T')[0],
+        }),
+      });
+      const result = await resp.json();
+      if (!resp.ok) throw new Error(result.error || 'Search failed');
+      return result.items || [];
     },
     [selectedCategories, startDate, endDate]
   );

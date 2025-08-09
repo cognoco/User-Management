@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from '@/ui/primitives/button';
 import { Alert, AlertDescription } from '@/ui/primitives/alert';
 import { Spinner } from '@/ui/primitives/spinner';
-import { supabase } from '@/lib/database/supabase';
+// Data import now goes through backend API route instead of client Supabase
 
 interface DataImportProps {
   onSuccess?: (summary: any) => void;
@@ -58,11 +58,16 @@ const DataImport: React.FC<DataImportProps> = ({ onSuccess, onError }) => {
       const data = await parseFile(file);
       // Call backend API or Supabase function
       // For demo: insert into a generic 'imported_data' table
-      const { error: insertError, data: insertData } = await supabase.from('imported_data').insert(data);
-      if (insertError) throw new Error(insertError.message);
+      const resp = await fetch('/api/import-data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ data }),
+      });
+      const result = await resp.json();
+      if (!resp.ok) throw new Error(result.error || 'Import failed');
       setSuccess(true);
-      setSummary(insertData);
-      onSuccess?.(insertData);
+      setSummary(result.inserted);
+      onSuccess?.(result.inserted);
     } catch (err: any) {
       setError(err.message || t('error importing data'));
       onError?.(err.message || t('error importing data'));
