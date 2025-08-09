@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
-import { supabase } from '@/lib/database/supabase';
+// Removed direct Supabase dependency – uses storage API routes
 
 /**
  * Headless File Manager
@@ -70,12 +70,14 @@ export default function FileManager({
   const fetchFiles = async () => {
     setLoading(true);
     setError(null);
-    const { data, error } = await supabase.storage.from(bucket).list(currentPath, { limit: 100, offset: 0 });
-    if (error) {
-      setError(error.message);
+    try {
+      const resp = await fetch('/api/storage/files');
+      const json = await resp.json();
+      if (!resp.ok) throw new Error(json.error || 'Failed to list files');
+      setFiles(json.files || []);
+    } catch (err: any) {
+      setError(err.message);
       setFiles([]);
-    } else {
-      setFiles(data || []);
     }
     setLoading(false);
   };
@@ -90,12 +92,16 @@ export default function FileManager({
     setUploading(true);
     setUploadError(null);
     const path = currentPath ? `${currentPath}/${file.name}` : file.name;
-    const { error } = await supabase.storage.from(bucket).upload(path, file, { upsert: true });
-    if (error) {
-      setUploadError(error.message);
-    } else {
+    try {
+      const form = new FormData();
+      form.append('file', file);
+      const resp = await fetch('/api/storage/upload', { method: 'POST', body: form });
+      const json = await resp.json();
+      if (!resp.ok) throw new Error(json.error || 'Upload failed');
       onFileUpload?.(file, path);
       fetchFiles();
+    } catch (err: any) {
+      setUploadError(err.message);
     }
     setUploading(false);
     if (fileInputRef.current) fileInputRef.current.value = '';
@@ -103,19 +109,24 @@ export default function FileManager({
 
   const getDownloadUrl = (file: FileItem) => {
     const path = currentPath ? `${currentPath}/${file.name}` : file.name;
-    const { data } = supabase.storage.from(bucket).getPublicUrl(path);
-    return data?.publicUrl || '#';
+    return `/api/storage/file-url?path=${encodeURIComponent(path)}`;
   };
 
   const handleDelete = async () => {
     if (!deleteDialog.file) return;
     const path = currentPath ? `${currentPath}/${deleteDialog.file.name}` : deleteDialog.file.name;
-    const { error } = await supabase.storage.from(bucket).remove([path]);
-    if (error) {
-      setError(error.message);
-    } else {
+    try {
+      const resp = await fetch('/api/storage/files', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filePath: path }),
+      });
+      const json = await resp.json();
+      if (!resp.ok) throw new Error(json.error || 'Delete failed');
       onFileDelete?.(deleteDialog.file);
       fetchFiles();
+    } catch (err: any) {
+      setError(err.message);
     }
     setDeleteDialog({ open: false });
   };
@@ -124,12 +135,18 @@ export default function FileManager({
     if (!renameDialog.file || !renameValue) return;
     const oldPath = currentPath ? `${currentPath}/${renameDialog.file.name}` : renameDialog.file.name;
     const newPath = currentPath ? `${currentPath}/${renameValue}` : renameValue;
-    const { error } = await supabase.storage.from(bucket).move(oldPath, newPath);
-    if (error) {
-      setError(error.message);
-    } else {
+    try {
+      const resp = await fetch('/api/storage/rename', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ oldPath, newPath }),
+      });
+      const json = await resp.json();
+      if (!resp.ok) throw new Error(json.error || 'Rename failed');
       onFileRename?.(renameDialog.file.name, renameValue);
       fetchFiles();
+    } catch (err: any) {
+      setError(err.message);
     }
     setRenameDialog({ open: false });
     setRenameValue('');
