@@ -13,12 +13,12 @@ import { useRouter } from 'next/navigation';
 import { OAuthButtons } from './OAuthButtons';
 import { PasswordRequirements } from './PasswordRequirements';
 import { RegistrationForm as HeadlessRegistrationForm } from '@/ui/headless/auth/RegistrationForm';
-import { useAuth } from '@/hooks/auth/useAuth';
+import { registerUserViaApi } from '@/lib/api/auth/register';
 
 export function RegistrationForm() {
   const userManagement = useUserManagement();
   const router = useRouter();
-  const { register: registerUser } = useAuth();
+  // We will call the server API directly instead of client-side Supabase registration
   const [userType, setUserType] = useState<UserType>(userManagement.corporateUsers.defaultUserType);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -59,16 +59,21 @@ export function RegistrationForm() {
         <HeadlessRegistrationForm
           onSubmit={async (userData) => {
             try {
-              userData.metadata = {
-                ...userData.metadata,
-                userType
-              };
+              const apiResult = await registerUserViaApi({
+                email: userData.email.trim(),
+                password: userData.password,
+                confirmPassword: userData.confirmPassword,
+                firstName: userData.firstName.trim(),
+                lastName: userData.lastName.trim(),
+                acceptTerms: userData.acceptTerms,
+                userType,
+                metadata: userData.metadata ?? {},
+              });
 
-              const result = await registerUser(userData);
-              if (result.success) {
+              if (apiResult.success) {
                 handleRegistrationSuccess(userData.email);
-              } else if (result.error) {
-                throw new Error(result.error);
+              } else if (apiResult.error) {
+                throw new Error(apiResult.error);
               }
             } catch (error) {
               return Promise.reject(error);

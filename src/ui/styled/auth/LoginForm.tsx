@@ -42,12 +42,10 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSubmit: customOnSubmit }) => {
     handleLoginSuccess,
     handleMfaCancel,
     handleRateLimitComplete,
-    resendStatus,
-    showResendLink,
+    // Removed error-store derived states for public login page
     rateLimitInfo,
     mfaRequired,
     tempAccessToken,
-    authErrors,
     authError,
     success,
     isLoading,
@@ -75,7 +73,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSubmit: customOnSubmit }) => {
     <ErrorBoundary fallback={DefaultErrorFallback}>
       <HeadlessLoginForm
         onSubmit={onSubmit}
-        error={authErrors[0]?.message || authError || undefined}
+        error={authError || undefined}
         isLoading={isLoading}
         render={({
           handleSubmit: formSubmit,
@@ -122,37 +120,18 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSubmit: customOnSubmit }) => {
               />
             )}
 
-            {(errors.form || authErrors.length > 0) && (
+            {(errors.form || authError) && (
               <Alert variant="destructive">
                 <AlertTitle>Login Failed</AlertTitle>
                 <AlertDescription>
-                  {errors.form || authErrors[0]?.message}
-                  {showResendLink && (
-                    <button
-                      type="button"
-                      onClick={() => handleResendVerification(emailValue)}
-                      className="text-primary hover:underline ml-2"
-                    >
-                      Resend verification email
-                    </button>
-                  )}
+                  {errors.form || authError}
                 </AlertDescription>
               </Alert>
             )}
-
-            {resendStatus && (
-              <Alert
-                variant={resendStatus.type === 'success' ? 'default' : 'destructive'}
-                role="alert"
-              >
-                <AlertDescription>{resendStatus.message}</AlertDescription>
-              </Alert>
-            )}
-
             {success && (
-              <Alert>
-                <AlertDescription>{success}</AlertDescription>
-              </Alert>
+                <Alert>
+                  <AlertDescription>{success}</AlertDescription>
+                </Alert>
             )}
 
             <form onSubmit={formSubmit} className="space-y-4">
@@ -219,13 +198,13 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSubmit: customOnSubmit }) => {
                 </Label>
               </div>
 
-              <Button 
-                type="submit" 
-                className="w-full" 
-                disabled={!isValid || isSubmitting}
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={isSubmitting}
                 aria-describedby={errors.form ? 'form-error' : undefined}
               >
-                {isSubmitting ? 'Signing in...' : 'Sign In'}
+                {isSubmitting ? 'Signing in...' : 'Login'}
               </Button>
 
               <div className="text-center text-sm">

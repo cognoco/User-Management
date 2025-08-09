@@ -161,18 +161,8 @@ test.describe('Login Flow', () => {
       }
     }
     
-    // Get any cookies/storage that would be used for session persistence
-    const cookies = await initialContext.cookies();
-    const localStorage = await page.evaluate(() => {
-      const items = {};
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key) {
-          items[key] = localStorage.getItem(key);
-        }
-      }
-      return items;
-    });
+    // Capture session cookies for persistence check
+    const sessionCookies = await initialContext.cookies();
     
     // Close the page and context (simulating browser closure)
     await page.close();
@@ -182,18 +172,8 @@ test.describe('Login Flow', () => {
     const newContext = await browser.newContext();
     const newPage = await newContext.newPage();
     
-    // Restore cookies from previous session
-    await newContext.addCookies(cookies);
-    
-    // Restore localStorage if it exists
-    if (Object.keys(localStorage).length > 0) {
-      await newPage.goto('about:blank');
-      await newPage.evaluate((storedItems) => {
-        for (const [key, value] of Object.entries(storedItems)) {
-          localStorage.setItem(key, value as string);
-        }
-      }, localStorage);
-    }
+    // Restore cookies from previous session only
+    await newContext.addCookies(sessionCookies);
     
     // Navigate to a protected page that should require authentication
     await newPage.goto('/dashboard/overview');

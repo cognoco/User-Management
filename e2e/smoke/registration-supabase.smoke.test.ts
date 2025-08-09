@@ -30,7 +30,7 @@ test.describe('Registration Supabase Smoke Test', () => {
     await page.fill('[data-testid="confirm-password-input"]', 'TestPassword123!');
     
     // Accept terms and conditions
-    await page.click('[data-testid="terms-checkbox"]');
+    await page.click('[data-testid="accept-terms-checkbox"]');
 
     // Monitor network requests to see if we hit Supabase
     const apiCalls: string[] = [];
