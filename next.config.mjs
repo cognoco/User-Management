@@ -75,8 +75,8 @@ const nextConfig = {
         '@/lib/api/axios': path.resolve(__dirname, 'src/lib/api/axios-browser.ts'),
         // Radix components should resolve normally; do not alias to false or they will be missing
       };
-      // Block supabase realtime on client bundles
-      config.resolve.alias['@supabase/realtime-js'] = false;
+      // Stub Supabase Realtime client so browser bundle doesn't include heavy dependency
+      config.resolve.alias['@supabase/realtime-js'] = path.resolve(__dirname, 'src/lib/shims/realtime-stub.ts');
       
       // Completely exclude nodemailer from client bundle
       // Ensure nodemailer is never included in client bundle

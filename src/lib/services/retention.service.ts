@@ -2,7 +2,7 @@ import { getServiceSupabase } from '../database/supabase';
 import { RetentionStatus, RetentionType } from '../database/schemas/retention';
 import { sendEmail } from '../email/sendEmail';
 import { addMonths, addDays, format, differenceInDays } from 'date-fns';
-import { getServerConfig } from '@/core/config/runtime-config';
+import { getServerConfig } from '@/lib/config.server';
 
 // Define inactivity thresholds (in months)
 const config = getServerConfig();

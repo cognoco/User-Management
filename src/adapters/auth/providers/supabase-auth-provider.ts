@@ -5,7 +5,8 @@
  * It adapts Supabase's authentication API to the interface required by our core business logic.
  */
 
-import { createClient, SupabaseClient, type Session } from '@supabase/supabase-js';
+import { createBrowserClient, type SupabaseClient } from '@supabase/ssr';
+import type { Session } from '@supabase/supabase-js';
 import {
   AuthResult,
   LoginPayload,
@@ -47,7 +48,12 @@ export class SupabaseAuthProvider implements AuthDataProvider {
    * @param supabaseKey Supabase API key
    */
   constructor(supabaseUrl: string, supabaseKey: string) {
-    this.supabase = createClient(supabaseUrl, supabaseKey);
+    // Use the browser-friendly helper to ensure the correct client bundle and avoid server-only shims.
+    this.supabase = createBrowserClient(supabaseUrl, supabaseKey, {
+      realtime: {
+        enabled: false,
+      },
+    });
     this.log('Initialized client with url:', supabaseUrl);
     
     // Set up auth state change listener

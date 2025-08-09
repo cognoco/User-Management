@@ -1,5 +1,4 @@
-import { SupabaseClient } from '@supabase/supabase-js';
-import { supabase } from '@/lib/database'; // Corrected import path
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 // Define the structure for the log entry details
 // Ensure this ONLY ever contains non-sensitive information curated specifically for the audit log.
@@ -29,17 +28,17 @@ export interface LogUserActionParams {
  * @param params - The parameters for the log entry.
  */
 export async function logUserAction(params: LogUserActionParams): Promise<void> {
-  const { 
-    userId, 
-    action, 
-    status, 
-    ipAddress, 
-    userAgent, 
+  const {
+    userId,
+    action,
+    status,
+    ipAddress,
+    userAgent,
     targetResourceType,
     targetResourceId,
     details,
     severity,
-    client = supabase // Use default client if none provided
+    client,
   } = params;
 
   try {
@@ -49,13 +48,44 @@ export async function logUserAction(params: LogUserActionParams): Promise<void> 
       return;
     }
 
-    const { error } = await client
+    // If running in the browser, avoid importing server-only Supabase client.
+    if (typeof window !== 'undefined') {
+      try {
+        // Optional: attempt to POST to an API endpoint if available.
+        // If the endpoint doesn't exist, fail silently – logging is non-blocking.
+        await fetch('/api/audit/user-actions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId,
+            action,
+            status,
+            ipAddress,
+            userAgent,
+            targetResourceType,
+            targetResourceId,
+            details: { ...(details ?? {}), ...(severity ? { severity } : {}) },
+          }),
+        }).catch(() => {});
+      } catch {
+        // Swallow client logging errors completely
+      }
+      return;
+    }
+
+    // Server-side: dynamically import the Supabase client to keep it out of client bundles
+    const defaultClient: SupabaseClient | undefined = client;
+    const supabaseClient: SupabaseClient = defaultClient
+      ? defaultClient
+      : (await import('@/lib/database')).supabase as SupabaseClient;
+
+    const { error } = await supabaseClient
       .from('user_actions_log')
       .insert({
         user_id: userId,
         action: action,
         status: status,
-        ip_address: ipAddress, // Assumes INET type in DB can handle string representation
+        ip_address: ipAddress,
         user_agent: userAgent,
         target_resource_type: targetResourceType,
         target_resource_id: targetResourceId,
@@ -65,12 +95,11 @@ export async function logUserAction(params: LogUserActionParams): Promise<void> 
     if (error) {
       console.warn('[AuditLogger] Failed to log user action (non-critical):', {
         error: error.message,
-        code: error.code,
+        code: (error as any).code,
         action,
         status,
-        userId
+        userId,
       });
-      // Don't throw - audit logging failure should not break the main flow
     } else {
       console.debug('[AuditLogger] Successfully logged action:', { action, status, userId });
     }

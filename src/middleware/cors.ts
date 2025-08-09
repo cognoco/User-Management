@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { getServerConfig } from '@/core/config/runtime-config';
+import { getServerConfig } from '@/lib/config.server';
 
 interface CorsOptions {
   allowedOrigins?: string[];
