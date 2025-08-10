@@ -1,13 +1,17 @@
 import { NextResponse } from "next/server";
-import { createApiHandler, emptySchema } from "@/lib/api/route-helpers";
+import { createApiHandlerWithServices, emptySchema } from "@/lib/api/route-helpers-v2";
+import { configureUserManagement } from "@/lib/config/configure-user-management";
 import { createSuccessResponse } from "@/lib/api/common";
+
+// Configure services at module level using dependency injection
+const services = configureUserManagement();
 
 /**
  * POST handler for logout endpoint
  */
-export const POST = createApiHandler(
+export const POST = createApiHandlerWithServices(
   emptySchema,
-  async (request, authContext, _data, services) => {
+  async (request, authContext, _data, injectedServices) => {
     // Extract request context for the service
     const context = {
       ipAddress: request.headers.get("x-forwarded-for") || "unknown",
@@ -15,7 +19,7 @@ export const POST = createApiHandler(
     };
 
     // Call auth service with context - all business logic including audit logging is now in the service
-    await services.auth.logout(context);
+    await injectedServices.auth.logout(context);
     
     const callbackUrl = request.nextUrl.searchParams.get("callbackUrl");
 
@@ -37,6 +41,7 @@ export const POST = createApiHandler(
       headers
     );
   },
+  services,
   { 
     requireAuth: false, // Logout can work with or without auth
     rateLimit: { windowMs: 15 * 60 * 1000, max: 50 }

@@ -1,5 +1,18 @@
+/**
+ * User Registration Route - V2 Pattern (Dependency Injection)
+ * 
+ * This demonstrates the new architecture pattern that eliminates circular dependencies
+ * and makes testing simple through explicit dependency injection.
+ * 
+ * Key improvements:
+ * 1. Services are injected, not retrieved from a global container
+ * 2. Pure functions - no global state or circular dependencies
+ * 3. Easy testing - just inject mock services
+ * 4. Clear dependencies - explicit what services this route needs
+ */
+
 import { z } from 'zod';
-import { createApiHandlerWithServices } from '@/lib/api/route-helpers-v2';
+import { RouteHandlerFactory } from '@/lib/api/route-helpers-v2';
 import { configureUserManagement } from '@/lib/config/configure-user-management';
 import { User } from '@/core/auth/models';
 import {
@@ -9,9 +22,6 @@ import {
   ERROR_CODES
 } from '@/lib/api/common';
 import { createUserAlreadyExistsError } from '@/lib/api/user/error-handler';
-
-// Configure services at module level using dependency injection
-const services = configureUserManagement();
 
 // Extended interfaces for registration that include corporate fields
 interface ExtendedRegistrationPayload {
@@ -75,12 +85,47 @@ const RegistrationSchema = z.discriminatedUnion('userType', [
   })
 ]);
 
+// Configure services once for this route
+// In production, this would typically be done at app startup
+const services = configureUserManagement({
+  // Enable only the services we need for registration
+  featureFlags: {
+    audit: true,
+    notifications: true,
+    // Disable services we don't need for better performance
+    teams: false,
+    sso: false,
+    gdpr: false,
+    twoFactor: false,
+    subscription: false,
+    apiKeys: false,
+    webhooks: false,
+    sessions: false,
+    organizations: false,
+    csrf: false,
+    consent: false,
+    admin: false,
+    roles: false,
+    addresses: false,
+    oauth: false,
+  }
+});
+
+// Create route handler factory with configured services
+const routeFactory = new RouteHandlerFactory(services);
+
 /**
  * POST handler for registration endpoint
+ * 
+ * Notice how clean this is compared to the old version:
+ * - No service container calls
+ * - Services are injected automatically
+ * - Easy to test - just inject mock services
+ * - No circular dependencies
  */
-export const POST = createApiHandlerWithServices(
+export const POST = routeFactory.createPublicHandler(
   RegistrationSchema,
-  async (request, _authContext, regData, injectedServices) => {
+  async (request, _authContext, regData, services) => {
     // Extract request context for the service
     const context = {
       ipAddress: request.headers.get('x-forwarded-for') || 
@@ -111,7 +156,7 @@ export const POST = createApiHandlerWithServices(
     };
     
     // Call the auth service with context - all business logic is now in the service
-    const authResult = await injectedServices.auth.register(registrationPayload, context);
+    const authResult = await services.auth.register(registrationPayload, context);
 
     // Handle Registration Errors - service now handles audit logging and company association
     if (!authResult.success) {
@@ -148,9 +193,7 @@ export const POST = createApiHandlerWithServices(
       requiresEmailConfirmation: authResult.requiresEmailConfirmation
     });
   },
-  services,
   { 
-    requireAuth: false, // Registration doesn't require auth
     rateLimit: { windowMs: 15 * 60 * 1000, max: 10 } // Stricter rate limiting for registration
   }
 );

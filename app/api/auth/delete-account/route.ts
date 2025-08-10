@@ -1,5 +1,6 @@
 import { z } from 'zod';
-import { createApiHandler } from '@/lib/api/route-helpers';
+import { createApiHandlerWithServices } from '@/lib/api/route-helpers-v2';
+import { configureUserManagement } from '@/lib/config/configure-user-management';
 import { logUserAction } from '@/lib/audit/auditLogger';
 import {
   createSuccessResponse,
@@ -7,19 +8,22 @@ import {
   ERROR_CODES
 } from '@/lib/api/common';
 
+// Configure services at module level using dependency injection
+const services = configureUserManagement();
+
 const DeleteAccountSchema = z.object({ password: z.string().min(1) });
 
 /**
  * DELETE handler for account deletion endpoint
  */
-export const DELETE = createApiHandler(
+export const DELETE = createApiHandlerWithServices(
   DeleteAccountSchema,
-  async (request, authContext, data, services) => {
+  async (request, authContext, data, injectedServices) => {
     const ipAddress = request.headers.get('x-forwarded-for') || 'unknown';
     const userAgent = request.headers.get('user-agent') || 'unknown';
     
     try {
-      await services.auth.deleteAccount(data.password);
+      await injectedServices.auth.deleteAccount(data.password);
       
       await logUserAction({
         userId: authContext.userId,
@@ -51,8 +55,10 @@ export const DELETE = createApiHandler(
       );
     }
   },
+  services,
   { 
     requireAuth: true, // Account deletion requires authentication
     rateLimit: { windowMs: 15 * 60 * 1000, max: 3 } // Very strict rate limiting for account deletion
   }
 );
+EOF < /dev/null

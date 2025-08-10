@@ -1,5 +1,6 @@
 import { z } from 'zod';
-import { createApiHandler } from '@/lib/api/route-helpers';
+import { createApiHandlerWithServices } from '@/lib/api/route-helpers-v2';
+import { configureUserManagement } from '@/lib/config/configure-user-management';
 import { logUserAction } from '@/lib/audit/auditLogger';
 import {
   createSuccessResponse,
@@ -7,19 +8,22 @@ import {
   ERROR_CODES
 } from '@/lib/api/common';
 
+// Configure services at module level using dependency injection
+const services = configureUserManagement();
+
 const VerifyEmailSchema = z.object({ token: z.string().min(1) });
 
 /**
  * POST handler for email verification endpoint
  */
-export const POST = createApiHandler(
+export const POST = createApiHandlerWithServices(
   VerifyEmailSchema,
-  async (request, _authContext, data, services) => {
+  async (request, _authContext, data, injectedServices) => {
     const ipAddress = request.headers.get('x-forwarded-for') || 'unknown';
     const userAgent = request.headers.get('user-agent') || 'unknown';
     
     try {
-      await services.auth.verifyEmail(data.token);
+      await injectedServices.auth.verifyEmail(data.token);
       
       await logUserAction({
         action: 'EMAIL_VERIFIED',
@@ -47,6 +51,7 @@ export const POST = createApiHandler(
       );
     }
   },
+  services,
   { 
     requireAuth: false, // Email verification doesn't require auth
     rateLimit: { windowMs: 15 * 60 * 1000, max: 30 }

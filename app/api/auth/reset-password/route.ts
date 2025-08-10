@@ -1,7 +1,11 @@
 import { z } from "zod";
-import { createApiHandler } from "@/lib/api/route-helpers";
+import { createApiHandlerWithServices } from "@/lib/api/route-helpers-v2";
+import { configureUserManagement } from "@/lib/config/configure-user-management";
 import { logUserAction } from "@/lib/audit/auditLogger";
 import { createSuccessResponse } from "@/lib/api/common";
+
+// Configure services at module level using dependency injection
+const services = configureUserManagement();
 
 // Zod schema for password reset request
 const ResetRequestSchema = z.object({
@@ -11,16 +15,16 @@ const ResetRequestSchema = z.object({
 /**
  * POST handler for password reset endpoint
  */
-export const POST = createApiHandler(
+export const POST = createApiHandlerWithServices(
   ResetRequestSchema,
-  async (request, _authContext, data, services) => {
+  async (request, _authContext, data, injectedServices) => {
     const ipAddress = request.ip || request.headers.get("x-forwarded-for") || "unknown";
     const userAgent = request.headers.get("user-agent") || "unknown";
 
     const { email } = data;
 
     // Call auth service to initiate password reset
-    const resetResult = await services.auth.resetPassword(email);
+    const resetResult = await injectedServices.auth.resetPassword(email);
 
     // Log the password reset attempt
     await logUserAction({
@@ -33,7 +37,7 @@ export const POST = createApiHandler(
       details: { error: resetResult.error || null },
     });
 
-    if (!resetResult.success) {
+    if (\!resetResult.success) {
       console.error(
         "Password reset error (will still return generic success):",
         resetResult.error,
@@ -46,8 +50,10 @@ export const POST = createApiHandler(
         "If an account exists with this email, you will receive password reset instructions.",
     });
   },
+  services,
   { 
     requireAuth: false, // Password reset doesn't require auth
     rateLimit: { windowMs: 15 * 60 * 1000, max: 5 } // Strict rate limiting for password reset
   }
 );
+EOF < /dev/null
