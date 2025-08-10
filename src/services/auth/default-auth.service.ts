@@ -4,7 +4,15 @@
  * Provides business logic around the {@link AuthDataProvider} while exposing
  * the {@link AuthService} interface used throughout the application.
  */
-import { AuthService, RequestContext } from '@/core/auth/interfaces';
+import { 
+  AuthService, 
+  RequestContext,
+  TwoFactorSetupResult,
+  TwoFactorVerifyResult,
+  TwoFactorDisableResult,
+  BackupCodeResult,
+  BackupCodeVerifyResult
+} from '@/core/auth/interfaces';
 import type { AuthDataProvider } from '@/adapters/auth/interfaces';
 import {
   AuthResult,
@@ -631,5 +639,211 @@ export class DefaultAuthService
         callback(this.user);
       }
     });
+  }
+
+  // Additional MFA methods required by PRD Phase 4
+  
+  async setupTwoFactor(): Promise<TwoFactorSetupResult> {
+    try {
+      await this.logAction({ action: 'MFA_SETUP_START', status: 'SUCCESS' });
+      const result = await this.provider.setupTwoFactor();
+      
+      if (result.success) {
+        await this.logAction({ 
+          action: 'MFA_SETUP_SUCCESS', 
+          status: 'SUCCESS',
+          details: { hasSecret: !!result.secret, hasQrCode: !!result.qrCode }
+        });
+        this.emit({
+          type: 'mfa_setup_completed',
+          timestamp: Date.now(),
+          userId: this.user?.id ?? '',
+        });
+      } else {
+        await this.logAction({ 
+          action: 'MFA_SETUP_FAILURE', 
+          status: 'FAILURE',
+          details: { error: result.error }
+        });
+      }
+      
+      return result;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to setup two-factor authentication';
+      await this.logAction({ 
+        action: 'MFA_SETUP_FAILURE', 
+        status: 'FAILURE',
+        details: { error: errorMessage }
+      });
+      
+      return {
+        success: false,
+        error: errorMessage,
+      };
+    }
+  }
+
+  async verifyTwoFactor(code: string): Promise<TwoFactorVerifyResult> {
+    try {
+      await this.logAction({ action: 'MFA_VERIFY_ATTEMPT', status: 'SUCCESS', details: { codeProvided: !!code } });
+      const result = await this.provider.verifyTwoFactor(code);
+      
+      if (result.success) {
+        await this.logAction({ 
+          action: 'MFA_VERIFY_SUCCESS', 
+          status: 'SUCCESS'
+        });
+        this.emit({
+          type: 'mfa_verification_completed',
+          timestamp: Date.now(),
+          userId: this.user?.id ?? '',
+        });
+      } else {
+        await this.logAction({ 
+          action: 'MFA_VERIFY_FAILURE', 
+          status: 'FAILURE',
+          details: { error: result.error }
+        });
+      }
+      
+      return result;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to verify two-factor authentication';
+      await this.logAction({ 
+        action: 'MFA_VERIFY_FAILURE', 
+        status: 'FAILURE',
+        details: { error: errorMessage }
+      });
+      
+      return {
+        success: false,
+        error: errorMessage,
+      };
+    }
+  }
+
+  async disableTwoFactor(): Promise<TwoFactorDisableResult> {
+    try {
+      await this.logAction({ action: 'MFA_DISABLE_ATTEMPT', status: 'SUCCESS' });
+      const result = await this.provider.disableTwoFactor();
+      
+      if (result.success) {
+        await this.logAction({ 
+          action: 'MFA_DISABLE_SUCCESS', 
+          status: 'SUCCESS'
+        });
+        this.emit({
+          type: 'mfa_disabled',
+          timestamp: Date.now(),
+          userId: this.user?.id ?? '',
+        });
+      } else {
+        await this.logAction({ 
+          action: 'MFA_DISABLE_FAILURE', 
+          status: 'FAILURE',
+          details: { error: result.error }
+        });
+      }
+      
+      return result;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to disable two-factor authentication';
+      await this.logAction({ 
+        action: 'MFA_DISABLE_FAILURE', 
+        status: 'FAILURE',
+        details: { error: errorMessage }
+      });
+      
+      return {
+        success: false,
+        error: errorMessage,
+      };
+    }
+  }
+
+  async generateBackupCodes(): Promise<BackupCodeResult> {
+    try {
+      await this.logAction({ action: 'MFA_BACKUP_CODES_GENERATE', status: 'SUCCESS' });
+      const result = await this.provider.generateBackupCodes();
+      
+      if (result.success) {
+        await this.logAction({ 
+          action: 'MFA_BACKUP_CODES_SUCCESS', 
+          status: 'SUCCESS',
+          details: { codesCount: result.backupCodes?.length || 0 }
+        });
+        this.emit({
+          type: 'backup_codes_generated',
+          timestamp: Date.now(),
+          userId: this.user?.id ?? '',
+        });
+      } else {
+        await this.logAction({ 
+          action: 'MFA_BACKUP_CODES_FAILURE', 
+          status: 'FAILURE',
+          details: { error: result.error }
+        });
+      }
+      
+      return result;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to generate backup codes';
+      await this.logAction({ 
+        action: 'MFA_BACKUP_CODES_FAILURE', 
+        status: 'FAILURE',
+        details: { error: errorMessage }
+      });
+      
+      return {
+        success: false,
+        error: errorMessage,
+      };
+    }
+  }
+
+  async verifyBackupCode(code: string): Promise<BackupCodeVerifyResult> {
+    try {
+      await this.logAction({ action: 'MFA_BACKUP_CODE_VERIFY', status: 'SUCCESS', details: { codeProvided: !!code } });
+      const result = await this.provider.verifyBackupCode(code);
+      
+      if (result.success && result.valid) {
+        await this.logAction({ 
+          action: 'MFA_BACKUP_CODE_SUCCESS', 
+          status: 'SUCCESS'
+        });
+        this.emit({
+          type: 'backup_code_used',
+          timestamp: Date.now(),
+          userId: this.user?.id ?? '',
+        });
+      } else if (result.success && !result.valid) {
+        await this.logAction({ 
+          action: 'MFA_BACKUP_CODE_INVALID', 
+          status: 'FAILURE',
+          details: { error: result.error || 'Invalid or already used backup code' }
+        });
+      } else {
+        await this.logAction({ 
+          action: 'MFA_BACKUP_CODE_FAILURE', 
+          status: 'FAILURE',
+          details: { error: result.error }
+        });
+      }
+      
+      return result;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to verify backup code';
+      await this.logAction({ 
+        action: 'MFA_BACKUP_CODE_FAILURE', 
+        status: 'FAILURE',
+        details: { error: errorMessage }
+      });
+      
+      return {
+        success: false,
+        valid: false,
+        error: errorMessage,
+      };
+    }
   }
 }

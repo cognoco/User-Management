@@ -15,6 +15,15 @@ import {
   MFASetupResponse,
   MFAVerifyResponse
 } from '../../../core/auth/models';
+import type {
+  TwoFactorSetupResult,
+  TwoFactorVerifyResult,
+  TwoFactorDisableResult,
+  BackupCodeResult,
+  BackupCodeVerifyResult
+} from '../../../core/auth/interfaces';
+import { DefaultMfaService } from '@/services/auth/mfa-service';
+import { SupabaseMfaAdapter } from '@/adapters/supabase/mfa-adapter';
 import {
   InvalidRefreshTokenError,
   TokenRefreshError,
@@ -31,6 +40,7 @@ export class SupabaseAuthProvider implements AuthDataProvider {
   private supabase: SupabaseClient;
   private authStateCallbacks: ((user: User | null) => void)[] = [];
   private currentSession: Session | null = null;
+  private mfaService: DefaultMfaService;
 
   private log(...args: unknown[]): void {
     // Basic logging helper for debugging
@@ -55,6 +65,10 @@ export class SupabaseAuthProvider implements AuthDataProvider {
       },
     });
     this.log('Initialized client with url:', supabaseUrl);
+
+    // Initialize MFA service with Supabase adapter
+    const mfaAdapter = new SupabaseMfaAdapter(supabaseUrl, supabaseKey);
+    this.mfaService = new DefaultMfaService(mfaAdapter);
     
     // Set up auth state change listener
     this.supabase.auth.onAuthStateChange((event, session) => {
@@ -683,5 +697,149 @@ export class SupabaseAuthProvider implements AuthDataProvider {
   handleSessionTimeout(): void {
     this.log('handleSessionTimeout');
     this.logout();
+  }
+
+  // Additional MFA methods required by PRD Phase 4
+  
+  /**
+   * Set up Two-Factor Authentication for the current user
+   * Generates TOTP secret and QR code for authenticator apps
+   * 
+   * @returns TOTP setup result with secret, QR code, and backup codes
+   */
+  async setupTwoFactor(): Promise<TwoFactorSetupResult> {
+    this.log('setupTwoFactor');
+    try {
+      const { data: { user }, error: userError } = await this.supabase.auth.getUser();
+      
+      if (userError || !user) {
+        return {
+          success: false,
+          error: userError?.message || 'Authentication required'
+        };
+      }
+      
+      return await this.mfaService.setupTwoFactor(user.id);
+    } catch (error: any) {
+      this.logError('setupTwoFactor failed', error);
+      return {
+        success: false,
+        error: error.message || 'Failed to setup two-factor authentication'
+      };
+    }
+  }
+
+  /**
+   * Verify a Two-Factor Authentication code during setup or login
+   * 
+   * @param code TOTP code from authenticator app
+   * @returns Verification result
+   */
+  async verifyTwoFactor(code: string): Promise<TwoFactorVerifyResult> {
+    this.log('verifyTwoFactor');
+    try {
+      const { data: { user }, error: userError } = await this.supabase.auth.getUser();
+      
+      if (userError || !user) {
+        return {
+          success: false,
+          error: userError?.message || 'Authentication required'
+        };
+      }
+      
+      return await this.mfaService.verifyTwoFactor(user.id, code);
+    } catch (error: any) {
+      this.logError('verifyTwoFactor failed', error);
+      return {
+        success: false,
+        error: error.message || 'Failed to verify two-factor authentication'
+      };
+    }
+  }
+
+  /**
+   * Disable Two-Factor Authentication for the current user
+   * 
+   * @returns Disable result
+   */
+  async disableTwoFactor(): Promise<TwoFactorDisableResult> {
+    this.log('disableTwoFactor');
+    try {
+      const { data: { user }, error: userError } = await this.supabase.auth.getUser();
+      
+      if (userError || !user) {
+        return {
+          success: false,
+          error: userError?.message || 'Authentication required'
+        };
+      }
+      
+      return await this.mfaService.disableTwoFactor(user.id);
+    } catch (error: any) {
+      this.logError('disableTwoFactor failed', error);
+      return {
+        success: false,
+        error: error.message || 'Failed to disable two-factor authentication'
+      };
+    }
+  }
+
+  /**
+   * Generate backup recovery codes for the user
+   * Returns 8-10 unique 8-digit codes for account recovery
+   * 
+   * @returns Backup codes generation result
+   */
+  async generateBackupCodes(): Promise<BackupCodeResult> {
+    this.log('generateBackupCodes');
+    try {
+      const { data: { user }, error: userError } = await this.supabase.auth.getUser();
+      
+      if (userError || !user) {
+        return {
+          success: false,
+          error: userError?.message || 'Authentication required'
+        };
+      }
+      
+      return await this.mfaService.generateBackupCodes(user.id);
+    } catch (error: any) {
+      this.logError('generateBackupCodes failed', error);
+      return {
+        success: false,
+        error: error.message || 'Failed to generate backup codes'
+      };
+    }
+  }
+
+  /**
+   * Verify a backup code during authentication
+   * Single-use codes that are consumed when used
+   * 
+   * @param code 8-digit backup code
+   * @returns Verification result indicating if code is valid
+   */
+  async verifyBackupCode(code: string): Promise<BackupCodeVerifyResult> {
+    this.log('verifyBackupCode');
+    try {
+      const { data: { user }, error: userError } = await this.supabase.auth.getUser();
+      
+      if (userError || !user) {
+        return {
+          success: false,
+          valid: false,
+          error: userError?.message || 'Authentication required'
+        };
+      }
+      
+      return await this.mfaService.verifyBackupCode(user.id, code);
+    } catch (error: any) {
+      this.logError('verifyBackupCode failed', error);
+      return {
+        success: false,
+        valid: false,
+        error: error.message || 'Failed to verify backup code'
+      };
+    }
   }
 }

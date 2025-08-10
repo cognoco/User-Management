@@ -14,6 +14,13 @@ import {
   MFASetupResponse,
   MFAVerifyResponse,
 } from "@/core/auth/models";
+import type {
+  TwoFactorSetupResult,
+  TwoFactorVerifyResult,
+  TwoFactorDisableResult,
+  BackupCodeResult,
+  BackupCodeVerifyResult
+} from "@/core/auth/interfaces";
 import { UserManagementConfiguration } from "@/core/config";
 import { useAuthService } from "@/lib/context/AuthContext";
 
@@ -60,6 +67,13 @@ export interface UseAuth {
     isBackupCode?: boolean,
   ) => Promise<MFAVerifyResponse>;
   disableMFA: () => Promise<AuthResult>;
+
+  // Additional MFA methods for Phase 4 requirements
+  setupTwoFactor: () => Promise<TwoFactorSetupResult>;
+  verifyTwoFactor: (code: string) => Promise<TwoFactorVerifyResult>;
+  disableTwoFactor: () => Promise<TwoFactorDisableResult>;
+  generateBackupCodes: () => Promise<BackupCodeResult>;
+  verifyBackupCode: (code: string) => Promise<BackupCodeVerifyResult>;
 
   // Email verification
   sendVerificationEmail: (email: string) => Promise<AuthResult>;
@@ -584,6 +598,164 @@ export function useAuth(): UseAuth {
     [authService],
   );
 
+  // Additional MFA methods for Phase 4 requirements
+  const setupTwoFactor = useCallback(async (): Promise<TwoFactorSetupResult> => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const result = await authService.setupTwoFactor();
+      
+      setIsLoading(false);
+      
+      if (result.success) {
+        setMfaSecret(result.secret || null);
+        setMfaQrCode(result.qrCode || null);
+        setMfaBackupCodes(result.backupCodes || null);
+        setSuccessMessage("Two-factor authentication setup initiated");
+      } else if (result.error) {
+        setError(result.error);
+      }
+      
+      return result;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to setup two-factor authentication";
+      
+      setIsLoading(false);
+      setError(errorMessage);
+      
+      return {
+        success: false,
+        error: errorMessage,
+      };
+    }
+  }, [authService]);
+
+  const verifyTwoFactor = useCallback(async (code: string): Promise<TwoFactorVerifyResult> => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const result = await authService.verifyTwoFactor(code);
+      
+      setIsLoading(false);
+      
+      if (result.success) {
+        setMfaEnabled(true);
+        setSuccessMessage("Two-factor authentication verified successfully");
+      } else if (result.error) {
+        setError(result.error);
+      }
+      
+      return result;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to verify two-factor authentication";
+      
+      setIsLoading(false);
+      setError(errorMessage);
+      
+      return {
+        success: false,
+        error: errorMessage,
+      };
+    }
+  }, [authService]);
+
+  const disableTwoFactor = useCallback(async (): Promise<TwoFactorDisableResult> => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const result = await authService.disableTwoFactor();
+      
+      setIsLoading(false);
+      
+      if (result.success) {
+        setMfaEnabled(false);
+        setMfaSecret(null);
+        setMfaQrCode(null);
+        setMfaBackupCodes(null);
+        setSuccessMessage("Two-factor authentication disabled successfully");
+      } else if (result.error) {
+        setError(result.error);
+      }
+      
+      return result;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to disable two-factor authentication";
+      
+      setIsLoading(false);
+      setError(errorMessage);
+      
+      return {
+        success: false,
+        error: errorMessage,
+      };
+    }
+  }, [authService]);
+
+  const generateBackupCodes = useCallback(async (): Promise<BackupCodeResult> => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const result = await authService.generateBackupCodes();
+      
+      setIsLoading(false);
+      
+      if (result.success) {
+        setMfaBackupCodes(result.backupCodes || null);
+        setSuccessMessage("Backup codes generated successfully");
+      } else if (result.error) {
+        setError(result.error);
+      }
+      
+      return result;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to generate backup codes";
+      
+      setIsLoading(false);
+      setError(errorMessage);
+      
+      return {
+        success: false,
+        error: errorMessage,
+      };
+    }
+  }, [authService]);
+
+  const verifyBackupCode = useCallback(async (code: string): Promise<BackupCodeVerifyResult> => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const result = await authService.verifyBackupCode(code);
+      
+      setIsLoading(false);
+      
+      if (result.success && result.valid) {
+        setSuccessMessage("Backup code verified successfully");
+      } else if (result.success && !result.valid) {
+        setError(result.error || "Invalid or already used backup code");
+      } else if (result.error) {
+        setError(result.error);
+      }
+      
+      return result;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to verify backup code";
+      
+      setIsLoading(false);
+      setError(errorMessage);
+      
+      return {
+        success: false,
+        valid: false,
+        error: errorMessage,
+      };
+    }
+  }, [authService]);
+
   const getCurrentUser = useCallback(async (): Promise<User | null> => {
     setIsLoading(true);
     setError(null);
@@ -684,6 +856,11 @@ export function useAuth(): UseAuth {
     setupMFA,
     verifyMFA,
     disableMFA,
+    setupTwoFactor,
+    verifyTwoFactor,
+    disableTwoFactor,
+    generateBackupCodes,
+    verifyBackupCode,
     sendVerificationEmail,
     sendMagicLink,
     verifyEmail,

@@ -9,7 +9,6 @@ import { useGlobalError } from '@/lib/state/errorStore';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 // Import directly to avoid pulling in server-only modules (like Nodemailer) via the barrel
 import { initializeCsrf } from '@/lib/api/csrf';
-import { initializeErrorSystem } from '@/lib/monitoring/error-system';
 
 const GlobalErrorDisplay = dynamic(
   () => import('@/ui/styled/common/GlobalErrorDisplay'),
@@ -26,8 +25,9 @@ export default function RootLayoutClient({
   useKeyboardShortcuts({
     "shift+?": () => setDialogOpen(true),
   });
+  // Error system runs on server only to avoid pulling Node deps into client
   useEffect(() => {
-    initializeErrorSystem();
+    // noop client
   }, []);
   return (
     <>

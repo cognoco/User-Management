@@ -78,6 +78,38 @@ export interface MfaResendResult {
   error?: string;
 }
 
+// New interfaces for the additional MFA methods
+export interface TwoFactorSetupResult {
+  success: boolean;
+  secret?: string;
+  qrCode?: string;
+  backupCodes?: string[];
+  error?: string;
+}
+
+export interface BackupCodeResult {
+  success: boolean;
+  backupCodes?: string[];
+  error?: string;
+}
+
+export interface TwoFactorVerifyResult {
+  success: boolean;
+  token?: string;
+  error?: string;
+}
+
+export interface TwoFactorDisableResult {
+  success: boolean;
+  error?: string;
+}
+
+export interface BackupCodeVerifyResult {
+  success: boolean;
+  valid: boolean;
+  error?: string;
+}
+
 /**
  * Core authentication service interface
  *
@@ -345,6 +377,48 @@ export interface AuthService {
    * @returns Unsubscribe function
    */
   onAuthStateChanged(callback: (user: User | null) => void): () => void;
+
+  // Additional MFA methods required by PRD Phase 4
+  
+  /**
+   * Set up Two-Factor Authentication for the current user
+   * Generates TOTP secret and QR code for authenticator apps
+   * 
+   * @returns TOTP setup result with secret, QR code, and backup codes
+   */
+  setupTwoFactor(): Promise<TwoFactorSetupResult>;
+
+  /**
+   * Verify a Two-Factor Authentication code during setup or login
+   * 
+   * @param code TOTP code from authenticator app
+   * @returns Verification result
+   */
+  verifyTwoFactor(code: string): Promise<TwoFactorVerifyResult>;
+
+  /**
+   * Disable Two-Factor Authentication for the current user
+   * 
+   * @returns Disable result
+   */
+  disableTwoFactor(): Promise<TwoFactorDisableResult>;
+
+  /**
+   * Generate backup recovery codes for the user
+   * Returns 8-10 unique 8-digit codes for account recovery
+   * 
+   * @returns Backup codes generation result
+   */
+  generateBackupCodes(): Promise<BackupCodeResult>;
+
+  /**
+   * Verify a backup code during authentication
+   * Single-use codes that are consumed when used
+   * 
+   * @param code 8-digit backup code
+   * @returns Verification result indicating if code is valid
+   */
+  verifyBackupCode(code: string): Promise<BackupCodeVerifyResult>;
 }
 
 /**

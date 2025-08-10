@@ -1,22 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { POST } from '../route';
-import { getApiTwoFactorService } from '@/services/two-factor/factory';
+import { getServiceContainer } from '@/lib/config/service-container';
 import { logUserAction } from '@/lib/audit/auditLogger';
 
-vi.mock('@/services/two-factor/factory', () => ({ getApiTwoFactorService: vi.fn() }));
+vi.mock('@/lib/config/service-container', () => ({ 
+  getServiceContainer: vi.fn() 
+}));
+vi.mock('@/lib/api/auth-middleware', () => ({
+  createAuthMiddleware: vi.fn(() => vi.fn(() => Promise.resolve({ userId: 'u1' })))
+}));
 vi.mock('@/middleware/with-security', () => ({ withSecurity: (h: any) => h }));
-vi.mock('@/middleware/createMiddlewareChain', async () => {
-  const actual = await vi.importActual<any>('@/middleware/createMiddlewareChain');
-  return {
-    ...actual,
-    // Pass-through validation middleware using actual schema parsing
-    validationMiddleware: (schema: any) => (handler: any) => async (req: any, ctx?: any) => {
-      const body = await req.json();
-      const parsed = schema.parse(body);
-      return handler(req, ctx, parsed);
-    },
-  };
-});
 vi.mock('@/lib/audit/auditLogger', () => ({ logUserAction: vi.fn() }));
 
 const createRequest = (body: any) =>
@@ -27,34 +20,36 @@ const createRequest = (body: any) =>
   });
 
 describe('WebAuthn verify API', () => {
-  const mockService = {
+  const mockTwoFactorService = {
     startWebAuthnRegistration: vi.fn(),
     verifyWebAuthnRegistration: vi.fn()
   };
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (getApiTwoFactorService as unknown as vi.Mock).mockReturnValue(mockService);
+    (getServiceContainer as vi.Mock).mockReturnValue({
+      twoFactor: mockTwoFactorService
+    });
   });
 
   it('returns authentication options', async () => {
-    mockService.startWebAuthnRegistration.mockResolvedValue({ success: true, challenge: 'c' } as any);
+    mockTwoFactorService.startWebAuthnRegistration.mockResolvedValue({ success: true, challenge: 'c' } as any);
     const res = await POST(createRequest({ phase: 'options', userId: 'u1' }) as any);
     const data = await res.json();
     expect(res.status).toBe(200);
-    expect(data.challenge).toBe('c');
-    expect(mockService.startWebAuthnRegistration).toHaveBeenCalledWith('u1');
+    expect(data.data.challenge).toBe('c');
+    expect(mockTwoFactorService.startWebAuthnRegistration).toHaveBeenCalledWith('u1');
   });
 
   it('verifies authentication', async () => {
-    mockService.verifyWebAuthnRegistration.mockResolvedValue({ success: true } as any);
+    mockTwoFactorService.verifyWebAuthnRegistration.mockResolvedValue({ success: true, verified: true, user: { id: 'u1' } } as any);
     const res = await POST(
       createRequest({ phase: 'verification', userId: 'u1', credential: 'cred' }) as any
     );
     const data = await res.json();
     expect(res.status).toBe(200);
-    expect(data.verified).toBe(true);
-    expect(data.user.id).toBe('u1');
-    expect(mockService.verifyWebAuthnRegistration).toHaveBeenCalledWith({ userId: 'u1', method: 'webauthn', code: 'cred' });
+    expect(data.data.verified).toBe(true);
+    expect(data.data.user.id).toBe('u1');
+    expect(mockTwoFactorService.verifyWebAuthnRegistration).toHaveBeenCalledWith({ userId: 'u1', method: 'webauthn', code: 'cred' });
   });
 });

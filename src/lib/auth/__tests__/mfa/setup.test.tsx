@@ -66,12 +66,12 @@ describe('Multi-Factor Authentication Setup', () => {
     
     // Wait for component to load
     await waitFor(() => {
-      expect(screen.getByText('2fa.setup.selectMethod')).toBeInTheDocument(); 
+      expect(screen.getByText('Select a 2FA method')).toBeInTheDocument(); 
     });
     
-    // Select TOTP option
+    // Select TOTP option (Authenticator App)
     await act(async () => {
-      await user.click(screen.getByRole('button', { name: '2fa.methods.totp' })); 
+      await user.click(screen.getByRole('button', { name: 'Authenticator App' })); 
     });
     
     // Verify QR code is displayed
@@ -82,12 +82,13 @@ describe('Multi-Factor Authentication Setup', () => {
     
     // Enter verification code
     await act(async () => {
-        await user.type(screen.getByLabelText('2fa.setup.enterCode'), '123456'); 
+        const codeInput = screen.getByLabelText(/verification code/i) || screen.getByPlaceholderText(/enter.*code/i);
+        await user.type(codeInput, '123456'); 
     });
     
     // Submit verification
     await act(async () => {
-        await user.click(screen.getByRole('button', { name: '2fa.setup.verify' })); 
+        await user.click(screen.getByRole('button', { name: /verify/i })); 
     });
     
     // Verify API calls were made and component moved to backup step
@@ -95,7 +96,7 @@ describe('Multi-Factor Authentication Setup', () => {
       expect(api.post).toHaveBeenCalledWith('/api/2fa/setup', { method: 'totp' });
       expect(api.post).toHaveBeenCalledWith('/api/2fa/verify', { method: 'totp', code: '123456' });
       expect(api.post).toHaveBeenCalledWith('/api/2fa/backup-codes');
-      expect(screen.getByText('2fa.setup.backupCodes')).toBeInTheDocument();
+      expect(screen.getByText(/backup.*code/i)).toBeInTheDocument();
       expect(screen.getByText('111')).toBeInTheDocument(); // Check if backup code is rendered
     });
   });
@@ -132,37 +133,40 @@ describe('Multi-Factor Authentication Setup', () => {
 
     // Wait for component to load
     await waitFor(() => {
-      expect(screen.getByText('2fa.setup.selectMethod')).toBeInTheDocument();
+      expect(screen.getByText('Select a 2FA method')).toBeInTheDocument();
     });
 
     // Select SMS option
     await act(async () => {
-      await user.click(screen.getByRole('button', { name: '2fa.methods.sms' }));
+      await user.click(screen.getByRole('button', { name: 'SMS' }));
     });
 
     // Enter phone number
     await act(async () => {
-      await user.type(screen.getByLabelText('2fa.setup.enterPhone'), '+1234567890');
+      const phoneInput = screen.getByLabelText(/phone/i) || screen.getByPlaceholderText(/phone/i);
+      await user.type(phoneInput, '+1234567890');
     });
 
     // Submit phone number to send code
     await act(async () => {
-      await user.click(screen.getByRole('button', { name: '2fa.setup.sendCode' }));
+      await user.click(screen.getByRole('button', { name: /send.*code/i }));
     });
 
     // Wait for code entry UI
     await waitFor(() => {
-      expect(screen.getByLabelText('2fa.setup.enterCode')).toBeInTheDocument();
+      const codeInput = screen.getByLabelText(/code/i) || screen.getByPlaceholderText(/code/i);
+      expect(codeInput).toBeInTheDocument();
     });
 
     // Enter the received code
     await act(async () => {
-      await user.type(screen.getByLabelText('2fa.setup.enterCode'), '654321');
+      const codeInput = screen.getByLabelText(/code/i) || screen.getByPlaceholderText(/code/i);
+      await user.type(codeInput, '654321');
     });
 
     // Submit verification
     await act(async () => {
-      await user.click(screen.getByRole('button', { name: '2fa.setup.verify' }));
+      await user.click(screen.getByRole('button', { name: /verify/i }));
     });
 
     // Verify API calls were made and backup codes are shown
@@ -171,7 +175,7 @@ describe('Multi-Factor Authentication Setup', () => {
       expect(api.post).toHaveBeenCalledWith('/api/2fa/send-sms', { phone: '+1234567890' });
       expect(api.post).toHaveBeenCalledWith('/api/2fa/verify', { method: 'sms', code: '654321' });
       expect(api.post).toHaveBeenCalledWith('/api/2fa/backup-codes');
-      expect(screen.getByText('2fa.setup.backupCodes')).toBeInTheDocument();
+      expect(screen.getByText(/backup.*code/i)).toBeInTheDocument();
       expect(screen.getByText('444')).toBeInTheDocument();
     });
   });

@@ -37,18 +37,18 @@ describe('WebAuthn register API', () => {
     const res = await POST(createRequest({ phase: 'options' }) as any);
     const data = await res.json();
     expect(res.status).toBe(200);
-    expect(data.challenge).toBe('c');
+    expect(data.data.challenge).toBe('c'); // createSuccessResponse wraps the result in 'data'
     expect(mockTwoFactorService.startWebAuthnRegistration).toHaveBeenCalledWith('u1');
   });
 
   it('verifies registration', async () => {
-    mockTwoFactorService.verifyWebAuthnRegistration.mockResolvedValue({ success: true } as any);
+    mockTwoFactorService.verifyWebAuthnRegistration.mockResolvedValue({ success: true, verified: true } as any);
     const res = await POST(
       createRequest({ phase: 'verification', credential: 'cred' }) as any
     );
     const data = await res.json();
     expect(res.status).toBe(200);
-    expect(data.verified).toBe(true);
+    expect(data.data.verified).toBe(true); // createSuccessResponse wraps the result in 'data'
     expect(mockTwoFactorService.verifyWebAuthnRegistration).toHaveBeenCalledWith({ userId: 'u1', method: 'webauthn', code: 'cred' });
   });
 });
