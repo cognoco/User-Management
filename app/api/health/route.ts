@@ -7,6 +7,7 @@ const middleware = createMiddlewareChain([
   errorHandlingMiddleware()
 ]);
 
+// DEBUG: health route module loaded
 async function handleGet() {
   try {
     const healthService = getHealthService();

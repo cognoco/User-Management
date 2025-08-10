@@ -22,12 +22,13 @@ vi.mock('next/headers', () => ({
 }));
 
 vi.mock('@/lib/config/service-container', () => ({
-  getServiceContainer: vi.fn()
+  getServiceContainer: vi.fn(),
+  resetServiceContainer: vi.fn(),
+  configureServices: vi.fn()
 }));
 const mockService = {
   verifyProviderEmail: vi.fn(),
 };
-
 
 const createRequest = (body: object) => new Request('http://localhost/api/auth/oauth/verify', {
   method: 'POST',
@@ -64,7 +65,7 @@ describe('oauth verify route', () => {
     const res = await POST(request);
     const json = await res.json();
     expect(res.status).toBe(200);
-    expect(json.success).toBe(true);
+    expect(json.data.success).toBe(true);
     expect(mockService.verifyProviderEmail).toHaveBeenCalledWith(
       OAuthProvider.GITHUB,
       'new@example.com',

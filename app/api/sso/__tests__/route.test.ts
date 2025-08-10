@@ -1,9 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { GET, POST } from '../route';
 import { getApiSsoService } from '@/services/sso/factory';
+import { getServiceContainer } from '@/lib/config/service-container';
 
 vi.mock('@/services/sso/factory', () => ({
   getApiSsoService: vi.fn(),
+}));
+
+vi.mock('@/lib/config/service-container', () => ({
+  getServiceContainer: vi.fn(),
+  resetServiceContainer: vi.fn(),  
+  configureServices: vi.fn()
 }));
 
 const mockRequest = (body: any) =>
@@ -22,6 +29,8 @@ describe('/api/sso', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     (getApiSsoService as unknown as vi.Mock).mockReturnValue(mockService);
+    (getServiceContainer as vi.Mock).mockReturnValue({ sso: mockService });
+    
     mockService.getProviders.mockResolvedValue([]);
     mockService.upsertProvider.mockResolvedValue({
       id: '1',
@@ -35,7 +44,7 @@ describe('/api/sso', () => {
   it('GET returns providers array', async () => {
     const res = await GET(new Request('http://localhost/api/sso?organizationId=org1'));
     const json = await res.json();
-    expect(Array.isArray(json.providers)).toBe(true);
+    expect(Array.isArray(json.data.providers)).toBe(true);
     expect(mockService.getProviders).toHaveBeenCalledWith('org1');
   });
 

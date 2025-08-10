@@ -13,9 +13,16 @@ vi.mock('@/hooks/team/useRoles');
 describe('UserRoleAssigner', () => {
   it('assigns and removes roles', async () => {
     const searchUsers = vi.fn();
-    vi.mocked(adminUsers.useAdminUsers).mockReturnValue({ users: [{ id: 'u1', firstName: 'A' }], searchUsers, isLoading: false, error: null });
-    const assignRoleToUser = vi.fn();
-    const removeRoleFromUser = vi.fn();
+    const assignRoleToUser = vi.fn().mockResolvedValue(true);
+    const removeRoleFromUser = vi.fn().mockResolvedValue(true);
+    
+    vi.mocked(adminUsers.useAdminUsers).mockReturnValue({ 
+      users: [{ id: 'u1', firstName: 'A', email: 'test@example.com' }], 
+      searchUsers, 
+      isLoading: false, 
+      error: null 
+    });
+    
     vi.mocked(useRolesHook.useRoles).mockReturnValue({
       roles: [{ id: 'r1', name: 'Admin' }],
       assignRoleToUser,
@@ -23,21 +30,48 @@ describe('UserRoleAssigner', () => {
       getUserRoles: vi.fn().mockResolvedValue([]),
       isLoading: false,
     } as any);
+    
     const permissionService: PermissionService = {
       getUserResourcePermissions: vi.fn().mockResolvedValue([]),
     } as any;
     vi.spyOn(UserManagementConfiguration, 'getServiceProvider').mockReturnValue(permissionService);
 
-    const renderProp = vi.fn(() => null);
-    renderHook(() => <UserRoleAssigner render={renderProp} />);
-    const args = renderProp.mock.calls[0][0];
-    await act(async () => {
-      await args.search('x');
-      args.selectUser('u1');
-      await args.assign('r1');
-      await args.remove('r1');
+    const renderProp = vi.fn(({ search, selectUser, assign, remove }: any) => {
+      // Test the props passed to render function
+      expect(search).toBeInstanceOf(Function);
+      expect(selectUser).toBeInstanceOf(Function);
+      expect(assign).toBeInstanceOf(Function);
+      expect(remove).toBeInstanceOf(Function);
+      return null;
     });
-    expect(searchUsers).toHaveBeenCalled();
+    
+    const { result } = renderHook(() => {
+      return UserRoleAssigner({ render: renderProp });
+    });
+    
+    // Wait for the component to render and call the render prop
+    expect(renderProp).toHaveBeenCalled();
+    
+    // Get the props from the render function call
+    const renderProps = renderProp.mock.calls[0][0];
+    
+    await act(async () => {
+      await renderProps.search('x');
+    });
+    
+    act(() => {
+      renderProps.selectUser('u1');
+    });
+    
+    await act(async () => {
+      await renderProps.assign('r1');
+    });
+    
+    await act(async () => {
+      await renderProps.remove('r1');
+    });
+    
+    expect(searchUsers).toHaveBeenCalledWith({ query: 'x' });
     expect(assignRoleToUser).toHaveBeenCalled();
     expect(removeRoleFromUser).toHaveBeenCalled();
   });

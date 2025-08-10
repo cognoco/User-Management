@@ -4,7 +4,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { getServiceContainer } from '@/lib/config/service-container';
 
 vi.mock('@/lib/config/service-container', () => ({
-  getServiceContainer: vi.fn()
+  getServiceContainer: vi.fn(),
+  resetServiceContainer: vi.fn(),
+  configureServices: vi.fn()
 }));
 
 const mockService = {
@@ -28,7 +30,7 @@ describe('POST /api/auth/oauth/link', () => {
     mockService.linkProvider.mockResolvedValue({ success: false, error: 'err', status: 400 });
     const res = await POST(createRequest({ provider: OAuthProvider.GITHUB, code: 'x' }));
     expect(res.status).toBe(400);
-    expect(await res.json()).toEqual({ error: 'err' });
+    expect(await res.json()).toEqual({ error: { message: 'err' } });
     expect(mockService.linkProvider).toHaveBeenCalledWith(OAuthProvider.GITHUB, 'x');
   });
 
@@ -36,6 +38,6 @@ describe('POST /api/auth/oauth/link', () => {
     mockService.linkProvider.mockResolvedValue({ success: true, user: { id: '1' }, linkedProviders: ['g'] });
     const res = await POST(createRequest({ provider: OAuthProvider.GITHUB, code: 'y' }));
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ success: true, linkedProviders: ['g'], user: { id: '1' } });
+    expect(await res.json()).toEqual({ data: { success: true, linkedProviders: ['g'], user: { id: '1' } } });
   });
 });

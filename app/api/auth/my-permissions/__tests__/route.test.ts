@@ -1,27 +1,45 @@
-import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { GET } from '../route';
-import { getApiPermissionService } from '@/services/permission/factory';
+import type { PermissionService } from '@/core/permission/interfaces';
+import type { AuthService } from '@/core/auth/interfaces';
 
-vi.mock('@/middleware/with-security', () => ({ withSecurity: (h: any) => h }));
-vi.mock('@/services/permission/factory', () => ({ getApiPermissionService: vi.fn() }));
-vi.mock('@/middleware/createMiddlewareChain', async () => {
-  const actual = await vi.importActual<any>('@/middleware/createMiddlewareChain');
-  return {
-    ...actual,
-    routeAuthMiddleware: vi.fn(() => (handler: any) => (req: any, _ctx?: any, data?: any) => handler(req, { userId: 'u1' }, data)),
-  };
-});
+vi.mock('@/services/permission/factory', () => ({}));
+vi.mock('@/services/auth/factory', () => ({}));
+vi.mock('@/lib/config/service-container', () => ({
+  configureServices: vi.fn(),
+  resetServiceContainer: vi.fn(),
+  getServiceContainer: vi.fn(),
+}));
 
-const mockService = {
+// Mock auth middleware to return authenticated context
+vi.mock('@/lib/api/auth-middleware', () => ({
+  createAuthMiddleware: () => () => Promise.resolve({
+    isAuthenticated: true,
+    userId: 'u1',
+    user: { id: 'u1', email: 'test@example.com' },
+    permissions: ['P1'],
+    token: 'test-token',
+  }),
+}));
+
+const mockPermissionService: Partial<PermissionService> = {
   getUserRoles: vi.fn(),
-  getRoleById: vi.fn()
+  getRoleById: vi.fn(),
 };
+const mockAuth: Partial<AuthService> = {
+  getCurrentUser: vi.fn().mockResolvedValue({ id: 'u1', email: 'test@example.com' }),
+};
+
+import { getServiceContainer } from '@/lib/config/service-container';
+vi.mocked(getServiceContainer).mockReturnValue({
+  permissionService: mockPermissionService as PermissionService,
+  auth: mockAuth as AuthService,
+} as any);
 
 beforeEach(() => {
   vi.clearAllMocks();
-  (getApiPermissionService as unknown as Mock).mockReturnValue(mockService);
-  mockService.getUserRoles.mockResolvedValue([{ roleId: 'r1' }]);
-  mockService.getRoleById.mockResolvedValue({ name: 'ADMIN', permissions: ['P1'] });
+  vi.mocked(mockPermissionService.getUserRoles!).mockResolvedValue([{ roleId: 'r1' }]);
+  vi.mocked(mockPermissionService.getRoleById!).mockResolvedValue({ name: 'ADMIN', permissions: ['P1'] });
 });
 
 describe('GET /api/auth/my-permissions', () => {
@@ -31,5 +49,7 @@ describe('GET /api/auth/my-permissions', () => {
     expect(res.status).toBe(200);
     expect(body.data.roles[0]).toBe('ADMIN');
     expect(body.data.permissions).toContain('P1');
+    expect(mockPermissionService.getUserRoles).toHaveBeenCalledWith('u1');
+    expect(mockPermissionService.getRoleById).toHaveBeenCalledWith('r1');
   });
 });

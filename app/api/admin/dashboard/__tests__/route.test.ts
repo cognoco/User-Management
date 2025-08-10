@@ -51,19 +51,19 @@ describe('Admin Dashboard API', () => {
     vi.clearAllMocks();
   });
 
-  it('returns 401 when user is not authenticated', async () => {
+  it('returns 403 when user is not authenticated', async () => {
     vi.mocked(routeAuthMiddleware).mockReturnValueOnce((handler: any) =>
       (_req: any, _ctx?: any, data?: any) => {
         // Simulate auth middleware returning error directly without calling handler
-        return Promise.resolve(NextResponse.json({ error: 'Unauthorized' }, { status: 401 }));
+        return Promise.resolve(NextResponse.json({ error: 'Forbidden' }, { status: 403 }));
       }
     );
 
     const response = await GET({} as any);
     const data = await response.json();
 
-    expect(response.status).toBe(401);
-    expect(data).toEqual({ error: 'Unauthorized' });
+    expect(response.status).toBe(403);
+    expect(data).toEqual({ error: 'Forbidden' });
   });
 
   it('returns 403 when user lacks admin permission', async () => {

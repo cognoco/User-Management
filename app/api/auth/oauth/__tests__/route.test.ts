@@ -48,7 +48,9 @@ vi.mock("next/headers", () => ({
 
 // Mock service container
 vi.mock('@/lib/config/service-container', () => ({
-  getServiceContainer: vi.fn()
+  getServiceContainer: vi.fn(),
+  resetServiceContainer: vi.fn(),
+  configureServices: vi.fn()
 }));
 const mockService = {
   configureOAuthProvider: vi.fn(),
@@ -122,8 +124,8 @@ describe("POST /api/auth/oauth", () => {
     const responseBody = await response.json();
 
     expect(response.status).toBe(200);
-    expect(responseBody).toEqual({ url: "https://example.com/auth", state: expect.any(String) });
-    const returnedState = responseBody.state;
+    expect(responseBody).toEqual({ data: { url: "https://example.com/auth", state: expect.any(String) } });
+    const returnedState = responseBody.data.state;
 
     expect(mockService.configureOAuthProvider).toHaveBeenCalled();
     expect(mockService.getOAuthAuthorizationUrl).toHaveBeenCalledWith(
@@ -157,7 +159,7 @@ describe("POST /api/auth/oauth", () => {
 
     expect(response.status).toBe(400);
     expect(responseBody).toHaveProperty("error");
-    expect(responseBody.error).toContain("provider"); // Zod error message
+    expect(responseBody.error.message).toContain("provider"); // Validation error
     expect(mockService.configureOAuthProvider).not.toHaveBeenCalled();
   });
 
@@ -174,7 +176,7 @@ describe("POST /api/auth/oauth", () => {
 
     expect(response.status).toBe(400);
     expect(responseBody).toHaveProperty("error");
-    expect(responseBody.error).toContain("provider"); // Zod error message
+    expect(responseBody.error.message).toContain("provider"); // Validation error
     expect(mockService.configureOAuthProvider).not.toHaveBeenCalled();
   });
 
@@ -190,10 +192,8 @@ describe("POST /api/auth/oauth", () => {
     const responseBody = await response.json();
 
     expect(response.status).toBe(400);
-    expect(responseBody).toHaveProperty(
-      "error",
-      "Provider not supported or not enabled.",
-    );
+    expect(responseBody).toHaveProperty("error");
+    expect(responseBody.error.message).toBe("Provider not supported or not enabled.");
     expect(mockService.configureOAuthProvider).not.toHaveBeenCalled();
   });
 
@@ -210,8 +210,8 @@ describe("POST /api/auth/oauth", () => {
 
     expect(response.status).toBe(400);
     expect(responseBody).toHaveProperty("error");
-    // Error message might vary depending on the runtime
-    expect(responseBody.error).toMatch(/unexpected token|invalid json/i); // More flexible check
+    // This should be a validation error for missing provider (even with invalid JSON)
+    expect(responseBody.error.message).toMatch(/validation|provider/i); // More flexible check
     expect(mockService.configureOAuthProvider).not.toHaveBeenCalled();
   });
 

@@ -1,12 +1,20 @@
 import { NextRequest } from 'next/server';
 import { GET, PATCH } from '../route';
-import { 
-  resetServiceContainer, 
-  configureServices 
-} from '@/lib/config/service-container';
 import type { UserService } from '@/core/user/interfaces';
 import type { AuthService } from '@/core/auth/interfaces';
 import { vi } from 'vitest';
+import { getServiceContainer } from '@/lib/config/service-container';
+
+// Mock the service container
+vi.mock('@/lib/config/service-container', () => ({
+  getServiceContainer: vi.fn(),
+}));
+
+vi.mock('@/lib/api/auth-middleware', () => ({
+  createAuthMiddleware: vi.fn(() => vi.fn(() => Promise.resolve({ userId: 'u123' })))
+}));
+
+vi.mock('@/middleware/with-security', () => ({ withSecurity: (h: any) => h }));
 
 // Mock the service error handler to avoid compliance config issues
 vi.mock('@/services/common/service-error-handler', () => ({
@@ -17,26 +25,22 @@ vi.mock('@/services/common/service-error-handler', () => ({
   validateAndExecute: vi.fn(),
 }));
 
-// Mock services
-const mockUserService: Partial<UserService> = {
-  getUserProfile: vi.fn(),
-  updateUserProfile: vi.fn(),
-};
-
-const mockAuthService: Partial<AuthService> = {
-  getCurrentUser: vi.fn(),
-  isAuthenticated: vi.fn(),
-};
-
 describe('/api/profile', () => {
+  const mockUserService = {
+    getUserProfile: vi.fn(),
+    updateUserProfile: vi.fn(),
+  };
+  
+  const mockAuthService = {
+    getCurrentUser: vi.fn(),
+    isAuthenticated: vi.fn(),
+  };
+  
   beforeEach(() => {
     vi.clearAllMocks();
-    resetServiceContainer();
-    
-    // Configure mock services
-    configureServices({
-      userService: mockUserService as UserService,
-      authService: mockAuthService as AuthService,
+    (getServiceContainer as vi.Mock).mockReturnValue({
+      user: mockUserService,
+      auth: mockAuthService,
     });
   });
 
@@ -49,13 +53,8 @@ describe('/api/profile', () => {
         email: 'john@example.com',
       };
 
-      // Mock authenticated user
-      (mockAuthService.getCurrentUser as any)?.mockResolvedValue({
-        id: '123',
-        email: 'john@example.com',
-      });
-      
-      (mockUserService.getUserProfile as any)?.mockResolvedValue(mockProfile);
+      // Mock user service
+      mockUserService.getUserProfile.mockResolvedValue(mockProfile);
 
       const request = new NextRequest('http://localhost:3000/api/profile', {
         headers: { authorization: 'Bearer valid-token' },
@@ -65,7 +64,7 @@ describe('/api/profile', () => {
       const data = await response.json();
 
       expect(response.status).toBe(200);
-      expect(mockUserService.getUserProfile).toHaveBeenCalledWith('123');
+      expect(mockUserService.getUserProfile).toHaveBeenCalledWith('u123');
       expect(data.success).toBe(true);
       expect(data.data).toEqual(mockProfile);
     });
@@ -96,13 +95,8 @@ describe('/api/profile', () => {
         },
       };
 
-      // Mock authenticated user
-      vi.mocked(mockAuthService.getCurrentUser).mockResolvedValue({
-        id: '123',
-        email: 'jane@example.com',
-      } as any);
-      
-      vi.mocked(mockUserService.updateUserProfile).mockResolvedValue(mockResult as any);
+      // Mock user service
+      mockUserService.updateUserProfile.mockResolvedValue(mockResult as any);
 
       const request = new NextRequest('http://localhost:3000/api/profile', {
         method: 'PATCH',
@@ -117,7 +111,7 @@ describe('/api/profile', () => {
       const data = await response.json();
 
       expect(response.status).toBe(200);
-      expect(mockUserService.updateUserProfile).toHaveBeenCalledWith('123', updateData);
+      expect(mockUserService.updateUserProfile).toHaveBeenCalledWith('u123', updateData);
       expect(data.success).toBe(true);
       expect(data.data).toEqual(mockResult.profile);
     });
@@ -127,11 +121,7 @@ describe('/api/profile', () => {
         firstName: 123, // Should be string
       };
 
-      // Mock authenticated user
-      vi.mocked(mockAuthService.getCurrentUser).mockResolvedValue({
-        id: '123',
-        email: 'jane@example.com',
-      } as any);
+      // Test validation without mocking user service
 
       const request = new NextRequest('http://localhost:3000/api/profile', {
         method: 'PATCH',

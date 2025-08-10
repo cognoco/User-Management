@@ -1,10 +1,15 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { GET, POST, DELETE } from '../route';
-import { configureServices, resetServiceContainer } from '@/lib/config/service-container';
 import type { UserService } from '@/core/user/interfaces';
 import type { AuthService } from '@/core/auth/interfaces';
 import createMockUserService from '@/tests/mocks/user.service.mock';
 import { createAuthenticatedRequest } from '@/tests/utils/request-helpers';
+
+// Mock the service container
+vi.mock('@/lib/config/service-container', () => ({
+  resetServiceContainer: vi.fn(),
+  configureServices: vi.fn(),
+}));
 
 vi.mock('@/services/user/factory', () => ({}));
 vi.mock('@/services/auth/factory', () => ({}));
@@ -16,11 +21,7 @@ const authService: Partial<AuthService> = {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  resetServiceContainer();
-  configureServices({
-    userService: userService as UserService,
-    authService: authService as AuthService,
-  });
+  // resetServiceContainer and configureServices are already mocked
 });
 
 describe('/api/profile/avatar', () => {

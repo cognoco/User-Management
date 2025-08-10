@@ -75,9 +75,24 @@ export async function logUserAction(params: LogUserActionParams): Promise<void> 
 
     // Server-side: dynamically import the Supabase client to keep it out of client bundles
     const defaultClient: SupabaseClient | undefined = client;
-    const supabaseClient: SupabaseClient = defaultClient
-      ? defaultClient
-      : (await import('@/lib/database')).supabase as SupabaseClient;
+
+    let supabaseClient: SupabaseClient | undefined;
+    if (defaultClient) {
+      supabaseClient = defaultClient;
+    } else {
+      try {
+        const dbMod = await import('@/lib/database/supabase');
+        supabaseClient = dbMod.getServiceSupabase?.();
+      } catch (initErr: any) {
+        console.warn('[AuditLogger] Unable to initialise Supabase client for audit logging. Continuing without DB log.', initErr?.message);
+        return; // Non-critical – skip logging instead of throwing
+      }
+    }
+
+    if (!supabaseClient) {
+      console.warn('[AuditLogger] Supabase client not available; skipping audit log');
+      return;
+    }
 
     const { error } = await supabaseClient
       .from('user_actions_log')

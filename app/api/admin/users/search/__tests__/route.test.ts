@@ -2,27 +2,35 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest } from 'next/server';
 import { GET } from '../route';
 
-// Mock the permission system
-vi.mock('@/middleware/permissions', () => ({
-  createProtectedHandler: vi.fn((handler: any, permission: string) => {
-    // Return a function that bypasses permission checking and calls the handler directly
+// Mock the admin service
+const mockAdminService = {
+  searchUsers: vi.fn()
+};
+
+// Mock the services object structure
+const mockServices = {
+  admin: mockAdminService
+};
+
+vi.mock('@/lib/api/route-helpers', () => ({
+  createApiHandler: vi.fn((schema, handler, options) => {
     return async (req: NextRequest) => {
-      // Create a mock auth context
-      const mockContext = {
-        userId: 'test-user-id',
-        user: { id: 'test-user-id', role: 'ADMIN' },
-        role: 'ADMIN'
+      // Extract query parameters from URL
+      const url = new URL(req.url);
+      const params = {
+        query: url.searchParams.get('query') || undefined,
+        page: parseInt(url.searchParams.get('page') || '1'),
+        limit: parseInt(url.searchParams.get('limit') || '10'),
+        status: url.searchParams.get('status') || 'all',
+        sortBy: url.searchParams.get('sortBy') || 'createdAt',
+        sortOrder: url.searchParams.get('sortOrder') || 'desc',
       };
-      return handler(req, mockContext);
+      
+      const authContext = { userId: 'test-user', role: 'ADMIN' };
+      return handler(req, authContext, params, mockServices);
     };
   })
 }));
-
-vi.mock('@/services/admin/factory', () => ({
-  getApiAdminService: vi.fn(),
-}));
-
-import { getApiAdminService } from '@/services/admin/factory';
 
 function createRequest(query: Record<string, string> = {}) {
   const url = new URL('http://localhost/api/admin/users/search');
@@ -35,12 +43,9 @@ function createRequest(query: Record<string, string> = {}) {
 }
 
 describe('admin search API', () => {
-  const service = { searchUsers: vi.fn() } as any;
-
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(getApiAdminService).mockReturnValue(service);
-    service.searchUsers.mockResolvedValue({ 
+    mockAdminService.searchUsers.mockResolvedValue({ 
       users: [], 
       pagination: { page: 1, limit: 10, totalCount: 0, totalPages: 0 } 
     });
@@ -49,6 +54,6 @@ describe('admin search API', () => {
   it('calls service with parsed params', async () => {
     const res = await GET(createRequest({ query: 'john' }));
     expect(res.status).toBe(200);
-    expect(service.searchUsers).toHaveBeenCalled();
+    expect(mockAdminService.searchUsers).toHaveBeenCalled();
   });
 });

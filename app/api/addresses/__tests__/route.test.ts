@@ -22,16 +22,27 @@ vi.mock('@/middleware/auth', () => ({
   }),
 }));
 
-vi.mock('@/lib/api/common', () => ({
-  createSuccessResponse: vi.fn((data) => NextResponse.json(data, { status: 200 })),
-  createCreatedResponse: vi.fn((data) => NextResponse.json(data, { status: 201 })),
-  createValidationError: vi.fn((message, details) => {
-    const error = new Error(message);
-    (error as any).details = details;
-    (error as any).status = 400;
-    return error;
-  }),
-}));
+vi.mock('@/lib/api/common', () => {
+  class MockApiError extends Error {
+    constructor(public message: string, public code: string = 'VALIDATION_ERROR', public status: number = 400) {
+      super(message);
+      this.name = 'ApiError';
+    }
+  }
+  
+  return {
+    ApiError: MockApiError,
+    createSuccessResponse: vi.fn((data) => NextResponse.json(data, { status: 200 })),
+    createCreatedResponse: vi.fn((data) => NextResponse.json(data, { status: 201 })),
+    createErrorResponse: vi.fn((error) => NextResponse.json({ error: error.message }, { status: error.status || 500 })),
+    createValidationError: vi.fn((message, details) => {
+      const error = new MockApiError(message);
+      (error as any).details = details;
+      (error as any).status = 400;
+      return error;
+    }),
+  };
+});
 
 vi.mock('@/core/address/validation', () => ({
   addressSchema: {
