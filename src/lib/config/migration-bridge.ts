@@ -38,9 +38,9 @@ export interface MigrationConfig {
  * Global migration state
  */
 let migrationConfig: MigrationConfig = {
-  phase: 'phase1',
-  enableWarnings: true,
-  useNewPattern: false,
+  phase: 'phase3',
+  enableWarnings: false,
+  useNewPattern: true,
 };
 
 /**

@@ -117,8 +117,16 @@ export class DependencyContainer {
    * Get or create a service container with all dependencies resolved
    */
   getServiceContainer(): ServiceContainer {
-    if (!this.isFullyInitialized()) {
-      this.initializeServices();
+    // Use the new pure factory instead of manual initialization
+    const { createApiServices } = require('@/lib/services/factory');
+    
+    if (!this.services.auth) {
+      this.services = createApiServices({
+        services: this.config.services,
+        featureFlags: this.config.features,
+        env: this.config.environment,
+        providers: this.config.providers
+      });
     }
     
     return this.services as ServiceContainer;

@@ -13,7 +13,7 @@ import { BrowserAuthStorage } from './auth-storage';
 import { AdapterRegistry } from '@/adapters/registry';
 import { createSupabaseAuthProvider } from '@/adapters/auth/factory';
 import { getServiceSupabase } from '@/lib/database/supabase';
-import { getServiceContainer, getServiceConfiguration } from '@/lib/config/service-container';
+// Service container import removed - using new pure factory pattern
 
 /**
  * Options for {@link getApiAuthService}
