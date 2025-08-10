@@ -118,7 +118,114 @@ vi.mock('@/lib/api/axios', () => ({
         // Add other axios properties/methods if needed
     }
 }));
-// --- End Axios mock --- 
+// --- End Axios mock ---
+
+// --- Mock Service Container for API Route Tests ---
+// This prevents adapter registry issues in API route tests
+vi.mock('@/lib/config/service-container', () => {
+  const mockAuthService = {
+    login: vi.fn(),
+    register: vi.fn(),
+    logout: vi.fn(),
+    getCurrentUser: vi.fn(),
+    resetPassword: vi.fn(),
+    updatePassword: vi.fn(),
+    updatePasswordWithToken: vi.fn().mockResolvedValue({ success: true, user: { id: '1' } }),
+    verifyPasswordResetToken: vi.fn().mockResolvedValue({ valid: true }),
+    sendVerificationEmail: vi.fn(),
+    sendMagicLink: vi.fn().mockResolvedValue({ success: true }),
+    verifyEmail: vi.fn(),
+    verifyMagicLink: vi.fn(),
+    deleteAccount: vi.fn().mockResolvedValue(undefined),
+    setupMFA: vi.fn(),
+    verifyMFA: vi.fn(),
+    disableMFA: vi.fn(),
+    refreshToken: vi.fn().mockResolvedValue({ accessToken: 'token', refreshToken: 'refresh', expiresAt: 123 }),
+    getTokenExpiry: vi.fn().mockReturnValue(123),
+    onAuthStateChanged: vi.fn(),
+    invalidateSessions: vi.fn(),
+  };
+
+  const mockUserService = {
+    getUserProfile: vi.fn(),
+    updateUserProfile: vi.fn(),
+    getUserPreferences: vi.fn(),
+    updateUserPreferences: vi.fn(),
+    uploadProfilePicture: vi.fn(),
+    deleteProfilePicture: vi.fn(),
+    searchUsers: vi.fn(),
+    deactivateUser: vi.fn(),
+    reactivateUser: vi.fn(),
+  };
+
+  const mockPermissionService = {
+    hasPermission: vi.fn(),
+    hasRole: vi.fn(),
+    getUserPermissions: vi.fn(),
+    getUserRoles: vi.fn(),
+    assignRoleToUser: vi.fn(),
+    removeRoleFromUser: vi.fn(),
+    getRoles: vi.fn(),
+    createRole: vi.fn(),
+    updateRole: vi.fn(),
+    deleteRole: vi.fn(),
+  };
+
+  const mockTeamService = {
+    createTeam: vi.fn(),
+    getTeam: vi.fn(),
+    updateTeam: vi.fn(),
+    deleteTeam: vi.fn(),
+    getUserTeams: vi.fn(),
+    getTeamMembers: vi.fn(),
+    addTeamMember: vi.fn(),
+    removeTeamMember: vi.fn(),
+    updateMemberRole: vi.fn(),
+    inviteToTeam: vi.fn(),
+    acceptInvitation: vi.fn(),
+    rejectInvitation: vi.fn(),
+  };
+
+  const mockNotificationService = {
+    createNotification: vi.fn(),
+    getUserNotifications: vi.fn(),
+    markAsRead: vi.fn(),
+    markAllAsRead: vi.fn(),
+    deleteNotification: vi.fn(),
+    getUserPreferences: vi.fn(),
+    updateUserPreferences: vi.fn(),
+  };
+
+  return {
+    getServiceContainer: vi.fn(() => ({
+      auth: mockAuthService,
+      user: mockUserService,
+      permission: mockPermissionService,
+      team: mockTeamService,
+      notification: mockNotificationService,
+    })),
+    // Export mock services for test access
+    mockAuthService,
+    mockUserService,
+    mockPermissionService,
+    mockTeamService,
+    mockNotificationService,
+  };
+});
+
+// --- Mock API Auth Middleware ---
+// This prevents complex auth middleware issues in API tests
+vi.mock('@/lib/api/auth-middleware', () => {
+  return {
+    createAuthMiddleware: vi.fn(() => vi.fn(async (request) => ({
+      userId: null,
+      isAuthenticated: false,
+      user: null,
+      permissions: [],
+    }))),
+  };
+});
+// --- End Service Container mock --- 
 
 // --- Mock Auth Store --- 
 const mockStore = createMockAuthStore();

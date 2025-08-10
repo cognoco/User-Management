@@ -1,13 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { POST } from '../route';
-import { getApiAuthService } from '@/services/auth/factory';
+import { getServiceContainer } from '@/lib/config/service-container';
 
-vi.mock('@/services/auth/factory', () => ({ getApiAuthService: vi.fn() }));
-vi.mock('@/middleware/with-auth-rate-limit', () => ({
-  withAuthRateLimit: vi.fn((_req, handler) => handler(_req))
+vi.mock('@/lib/config/service-container', () => ({ 
+  getServiceContainer: vi.fn() 
 }));
-vi.mock('@/middleware/with-security', () => ({
-  withSecurity: (handler: any) => handler
+vi.mock('@/lib/api/auth-middleware', () => ({
+  createAuthMiddleware: vi.fn(() => vi.fn(() => Promise.resolve({ userId: 'test-user-id' })))
 }));
 
 describe('POST /api/auth/verify-mfa', () => {
@@ -15,13 +14,20 @@ describe('POST /api/auth/verify-mfa', () => {
   const createRequest = (code?: string) => new Request('http://localhost/api/auth/verify-mfa', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: code ? JSON.stringify({ code }) : undefined
+    body: code ? JSON.stringify({ code }) : JSON.stringify({})
   });
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (getApiAuthService as unknown as vi.Mock).mockReturnValue(mockAuthService);
-    mockAuthService.verifyMFA.mockResolvedValue({ success: true });
+    (getServiceContainer as vi.Mock).mockReturnValue({
+      auth: mockAuthService
+    });
+    // Mock verifyMFA to handle both signatures: (code) and (code, context)
+    mockAuthService.verifyMFA.mockImplementation(async (code: string, context?: any) => ({ 
+      success: true, 
+      token: 'access-token',
+      message: 'MFA verification successful'
+    }));
   });
 
   it('returns 400 when code missing', async () => {
@@ -30,14 +36,14 @@ describe('POST /api/auth/verify-mfa', () => {
   });
 
   it('returns success when verification succeeds', async () => {
-    const res = await POST(createRequest('123') as any);
+    const res = await POST(createRequest('1234') as any);
     expect(res.status).toBe(200);
-    expect(mockAuthService.verifyMFA).toHaveBeenCalledWith('123');
+    expect(mockAuthService.verifyMFA).toHaveBeenCalledWith('1234', expect.any(Object));
   });
 
   it('returns 400 when verification fails', async () => {
-    mockAuthService.verifyMFA.mockResolvedValue({ success: false, error: 'err' });
-    const res = await POST(createRequest('123') as any);
+    mockAuthService.verifyMFA.mockImplementation(async () => ({ success: false, error: 'Invalid MFA code' }));
+    const res = await POST(createRequest('1234') as any);
     expect(res.status).toBe(400);
   });
 });

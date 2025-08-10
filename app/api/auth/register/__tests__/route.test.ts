@@ -1,9 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest, NextResponse } from 'next/server';
-import { POST } from '../route';
-import { ERROR_CODES } from '@/lib/api/common';
 
-// Mock the service container to avoid circular dependencies
+// Mock all service dependencies to avoid circular dependencies
 vi.mock('@/lib/config/service-container', () => ({
   getServiceContainer: vi.fn()
 }));
@@ -11,24 +9,60 @@ vi.mock('@/lib/config/service-container', () => ({
 vi.mock('@/middleware/with-auth-rate-limit', () => ({
   withAuthRateLimit: vi.fn((_req, handler) => handler(_req))
 }));
+
 vi.mock('@/middleware/with-security', () => ({
   withSecurity: (handler: any) => handler
 }));
 
+// Mock AdapterRegistry to prevent initialization issues
+vi.mock('@/adapters/registry', () => ({
+  AdapterRegistry: {
+    getInstance: () => ({
+      getAdapter: vi.fn()
+    })
+  }
+}));
+
+// Mock all service factories to prevent initialization loops
+vi.mock('@/services/auth/factory', () => ({
+  getApiAuthService: vi.fn()
+}));
+
+// Mock other factories that might be loaded
+vi.mock('@/services/user/factory', () => ({
+  getApiUserService: vi.fn()
+}));
+
+vi.mock('@/services/permission/factory', () => ({
+  getApiPermissionService: vi.fn()
+}));
+
+// Mock the auth middleware to prevent initialization issues  
+vi.mock('@/lib/api/auth-middleware', () => ({
+  createAuthMiddleware: vi.fn(() => vi.fn().mockResolvedValue({ user: null, permissions: [] }))
+}));
+
+// Mock middleware modules
+vi.mock('@/middleware/error-handling', () => ({
+  withErrorHandling: vi.fn(handler => handler)
+}));
+
+vi.mock('@/middleware/validation', () => ({
+  withValidation: vi.fn(handler => handler)
+}));
+
 describe('POST /api/auth/register', () => {
+  let POST: any;
+  let ERROR_CODES: any;
+
   const mockAuthService = { 
     register: vi.fn(),
     getCurrentUser: vi.fn().mockResolvedValue(null) // Public route
   };
   
+  // Minimal service container mock
   const mockServices = {
-    auth: mockAuthService,
-    user: { getUserById: vi.fn() },
-    permission: { checkPermission: vi.fn() },
-    session: { createSession: vi.fn() },
-    team: { createTeam: vi.fn() },
-    subscription: { getSubscription: vi.fn() },
-    apiKey: { createApiKey: vi.fn() }
+    auth: mockAuthService
   };
   
   const createRequest = (body?: any) => new NextRequest('http://localhost/api/auth/register', {
@@ -48,6 +82,13 @@ describe('POST /api/auth/register', () => {
     // Mock the service container to return our mock services
     const { getServiceContainer } = await import('@/lib/config/service-container');
     (getServiceContainer as any).mockReturnValue(mockServices);
+    
+    // Dynamically import the route and ERROR_CODES to avoid early initialization
+    const routeModule = await import('../route');
+    POST = routeModule.POST;
+    
+    const apiCommon = await import('@/src/lib/api/common/error-codes');
+    ERROR_CODES = apiCommon.ERROR_CODES;
     
     mockAuthService.register.mockResolvedValue({ success: true, user: { id: '1', email: 'a@test.com' } });
   });

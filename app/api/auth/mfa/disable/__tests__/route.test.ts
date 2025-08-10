@@ -1,15 +1,13 @@
 import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
 import { NextRequest } from 'next/server';
 import { POST } from '../route';
-import { getApiAuthService } from '@/services/auth/factory';
-import { createRateLimit } from '@/middleware/rate-limit';
+import { getServiceContainer } from '@/lib/config/service-container';
 
-vi.mock('@/services/auth/factory', () => ({ getApiAuthService: vi.fn() }));
-vi.mock('@/middleware/rate-limit', () => ({
-  createRateLimit: vi.fn(() => vi.fn((_req: any, h: any) => h(_req)))
+vi.mock('@/lib/config/service-container', () => ({ 
+  getServiceContainer: vi.fn() 
 }));
-vi.mock('@/middleware/with-security', () => ({
-  withSecurity: (handler: any) => handler
+vi.mock('@/lib/api/auth-middleware', () => ({
+  createAuthMiddleware: vi.fn(() => vi.fn(() => Promise.resolve({ userId: 'test-user-id' })))
 }));
 
 describe('POST /api/auth/mfa/disable', () => {
@@ -17,12 +15,14 @@ describe('POST /api/auth/mfa/disable', () => {
   const createRequest = (code?: string) => new NextRequest('http://localhost/api/auth/mfa/disable', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: code ? JSON.stringify({ code }) : undefined
+    body: code ? JSON.stringify({ code }) : JSON.stringify({})
   });
 
   beforeEach(() => {
     vi.clearAllMocks();
-      (getApiAuthService as unknown as Mock).mockReturnValue(mockAuthService);
+    (getServiceContainer as Mock).mockReturnValue({
+      auth: mockAuthService
+    });
     mockAuthService.disableMFA.mockResolvedValue({ success: true });
   });
 
