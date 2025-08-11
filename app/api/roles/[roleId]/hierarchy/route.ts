@@ -1,7 +1,6 @@
-import { type NextRequest } from 'next/server';
 import { z } from 'zod';
-import { createApiHandler, emptySchema } from '@/lib/api/route-helpers';
-import { createSuccessResponse } from '@/lib/api/common';
+import { withValidatedServices } from '@/lib/api/with-services';
+import { createSuccessResponse, ApiError, ERROR_CODES } from '@/lib/api/common';
 import { PermissionValues } from '@/core/permission/models';
 
 const parentSchema = z.object({
@@ -10,31 +9,27 @@ const parentSchema = z.object({
 
 type ParentPayload = z.infer<typeof parentSchema>;
 
-export const GET = createApiHandler(
-  emptySchema,
-  async (req: NextRequest, authContext: any, data: any, services: any) => {
-    const url = new URL(req.url);
-    const roleId = url.pathname.split('/')[3]; // Extract roleId from /api/roles/{roleId}/hierarchy
+export const GET = withValidatedServices({
+  schema: z.object({}),
+  requiredServices: ['role'],
+  requireAuth: true,
+  requiredPermissions: [PermissionValues.MANAGE_ROLES],
+  handler: async ({ params, services }) => {
+    const roleId = params.roleId;
     const ancestors = await services.role.getAncestorRoles(roleId);
     const descendants = await services.role.getDescendantRoles(roleId);
     return createSuccessResponse({ ancestors, descendants });
   },
-  {
-    requireAuth: true,
-    requiredPermissions: [PermissionValues.MANAGE_ROLES],
-  }
-);
+});
 
-export const PUT = createApiHandler(
-  parentSchema,
-  async (req: NextRequest, authContext: any, data: ParentPayload, services: any) => {
-    const url = new URL(req.url);
-    const roleId = url.pathname.split('/')[3]; // Extract roleId from /api/roles/{roleId}/hierarchy
+export const PUT = withValidatedServices({
+  schema: parentSchema,
+  requiredServices: ['role'],
+  requireAuth: true,
+  requiredPermissions: [PermissionValues.MANAGE_ROLES],
+  handler: async ({ params, data, services }) => {
+    const roleId = params.roleId;
     await services.role.setParentRole(roleId, data.parentRoleId);
     return createSuccessResponse({});
   },
-  {
-    requireAuth: true,
-    requiredPermissions: [PermissionValues.MANAGE_ROLES],
-  }
-);
+});

@@ -1,9 +1,8 @@
-import { type NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { checkRateLimit } from '@/middleware/rate-limit';
 import { decode } from 'base64-arraybuffer';
-import { createApiHandler, emptySchema } from '@/lib/api/route-helpers';
-import { createSuccessResponse } from '@/lib/api/common';
+import { withValidatedServices } from '@/lib/api/with-services';
+import { createSuccessResponse, ApiError, ERROR_CODES } from '@/lib/api/common';
 
 // Schema for logo upload request body
 const LogoUploadSchema = z.object({
@@ -11,41 +10,43 @@ const LogoUploadSchema = z.object({
   filename: z.string().optional(), // Optional filename for content type inference
 });
 
-export const POST = createApiHandler(
-  LogoUploadSchema,
-  async (request: NextRequest, { userId }, data, services) => {
+export const POST = withValidatedServices({
+  schema: LogoUploadSchema,
+  requiredServices: ['user'],
+  requireAuth: true,
+  handler: async ({ request, auth, data, services }) => {
     const isRateLimited = await checkRateLimit(request);
     if (isRateLimited) {
-      return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+      throw new ApiError(ERROR_CODES.OPERATION_FAILED, 'Too many requests', 429);
     }
 
     const base64Data = data.logo.replace(/^data:.+;base64,/, '');
     const fileBuffer = decode(base64Data);
 
-    const result = await services.user.uploadCompanyLogo(userId!, userId!, fileBuffer);
+    const result = await services.user.uploadCompanyLogo(auth.userId!, auth.userId!, fileBuffer);
     if (!result.success || !result.url) {
-      return NextResponse.json({ error: result.error || 'Failed to upload logo' }, { status: 500 });
+      throw new ApiError(ERROR_CODES.INTERNAL_ERROR, result.error || 'Failed to upload logo', 500);
     }
 
     return createSuccessResponse({ companyLogoUrl: result.url });
   },
-  { requireAuth: true }
-);
+});
 
-export const DELETE = createApiHandler(
-  emptySchema,
-  async (request: NextRequest, { userId }, _data, services) => {
+export const DELETE = withValidatedServices({
+  schema: z.object({}),
+  requiredServices: ['user'],
+  requireAuth: true,
+  handler: async ({ request, auth, services }) => {
     const isRateLimited = await checkRateLimit(request);
     if (isRateLimited) {
-      return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+      throw new ApiError(ERROR_CODES.OPERATION_FAILED, 'Too many requests', 429);
     }
 
-    const result = await services.user.deleteCompanyLogo(userId!, userId!);
+    const result = await services.user.deleteCompanyLogo(auth.userId!, auth.userId!);
     if (!result.success) {
-      return NextResponse.json({ error: result.error || 'Failed to remove logo' }, { status: 500 });
+      throw new ApiError(ERROR_CODES.INTERNAL_ERROR, result.error || 'Failed to remove logo', 500);
     }
 
     return createSuccessResponse({ message: 'Company logo removed successfully.' });
   },
-  { requireAuth: true }
-);
+});

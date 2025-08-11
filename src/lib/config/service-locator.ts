@@ -137,6 +137,7 @@ export const ServiceKeys = {
   ROLE_SERVICE: 'RoleService' as const,
   ADDRESS_SERVICE: 'CompanyAddressService' as const,
   OAUTH_SERVICE: 'OAuthService' as const,
+  COMPANY_SERVICE: 'CompanyService' as const,
   COMPANY_NOTIFICATION_SERVICE: 'CompanyNotificationService' as const,
   RESOURCE_RELATIONSHIP_SERVICE: 'ResourceRelationshipService' as const,
 } as const;

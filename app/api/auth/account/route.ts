@@ -1,6 +1,5 @@
-import { type NextRequest } from "next/server";
 import { z } from "zod";
-import { createApiHandler } from '@/lib/api/route-helpers';
+import { withValidatedServices } from '@/lib/api/with-services';
 import { logUserAction } from "@/lib/audit/auditLogger";
 import {
   createSuccessResponse,
@@ -16,22 +15,18 @@ const DeleteAccountSchema = z.object({
 });
 
 // DELETE handler for account deletion
-export const DELETE = createApiHandler(
-  DeleteAccountSchema,
-  async (request, authContext, data, services) => {
+export const DELETE = withValidatedServices({
+  schema: DeleteAccountSchema,
+  requiredServices: ['auth'],
+  requireAuth: true,
+  rateLimit: { windowMs: 15 * 60 * 1000, max: 3 },
+  handler: async ({ services, request, data, userId, params }) => {
     const ipAddress = request.headers.get("x-forwarded-for") || "unknown";
     const userAgent = request.headers.get("user-agent") || "unknown";
 
-    if (!authContext.user) {
-      throw new ApiError(
-        ERROR_CODES.UNAUTHORIZED,
-        "User not authenticated",
-        401,
-      );
-    }
-
-    const userId = authContext.user.id;
-    const userEmail = authContext.user.email;
+    // Get user info from auth context (userId is already available from withValidatedServices)
+    const user = await services.auth.getUserAccount(userId);
+    const userEmail = user.email;
 
     if (!userEmail) {
       throw new ApiError(
@@ -133,41 +128,32 @@ export const DELETE = createApiHandler(
         500,
       );
     }
-  },
-  { 
-    requireAuth: true,
-    rateLimit: { windowMs: 15 * 60 * 1000, max: 3 }
   }
-);
+});
 
 // GET handler to fetch account info
-export const GET = createApiHandler(
-  z.object({}), // No body parameters for GET
-  async (request, authContext, _data, services) => {
+export const GET = withValidatedServices({
+  schema: z.object({}), // No body parameters for GET
+  requiredServices: ['auth'],
+  requireAuth: true,
+  rateLimit: { windowMs: 15 * 60 * 1000, max: 20 },
+  handler: async ({ services, request, data, userId, params }) => {
     const ipAddress = request.headers.get("x-forwarded-for") || "unknown";
     const userAgent = request.headers.get("user-agent") || "unknown";
 
-    if (!authContext.user) {
-      throw new ApiError(
-        ERROR_CODES.UNAUTHORIZED,
-        "User not authenticated",
-        401,
-      );
-    }
-
     try {
       // Get user account details
-      const accountDetails = await services.auth.getUserAccount(authContext.user.id);
+      const accountDetails = await services.auth.getUserAccount(userId);
 
       // Log the account info request
       await logUserAction({
-        userId: authContext.user.id,
+        userId,
         action: "ACCOUNT_INFO_REQUESTED",
         status: "SUCCESS",
         ipAddress,
         userAgent,
         targetResourceType: "account",
-        targetResourceId: authContext.user.id,
+        targetResourceId: userId,
       });
 
       return createSuccessResponse(accountDetails);
@@ -178,11 +164,13 @@ export const GET = createApiHandler(
 
       // Log the error
       await logUserAction({
+        userId,
         action: "ACCOUNT_INFO_ERROR",
         status: "FAILURE",
         ipAddress,
         userAgent,
         targetResourceType: "account",
+        targetResourceId: userId,
         details: { error: message },
       });
 
@@ -192,9 +180,5 @@ export const GET = createApiHandler(
         500,
       );
     }
-  },
-  { 
-    requireAuth: true,
-    rateLimit: { windowMs: 15 * 60 * 1000, max: 20 }
   }
-);
+});

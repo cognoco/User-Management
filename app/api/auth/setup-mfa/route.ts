@@ -1,4 +1,4 @@
-import { createApiHandler, emptySchema } from '@/lib/api/route-helpers';
+import { withValidatedServices, schemas } from '@/lib/api/with-services';
 import { logUserAction } from '@/lib/audit/auditLogger';
 import {
   createSuccessResponse,
@@ -8,23 +8,26 @@ import {
 
 /**
  * POST handler for MFA setup endpoint
+ * Migrated to use withValidatedServices pattern for better dependency management.
  */
-export const POST = createApiHandler(
-  emptySchema,
-  async (request, authContext, _data, services) => {
+export const POST = withValidatedServices({
+  schema: schemas.empty,
+  requiredServices: ['auth'],
+  requireAuth: true, // MFA setup requires authentication
+  handler: async ({ request, userId, services }) => {
     const ipAddress = request.headers.get('x-forwarded-for') || 'unknown';
     const userAgent = request.headers.get('user-agent') || 'unknown';
     
     const result = await services.auth.setupMFA();
 
     await logUserAction({
-      userId: authContext.userId,
+      userId,
       action: 'MFA_SETUP',
       status: result.success ? 'SUCCESS' : 'FAILURE',
       ipAddress,
       userAgent,
       targetResourceType: 'auth',
-      targetResourceId: authContext.userId
+      targetResourceId: userId
     });
 
     if (!result.success) {
@@ -36,9 +39,5 @@ export const POST = createApiHandler(
     }
 
     return createSuccessResponse(result);
-  },
-  { 
-    requireAuth: true, // MFA setup requires authentication
-    rateLimit: { windowMs: 15 * 60 * 1000, max: 5 } // Conservative rate limiting for MFA setup
   }
-);
+});

@@ -1,16 +1,17 @@
-import { NextRequest } from 'next/server';
-import { createApiHandler, emptySchema } from '@/lib/api/route-helpers';
+import { withValidatedServices, schemas } from '@/src/lib/api/with-services';
 import { createSuccessResponse } from '@/lib/api/common';
 import { PermissionValues } from '@/core/permission/models';
 import { listPermissionCategories } from '@/lib/rbac/permission-categories';
 
-async function handleGet(_req: NextRequest) {
+const getHandler = async () => {
   const categories = listPermissionCategories();
   return createSuccessResponse({ categories });
-}
+};
 
-export const GET = createApiHandler(emptySchema, handleGet, {
+export const GET = withValidatedServices({
+  schema: schemas.empty,
+  requiredServices: ['permission'],
   requireAuth: true,
   requiredPermissions: [PermissionValues.MANAGE_ROLES],
-  rateLimit: { windowMs: 15 * 60 * 1000, max: 50 },
+  handler: getHandler
 });

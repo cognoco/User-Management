@@ -1,7 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
-import { type AuthContext } from "@/core/config/interfaces";
+import { NextResponse } from "next/server";
 import { addressCreateSchema } from "@/core/address/models";
-import { createApiHandler } from "@/lib/api/route-helpers";
+import { withValidatedServices, schemas } from "@/src/lib/api/with-services";
 import { createSuccessResponse } from "@/lib/api/common";
 import { getApiAddressService } from "@/services/address/factory";
 import { getApiCompanyService } from "@/services/company/factory";
@@ -9,16 +8,11 @@ import { getApiCompanyService } from "@/services/company/factory";
 import { z } from "zod";
 type AddressRequest = z.infer<typeof addressCreateSchema>;
 
-async function handlePost(
-  _request: NextRequest,
-  auth: AuthContext,
-  data: AddressRequest,
-) {
+const postHandler = async ({ data, userId }: { data: AddressRequest, userId?: string }) => {
   try {
-    const userId = auth.userId!;
     const companyService = getApiCompanyService();
     const addressService = getApiAddressService();
-    const companyProfile = await companyService.getProfileByUserId(userId);
+    const companyProfile = await companyService.getProfileByUserId(userId!);
     if (!companyProfile) {
       return NextResponse.json(
         { error: 'Company profile not found' },
@@ -47,18 +41,13 @@ async function handlePost(
       { status: 500 },
     );
   }
-}
+};
 
-async function handleGet(
-  _request: NextRequest,
-  auth: AuthContext,
-  _data: unknown,
-) {
+const getHandler = async ({ userId }: { userId?: string }) => {
   try {
-    const userId = auth.userId!;
     const companyService = getApiCompanyService();
     const addressService = getApiAddressService();
-    const companyProfile = await companyService.getProfileByUserId(userId);
+    const companyProfile = await companyService.getProfileByUserId(userId!);
 
     if (!companyProfile) {
       return NextResponse.json(
@@ -77,16 +66,18 @@ async function handleGet(
       { status: 500 },
     );
   }
-}
+};
 
-export const POST = createApiHandler(
-  addressCreateSchema,
-  (req, auth, data) => handlePost(req, auth, data),
-  { requireAuth: true }
-);
+export const POST = withValidatedServices({
+  schema: addressCreateSchema,
+  requiredServices: [],
+  requireAuth: true,
+  handler: postHandler
+});
 
-export const GET = createApiHandler(
-  z.object({}),
-  (req, auth, data) => handleGet(req, auth, data),
-  { requireAuth: true }
-);
+export const GET = withValidatedServices({
+  schema: schemas.empty,
+  requiredServices: [],
+  requireAuth: true,
+  handler: getHandler
+});

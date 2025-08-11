@@ -1,4 +1,4 @@
-import { type NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { decode } from 'base64-arraybuffer';
 
@@ -6,7 +6,7 @@ import {
   createSuccessResponse,
   createNoContentResponse,
 } from '@/lib/api/common';
-import { createApiHandler, emptySchema } from '@/lib/api/route-helpers';
+import { withValidatedServices, schemas, type WithServicesContext } from '@/lib/api/with-services';
 import type { UserService } from '@/core/user/interfaces';
 
 import { createUserUpdateFailedError } from '@/lib/api/user/error-handler';
@@ -42,7 +42,6 @@ async function handleGetAvatars() {
 }
 
 async function handleUploadAvatar(
-  _req: NextRequest,
   userId: string,
   data: z.infer<typeof AvatarUploadSchema>,
   userService: UserService
@@ -109,22 +108,55 @@ async function handleDeleteAvatar(userId: string, userService: UserService) {
   return createNoContentResponse();
 }
 
-export const GET = createApiHandler(
-  emptySchema,
-  async () => handleGetAvatars(),
-  { requireAuth: false }
-);
+// GET handler - Fetch predefined avatars
+const getAvatarsHandler = async ({ request }: WithServicesContext): Promise<NextResponse> => {
+  return handleGetAvatars();
+};
 
-export const POST = createApiHandler(
-  AvatarUploadSchema,
-  async (req, { userId }, data, services) =>
-    handleUploadAvatar(req, userId!, data, services.user),
-  { requireAuth: true }
-);
+export const GET = withValidatedServices({
+  schema: schemas.empty,
+  requiredServices: [],
+  requireAuth: false,
+  handler: getAvatarsHandler
+});
 
-export const DELETE = createApiHandler(
-  emptySchema,
-  async (_req, { userId }, _data, services) =>
-    handleDeleteAvatar(userId!, services.user),
-  { requireAuth: true }
-);
+// POST handler - Upload or set avatar
+const uploadAvatarHandler = async ({ 
+  request, 
+  userId, 
+  data, 
+  services 
+}: WithServicesContext<z.infer<typeof AvatarUploadSchema>>): Promise<NextResponse> => {
+  if (!userId) {
+    return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+  }
+  
+  return handleUploadAvatar(userId, data, services.user!);
+};
+
+export const POST = withValidatedServices({
+  schema: AvatarUploadSchema,
+  requiredServices: ['user'],
+  requireAuth: true,
+  handler: uploadAvatarHandler
+});
+
+// DELETE handler - Delete avatar
+const deleteAvatarHandler = async ({ 
+  request, 
+  userId, 
+  services 
+}: WithServicesContext): Promise<NextResponse> => {
+  if (!userId) {
+    return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+  }
+  
+  return handleDeleteAvatar(userId, services.user!);
+};
+
+export const DELETE = withValidatedServices({
+  schema: schemas.empty,
+  requiredServices: ['user'],
+  requireAuth: true,
+  handler: deleteAvatarHandler
+});

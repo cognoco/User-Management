@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { createApiHandler, emptySchema } from '@/lib/api/route-helpers';
-import type { AuthContext, ServiceContainer } from '@/core/config/interfaces';
+import { withValidatedServices } from '@/lib/api/with-services';
+import { createSuccessResponse } from '@/lib/api/common';
 
 // Validation schema for creating a new notification preference
 const preferenceSchema = z.object({
@@ -10,20 +10,27 @@ const preferenceSchema = z.object({
   channel: z.enum(['email', 'in_app', 'both']).default('both'),
 });
 
-async function handleGet(_req: Request, auth: AuthContext, _data: unknown, services: ServiceContainer) {
-  const preferences = await services.companyNotification!.getPreferencesForUser(auth.userId!);
-  return new Response(JSON.stringify({ preferences }), { status: 200, headers: { 'Content-Type': 'application/json' } });
-}
+export const GET = withValidatedServices({
+  schema: z.object({}),
+  requiredServices: ['companyNotification'],
+  requireAuth: true,
+  handler: async ({ auth, services }) => {
+    const preferences = await services.companyNotification.getPreferencesForUser(auth.userId!);
+    return createSuccessResponse({ preferences });
+  },
+});
 
-async function handlePost(_req: Request, auth: AuthContext, data: z.infer<typeof preferenceSchema>, services: ServiceContainer) {
-  const pref = await services.companyNotification!.createPreference(auth.userId!, {
-    companyId: data.company_id,
-    notificationType: data.notification_type,
-    enabled: data.enabled,
-    channel: data.channel,
-  });
-  return new Response(JSON.stringify(pref), { status: 200, headers: { 'Content-Type': 'application/json' } });
-}
-
-export const GET = createApiHandler(emptySchema, handleGet, { requireAuth: true });
-export const POST = createApiHandler(preferenceSchema, handlePost, { requireAuth: true });
+export const POST = withValidatedServices({
+  schema: preferenceSchema,
+  requiredServices: ['companyNotification'],
+  requireAuth: true,
+  handler: async ({ auth, data, services }) => {
+    const pref = await services.companyNotification.createPreference(auth.userId!, {
+      companyId: data.company_id,
+      notificationType: data.notification_type,
+      enabled: data.enabled,
+      channel: data.channel,
+    });
+    return createSuccessResponse(pref);
+  },
+});

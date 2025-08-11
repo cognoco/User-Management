@@ -1,13 +1,13 @@
-import { createApiHandler, emptySchema } from '@/lib/api/route-helpers';
-import type { AuthContext, ServiceContainer } from '@/core/config/interfaces';
+import { z } from 'zod';
+import { withValidatedServices } from '@/lib/api/with-services';
+import { createSuccessResponse } from '@/lib/api/common';
 
-async function handleDelete(_req: Request, auth: AuthContext, _data: unknown, services: ServiceContainer, id: string) {
-  await services.companyNotification!.removeRecipient(auth.userId!, id);
-  return new Response(
-    JSON.stringify({ success: true, message: 'Recipient removed successfully' }),
-    { status: 200, headers: { 'Content-Type': 'application/json' } },
-  );
-}
-
-export const DELETE = (req: Request, ctx: { params: { id: string } }) =>
-  createApiHandler(emptySchema, (r, a, d, s) => handleDelete(r, a, d, s, ctx.params.id), { requireAuth: true })(req);
+export const DELETE = withValidatedServices({
+  schema: z.object({}),
+  requiredServices: ['companyNotification'],
+  requireAuth: true,
+  handler: async ({ auth, params, services }) => {
+    await services.companyNotification.removeRecipient(auth.userId!, params.id);
+    return createSuccessResponse({ success: true, message: 'Recipient removed successfully' });
+  },
+});

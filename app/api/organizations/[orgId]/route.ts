@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { createApiHandler, emptySchema } from '@/lib/api/route-helpers';
+import { withValidatedServices, schemas, WithServicesContext } from '@/src/lib/api/with-services';
 import { createSuccessResponse, ApiError, ERROR_CODES } from '@/lib/api/common';
 
 const UpdateOrgSchema = z.object({
@@ -8,29 +8,25 @@ const UpdateOrgSchema = z.object({
   description: z.string().optional(),
 });
 
-const ParamSchema = z.object({ orgId: z.string().min(1) });
+const getHandler = async ({ params, services }: WithServicesContext<Record<string, never>>) => {
+  const orgId = params?.orgId;
+  if (!orgId) {
+    throw new ApiError(ERROR_CODES.INVALID_REQUEST, 'Organization ID is required', 400);
+  }
 
-async function handleGet(
-  _req: NextRequest,
-  _auth: any,
-  _data: unknown,
-  services: any,
-  orgId: string
-) {
   const org = await services.organization.getOrganization(orgId);
   if (!org) {
     throw new ApiError(ERROR_CODES.NOT_FOUND, 'Organization not found', 404);
   }
   return createSuccessResponse({ organization: org });
-}
+};
 
-async function handlePut(
-  _req: NextRequest,
-  _auth: any,
-  data: z.infer<typeof UpdateOrgSchema>,
-  services: any,
-  orgId: string
-) {
+const putHandler = async ({ data, params, services }: WithServicesContext<z.infer<typeof UpdateOrgSchema>>) => {
+  const orgId = params?.orgId;
+  if (!orgId) {
+    throw new ApiError(ERROR_CODES.INVALID_REQUEST, 'Organization ID is required', 400);
+  }
+
   const result = await services.organization.updateOrganization(orgId, data);
   if (!result.success || !result.organization) {
     throw new ApiError(
@@ -40,15 +36,14 @@ async function handlePut(
     );
   }
   return createSuccessResponse({ organization: result.organization });
-}
+};
 
-async function handleDelete(
-  _req: NextRequest,
-  _auth: any,
-  _data: unknown,
-  services: any,
-  orgId: string
-) {
+const deleteHandler = async ({ params, services }: WithServicesContext<Record<string, never>>) => {
+  const orgId = params?.orgId;
+  if (!orgId) {
+    throw new ApiError(ERROR_CODES.INVALID_REQUEST, 'Organization ID is required', 400);
+  }
+
   const result = await services.organization.deleteOrganization(orgId);
   if (!result.success) {
     throw new ApiError(
@@ -58,37 +53,25 @@ async function handleDelete(
     );
   }
   return createSuccessResponse({ success: true });
-}
-
-export const GET = (req: NextRequest, ctx: { params: { orgId: string } }) => {
-  const parsed = ParamSchema.safeParse(ctx.params);
-  if (!parsed.success) {
-    return NextResponse.json(
-      new ApiError(ERROR_CODES.INVALID_REQUEST, parsed.error.message, 400).toResponse(),
-      { status: 400 }
-    );
-  }
-  return createApiHandler(emptySchema, (r, a, d, s) => handleGet(r, a, d, s, parsed.data.orgId), { requireAuth: true })(req);
 };
 
-export const PUT = (req: NextRequest, ctx: { params: { orgId: string } }) => {
-  const parsed = ParamSchema.safeParse(ctx.params);
-  if (!parsed.success) {
-    return NextResponse.json(
-      new ApiError(ERROR_CODES.INVALID_REQUEST, parsed.error.message, 400).toResponse(),
-      { status: 400 }
-    );
-  }
-  return createApiHandler(UpdateOrgSchema, (r, a, d, s) => handlePut(r, a, d, s, parsed.data.orgId), { requireAuth: true })(req);
-};
+export const GET = withValidatedServices({
+  schema: schemas.empty,
+  requiredServices: ['organization'],
+  requireAuth: true,
+  handler: getHandler
+});
 
-export const DELETE = (req: NextRequest, ctx: { params: { orgId: string } }) => {
-  const parsed = ParamSchema.safeParse(ctx.params);
-  if (!parsed.success) {
-    return NextResponse.json(
-      new ApiError(ERROR_CODES.INVALID_REQUEST, parsed.error.message, 400).toResponse(),
-      { status: 400 }
-    );
-  }
-  return createApiHandler(emptySchema, (r, a, d, s) => handleDelete(r, a, d, s, parsed.data.orgId), { requireAuth: true })(req);
-};
+export const PUT = withValidatedServices({
+  schema: UpdateOrgSchema,
+  requiredServices: ['organization'],
+  requireAuth: true,
+  handler: putHandler
+});
+
+export const DELETE = withValidatedServices({
+  schema: schemas.empty,
+  requiredServices: ['organization'],
+  requireAuth: true,
+  handler: deleteHandler
+});

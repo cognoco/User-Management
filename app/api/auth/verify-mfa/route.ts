@@ -1,19 +1,24 @@
 import { z } from 'zod';
-import { createApiHandler } from '@/lib/api/route-helpers';
+import { withValidatedServices } from '@/lib/api/with-services';
 import {
   createSuccessResponse,
   ApiError,
   ERROR_CODES
 } from '@/lib/api/common';
 
-const VerifyMfaSchema = z.object({ code: z.string().min(4) });
+const VerifyMfaSchema = z.object({ 
+  code: z.string().min(4, 'MFA code must be at least 4 characters') 
+});
 
 /**
  * POST handler for MFA verification endpoint
+ * Migrated to use withValidatedServices pattern for better dependency management.
  */
-export const POST = createApiHandler(
-  VerifyMfaSchema,
-  async (request, authContext, data, services) => {
+export const POST = withValidatedServices({
+  schema: VerifyMfaSchema,
+  requiredServices: ['auth'],
+  requireAuth: false, // MFA verification might not have full auth yet
+  handler: async ({ request, data, services }) => {
     // Extract request context for the service
     const context = {
       ipAddress: request.headers.get('x-forwarded-for') || 'unknown',
@@ -32,9 +37,5 @@ export const POST = createApiHandler(
     }
 
     return createSuccessResponse(result);
-  },
-  { 
-    requireAuth: false, // MFA verification might not have full auth yet
-    rateLimit: { windowMs: 15 * 60 * 1000, max: 10 }
   }
-);
+});

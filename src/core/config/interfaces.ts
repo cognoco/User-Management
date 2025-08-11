@@ -54,6 +54,7 @@ export interface ServiceContainer {
   // TODO: Add other services as their interfaces become available
   role?: RoleService;
   address?: CompanyAddressService;
+  company?: import('@/services/company/companyService').CompanyService;
   companyNotification?: import("@/core/company-notification/interfaces").CompanyNotificationService;
   resourceRelationship?: ResourceRelationshipService;
   oauth?: import('@/core/oauth/interfaces').OAuthService;

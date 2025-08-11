@@ -6,13 +6,16 @@ import {
   ApiError,
   ERROR_CODES
 } from '@/lib/api/common';
-import { createApiHandler } from '@/lib/api/route-helpers';
+import { withValidatedServices } from '@/lib/api/with-services';
 
 const emptySchema = z.object({});
 
-export const GET = createApiHandler(
-  emptySchema,
-  async (request, _authContext, _data) => {
+export const GET = withValidatedServices({
+  schema: emptySchema,
+  requiredServices: [],
+  requireAuth: false,
+  rateLimit: { windowMs: 15 * 60 * 1000, max: 60 },
+  handler: async ({ request }) => {
     const ipAddress = request.headers.get('x-forwarded-for') || 'unknown';
     const userAgent = request.headers.get('user-agent') || 'unknown';
 
@@ -44,9 +47,5 @@ export const GET = createApiHandler(
         500
       );
     }
-  },
-  {
-    requireAuth: false,
-    rateLimit: { windowMs: 15 * 60 * 1000, max: 60 }
   }
-);
+});

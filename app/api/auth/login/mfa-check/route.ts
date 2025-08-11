@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { TwoFactorMethod } from '@/types/2fa';
-import { createApiHandler } from '@/lib/api/route-helpers';
+import { withValidatedServices } from '@/lib/api/with-services';
 import { logUserAction } from '@/lib/audit/auditLogger';
 import { createSuccessResponse, ApiError, ERROR_CODES } from '@/lib/api/common';
 
@@ -13,9 +13,12 @@ const mfaCheckSchema = z.object({
 /**
  * POST handler for MFA check endpoint
  */
-export const POST = createApiHandler(
-  mfaCheckSchema,
-  async (request, _authContext, data, services) => {
+export const POST = withValidatedServices({
+  schema: mfaCheckSchema,
+  requiredServices: ['auth'],
+  requireAuth: false, // MFA check doesn't require full auth
+  rateLimit: { windowMs: 15 * 60 * 1000, max: 10 },
+  handler: async ({ services, request, data }) => {
     const ipAddress = request.headers.get('x-forwarded-for') || 'unknown';
     const userAgent = request.headers.get('user-agent') || 'unknown';
     
@@ -78,9 +81,5 @@ export const POST = createApiHandler(
         500
       );
     }
-  },
-  { 
-    requireAuth: false, // MFA check doesn't require full auth
-    rateLimit: { windowMs: 15 * 60 * 1000, max: 10 }
   }
-);
+});

@@ -1,6 +1,5 @@
-import { NextRequest } from 'next/server';
 import { z } from 'zod';
-import { createApiHandler, emptySchema } from '@/lib/api/route-helpers';
+import { withValidatedServices } from '@/lib/api/with-services';
 import { createSuccessResponse } from '@/lib/api/common';
 
 const putSchema = z.object({
@@ -9,11 +8,12 @@ const putSchema = z.object({
 });
 
 // GET /api/organizations/[orgId]/sso/status
-export const GET = createApiHandler(
-  emptySchema,
-  async (request: NextRequest, authContext: any, data: any, services: any) => {
-    const url = new URL(request.url);
-    const orgId = url.pathname.split('/')[3]; // Extract orgId from /api/organizations/{orgId}/sso/status
+export const GET = withValidatedServices({
+  schema: z.object({}),
+  requiredServices: ['sso'],
+  requireAuth: true,
+  handler: async ({ params, services }) => {
+    const orgId = params.orgId;
     const providers = await services.sso.getProviders(orgId);
     if (!providers.length) {
       return createSuccessResponse({
@@ -31,17 +31,15 @@ export const GET = createApiHandler(
       totalSuccessfulLogins24h: 0,
     });
   },
-  {
-    requireAuth: true,
-  }
-);
+});
 
 // PUT /api/organizations/[orgId]/sso/status
-export const PUT = createApiHandler(
-  putSchema,
-  async (request: NextRequest, authContext: any, data: z.infer<typeof putSchema>, services: any) => {
-    const url = new URL(request.url);
-    const orgId = url.pathname.split('/')[3]; // Extract orgId from /api/organizations/{orgId}/sso/status
+export const PUT = withValidatedServices({
+  schema: putSchema,
+  requiredServices: ['sso'],
+  requireAuth: true,
+  handler: async ({ params, data, services }) => {
+    const orgId = params.orgId;
     
     await services.sso.setProviderActive(data.providerId, data.active);
     
@@ -54,7 +52,4 @@ export const PUT = createApiHandler(
       totalSuccessfulLogins24h: 0,
     });
   },
-  {
-    requireAuth: true,
-  }
-);
+});

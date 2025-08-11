@@ -1,19 +1,16 @@
 export const runtime = 'nodejs';
-import { type NextRequest } from 'next/server';
-import { createApiHandler, emptySchema } from '@/lib/api/route-helpers';
+import { z } from 'zod';
+import { withValidatedServices } from '@/lib/api/with-services';
 import { createNoContentResponse } from '@/lib/api/common';
 
-function extractAddressId(url: string): string {
-  const parts = new URL(url).pathname.split('/');
-  return parts[parts.length - 1] || '';
-}
 
-export const POST = createApiHandler(
-  emptySchema,
-  async (req: NextRequest, auth, _data, services) => {
-    const id = extractAddressId(req.url);
-    await services.address.setDefaultAddress(id, auth.userId!);
+export const POST = withValidatedServices({
+  schema: z.object({}),
+  requiredServices: ['address'],
+  requireAuth: true,
+  handler: async ({ services, params, userId }) => {
+    const id = params.id;
+    await services.address.setDefaultAddress(id, userId!);
     return createNoContentResponse();
-  },
-  { requireAuth: true }
-);
+  }
+});

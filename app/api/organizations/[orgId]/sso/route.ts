@@ -1,7 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { createApiHandler, emptySchema } from '@/lib/api/route-helpers';
-import { createSuccessResponse } from '@/lib/api/common';
+import { withValidatedServices } from '@/lib/api/with-services';
+import { createSuccessResponse, ApiError, ERROR_CODES } from '@/lib/api/common';
 
 // Schema for SSO settings
 const ssoSettingsSchema = z.object({
@@ -10,13 +9,12 @@ const ssoSettingsSchema = z.object({
 });
 
 // GET /api/organizations/[orgId]/sso/settings
-export const GET = (
-  req: NextRequest,
-  ctx: { params: { orgId: string } }
-) => createApiHandler(
-  emptySchema,
-  async (request: NextRequest, authContext: any, data: any, services: any) => {
-    const orgId = ctx.params.orgId;
+export const GET = withValidatedServices({
+  schema: z.object({}),
+  requiredServices: ['sso'],
+  requireAuth: true,
+  handler: async ({ request, params, services }) => {
+    const orgId = params.orgId;
     const path = request.nextUrl.pathname;
 
     // Handle status endpoint
@@ -79,47 +77,36 @@ export const GET = (
       });
     }
 
-    return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    throw new ApiError(ERROR_CODES.NOT_FOUND, 'Not found', 404);
   },
-  {
-    requireAuth: true,
-  }
-);
+});
 
 // PUT /api/organizations/[orgId]/sso/settings
-export const PUT = (
-  req: NextRequest,
-  ctx: { params: { orgId: string } }
-) => createApiHandler(
-  ssoSettingsSchema,
-  async (request: NextRequest, authContext: any, settings: z.infer<typeof ssoSettingsSchema>, services: any) => {
-    const orgId = ctx.params.orgId;
+export const PUT = withValidatedServices({
+  schema: ssoSettingsSchema,
+  requiredServices: ['sso'],
+  requireAuth: true,
+  handler: async ({ request, params, data, services }) => {
+    const orgId = params.orgId;
     const path = request.nextUrl.pathname;
 
     if (path.endsWith('/settings')) {
-      try {
-        if (settings.sso_enabled && settings.idp_type) {
-          await services.sso.upsertProvider({
-            organizationId: orgId,
-            providerType: settings.idp_type,
-            providerName: `default-${settings.idp_type}`,
-            config: {},
-          });
-          return createSuccessResponse(settings);
-        }
-
-        const existing = await services.sso.getProviders(orgId);
-        await Promise.all(existing.map((p: any) => services.sso.deleteProvider(p.id)));
-
-        return createSuccessResponse({ sso_enabled: false, idp_type: null });
-      } catch (error) {
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+      if (data.sso_enabled && data.idp_type) {
+        await services.sso.upsertProvider({
+          organizationId: orgId,
+          providerType: data.idp_type,
+          providerName: `default-${data.idp_type}`,
+          config: {},
+        });
+        return createSuccessResponse(data);
       }
+
+      const existing = await services.sso.getProviders(orgId);
+      await Promise.all(existing.map((p: any) => services.sso.deleteProvider(p.id)));
+
+      return createSuccessResponse({ sso_enabled: false, idp_type: null });
     }
 
-    return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    throw new ApiError(ERROR_CODES.NOT_FOUND, 'Not found', 404);
   },
-  {
-    requireAuth: true,
-  }
-); 
+});

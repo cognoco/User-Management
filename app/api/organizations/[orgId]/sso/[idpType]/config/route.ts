@@ -1,7 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { createApiHandler, emptySchema } from '@/lib/api/route-helpers';
-import { createSuccessResponse } from '@/lib/api/common';
+import { withValidatedServices, schemas, WithServicesContext } from '@/src/lib/api/with-services';
+import { createSuccessResponse, ApiError, ERROR_CODES } from '@/lib/api/common';
 
 // SAML Configuration Schema
 const samlConfigSchema = z.object({
@@ -25,82 +24,93 @@ const oidcConfigSchema = z.object({
 // Combined schema that validates based on idpType
 const configSchema = z.union([samlConfigSchema, oidcConfigSchema]);
 
+const getHandler = async ({ params, services }: WithServicesContext<Record<string, never>>) => {
+  const orgId = params?.orgId;
+  const idpType = params?.idpType;
+
+  if (!orgId) {
+    throw new ApiError(ERROR_CODES.INVALID_REQUEST, 'Organization ID is required', 400);
+  }
+
+  if (!idpType || !['saml', 'oidc'].includes(idpType)) {
+    throw new ApiError(ERROR_CODES.INVALID_REQUEST, 'Invalid IDP type', 400);
+  }
+
+  const providers = await services.sso.getProviders(orgId);
+  const provider = providers.find((p: any) => p.providerType === idpType);
+  const config = provider?.config;
+
+  if (!config) {
+    // Return default configuration
+    const defaultConfig = idpType === 'saml' ? {
+      entityId: '',
+      ssoUrl: '',
+      nameIdFormat: 'urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress',
+      x509Certificate: '',
+    } : {
+      clientId: '',
+      clientSecret: '',
+      issuer: '',
+      authorizationEndpoint: '',
+      tokenEndpoint: '',
+      userInfoEndpoint: '',
+      scope: 'openid email profile',
+    };
+    return createSuccessResponse(defaultConfig);
+  }
+
+  return createSuccessResponse(config);
+};
+
 // GET /api/organizations/[orgId]/sso/[idpType]/config
-export const GET = createApiHandler(
-  emptySchema,
-  async (request: NextRequest, authContext: any, data: any, services: any) => {
-    const url = new URL(request.url);
-    const pathParts = url.pathname.split('/');
-    const orgId = pathParts[3]; // /api/organizations/{orgId}/sso/{idpType}/config
-    const idpType = pathParts[5];
+export const GET = withValidatedServices({
+  schema: schemas.empty,
+  requiredServices: ['sso'],
+  requireAuth: true,
+  handler: getHandler
+});
 
-    if (!['saml', 'oidc'].includes(idpType)) {
-      return NextResponse.json({ error: 'Invalid IDP type' }, { status: 404 });
-    }
+const putHandler = async ({ data, params, services }: WithServicesContext<z.infer<typeof configSchema>>) => {
+  const orgId = params?.orgId;
+  const idpType = params?.idpType;
 
-    const providers = await services.sso.getProviders(orgId);
-    const provider = providers.find((p: any) => p.providerType === idpType);
-    const config = provider?.config;
+  if (!orgId) {
+    throw new ApiError(ERROR_CODES.INVALID_REQUEST, 'Organization ID is required', 400);
+  }
 
-    if (!config) {
-      // Return default configuration
-      const defaultConfig = idpType === 'saml' ? {
-        entityId: '',
-        ssoUrl: '',
-        nameIdFormat: 'urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress',
-        x509Certificate: '',
-      } : {
-        clientId: '',
-        clientSecret: '',
-        issuer: '',
-        authorizationEndpoint: '',
-        tokenEndpoint: '',
-        userInfoEndpoint: '',
-        scope: 'openid email profile',
-      };
-      return createSuccessResponse(defaultConfig);
-    }
+  if (!idpType || !['saml', 'oidc'].includes(idpType)) {
+    throw new ApiError(ERROR_CODES.INVALID_REQUEST, 'Invalid IDP type', 400);
+  }
+
+  try {
+    const schema = idpType === 'saml' ? samlConfigSchema : oidcConfigSchema;
+    const config = schema.parse(data);
+    
+    await services.sso.upsertProvider({
+      organizationId: orgId,
+      providerType: idpType as 'saml' | 'oidc',
+      providerName: idpType,
+      config,
+    });
 
     return createSuccessResponse(config);
-  },
-  {
-    requireAuth: true,
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      throw new ApiError(
+        ERROR_CODES.INVALID_REQUEST,
+        'Invalid configuration',
+        400,
+        { errors: error.errors }
+      );
+    }
+    throw new ApiError(ERROR_CODES.INTERNAL_ERROR, 'Internal server error', 500);
   }
-);
+};
 
 // PUT /api/organizations/[orgId]/sso/[idpType]/config
-export const PUT = createApiHandler(
-  configSchema,
-  async (request: NextRequest, authContext: any, body: any, services: any) => {
-    const url = new URL(request.url);
-    const pathParts = url.pathname.split('/');
-    const orgId = pathParts[3]; // /api/organizations/{orgId}/sso/{idpType}/config
-    const idpType = pathParts[5];
-
-    if (!['saml', 'oidc'].includes(idpType)) {
-      return NextResponse.json({ error: 'Invalid IDP type' }, { status: 404 });
-    }
-
-    try {
-      const schema = idpType === 'saml' ? samlConfigSchema : oidcConfigSchema;
-      const config = schema.parse(body);
-      
-      await services.sso.upsertProvider({
-        organizationId: orgId,
-        providerType: idpType as 'saml' | 'oidc',
-        providerName: idpType,
-        config,
-      });
-
-      return createSuccessResponse(config);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return NextResponse.json({ error: 'Invalid configuration', details: error.errors }, { status: 400 });
-      }
-      return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-    }
-  },
-  {
-    requireAuth: true,
-  }
-); 
+export const PUT = withValidatedServices({
+  schema: configSchema,
+  requiredServices: ['sso'],
+  requireAuth: true,
+  handler: putHandler
+}); 

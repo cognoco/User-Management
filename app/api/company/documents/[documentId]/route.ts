@@ -1,63 +1,32 @@
-import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { getApiCompanyService } from "@/services/company/factory";
-import { type AuthContext } from "@/core/config/interfaces";
-import { createApiHandler } from "@/lib/api/route-helpers";
-import { createSuccessResponse } from "@/lib/api/common";
+import { withValidatedServices } from "@/lib/api/with-services";
+import { createSuccessResponse, ApiError } from "@/lib/api/common";
 
 
 // --- DELETE Handler for removing company documents ---
-async function handleDelete(
-  _request: NextRequest,
-  params: { documentId: string },
-  auth: AuthContext,
-) {
-  try {
-    const companyService = getApiCompanyService();
+export const DELETE = withValidatedServices({
+  schema: z.object({}),
+  requiredServices: ['company'],
+  requireAuth: true,
+  handler: async ({ params, auth, services }) => {
     const userId = auth.userId!;
-
-    const companyProfile = await companyService.getProfileByUserId(userId);
+    const companyProfile = await services.company.getProfileByUserId(userId);
 
     if (!companyProfile) {
-      return NextResponse.json(
-        { error: "Company profile not found" },
-        { status: 404 },
-      );
+      throw new ApiError('Company profile not found', 404);
     }
 
-    const document = await companyService.getDocument(
+    const document = await services.company.getDocument(
       companyProfile.id,
       params.documentId,
     );
 
     if (!document) {
-      return NextResponse.json(
-        { error: "Document not found" },
-        { status: 404 },
-      );
+      throw new ApiError('Document not found', 404);
     }
 
-    await companyService.deleteDocument(companyProfile.id, params.documentId);
+    await services.company.deleteDocument(companyProfile.id, params.documentId);
 
     return createSuccessResponse({ success: true });
-  } catch (error) {
-    console.error(
-      "Unexpected error in DELETE /api/company/documents/[documentId]:",
-      error,
-    );
-    return NextResponse.json(
-      { error: "An internal server error occurred" },
-      { status: 500 },
-    );
-  }
-}
-
-export const DELETE = (
-  req: NextRequest,
-  ctx: { params: { documentId: string } }
-) =>
-  createApiHandler(
-    z.object({}),
-    (r, a) => handleDelete(r, ctx.params, a),
-    { requireAuth: true }
-  )(req);
+  },
+});

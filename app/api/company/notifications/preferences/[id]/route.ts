@@ -1,16 +1,18 @@
 import { z } from 'zod';
-import { createApiHandler } from '@/lib/api/route-helpers';
-import type { AuthContext, ServiceContainer } from '@/core/config/interfaces';
+import { withValidatedServices } from '@/lib/api/with-services';
+import { createSuccessResponse } from '@/lib/api/common';
 
 const updateSchema = z.object({
   enabled: z.boolean().optional(),
   channel: z.enum(['email', 'in_app', 'both']).optional(),
 });
 
-async function handlePatch(_req: Request, auth: AuthContext, data: z.infer<typeof updateSchema>, services: ServiceContainer, id: string) {
-  const updated = await services.companyNotification!.updatePreference(auth.userId!, id, data);
-  return new Response(JSON.stringify(updated), { status: 200, headers: { 'Content-Type': 'application/json' } });
-}
-
-export const PATCH = (req: Request, ctx: { params: { id: string } }) =>
-  createApiHandler(updateSchema, (r, a, d, s) => handlePatch(r, a, d, s, ctx.params.id), { requireAuth: true })(req);
+export const PATCH = withValidatedServices({
+  schema: updateSchema,
+  requiredServices: ['companyNotification'],
+  requireAuth: true,
+  handler: async ({ auth, data, params, services }) => {
+    const updated = await services.companyNotification.updatePreference(auth.userId!, params.id, data);
+    return createSuccessResponse(updated);
+  },
+});

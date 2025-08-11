@@ -1,12 +1,8 @@
 import { z } from 'zod';
-import { createApiHandlerWithServices } from '@/lib/api/route-helpers-v2';
-import { configureUserManagement } from '@/lib/config/configure-user-management';
+import { withValidatedServices } from '@/lib/api/with-services';
 import { LoginPayload } from '@/core/auth/models';
 import { createSuccessResponse, ApiError, ERROR_CODES } from '@/lib/api/common';
 import { createInvalidCredentialsError, createEmailNotVerifiedError } from '@/lib/api/auth/error-handler';
-
-// Configure services at module level using dependency injection
-const services = configureUserManagement();
 
 // Zod schema for login data
 const LoginSchema = z.object({
@@ -18,9 +14,12 @@ const LoginSchema = z.object({
 /**
  * POST handler for login endpoint
  */
-export const POST = createApiHandlerWithServices(
-  LoginSchema,
-  async (request, _authContext, data, injectedServices) => {
+export const POST = withValidatedServices({
+  schema: LoginSchema,
+  requiredServices: ['auth'],
+  requireAuth: false, // Login doesn't require auth
+  rateLimit: { windowMs: 15 * 60 * 1000, max: 30 }, // Rate limiting config
+  handler: async ({ request, data, services }) => {
     // Extract request context for the service
     const context = {
       ipAddress: request.headers.get('x-forwarded-for') || 'unknown',
@@ -35,7 +34,7 @@ export const POST = createApiHandlerWithServices(
     };
     
     // Call auth service with context - all business logic is now in the service
-    const authResult = await injectedServices.auth.login(loginPayload, context);
+    const authResult = await services.auth.login(loginPayload, context);
 
     // Handle Login Errors - service now handles audit logging and error classification
     if (!authResult.success) {
@@ -84,9 +83,4 @@ export const POST = createApiHandlerWithServices(
       expiresAt: authResult.expiresAt
     });
   },
-  services,
-  { 
-    requireAuth: false, // Login doesn't require auth
-    rateLimit: { windowMs: 15 * 60 * 1000, max: 30 } // Rate limiting config
-  }
-);
+});

@@ -1,8 +1,8 @@
-import { type NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getApiCompanyService } from '@/services/company/factory';
 import { checkRateLimit } from '@/middleware/rate-limit';
-import { createApiHandler } from '@/lib/api/route-helpers';
+import { withValidatedServices } from '@/src/lib/api/with-services';
 import { createSuccessResponse } from '@/lib/api/common';
 
 const ValidationRequestSchema = z.object({
@@ -44,20 +44,15 @@ const countryValidators: Record<string, (taxId: string) => Promise<ValidationRes
   // Add more countries here as needed
 };
 
-async function handlePost(
-  request: NextRequest,
-  auth: { userId?: string },
-  data: ValidationRequest,
-  services: any
-) {
+const postHandler = async ({ request, data, userId }: { request: any, data: ValidationRequest, userId?: string }) => {
   const isRateLimited = await checkRateLimit(request);
   if (isRateLimited) {
     return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
   }
 
   try {
-    const userId = auth.userId!;
-    const companyProfile = await services.addressService.getProfileByUserId(userId);
+    const companyService = getApiCompanyService();
+    const companyProfile = await companyService.getProfileByUserId(userId!);
     if (!companyProfile) {
       return NextResponse.json({ error: 'Company profile not found' }, { status: 404 });
     }
@@ -77,7 +72,6 @@ async function handlePost(
       };
     }
 
-    const companyService = getApiCompanyService();
     await companyService.updateProfile(companyProfile.id, {
       tax_id_verified: validationResult.isValid,
       tax_id_last_checked: new Date().toISOString(),
@@ -94,10 +88,11 @@ async function handlePost(
     console.error('Unexpected error in POST /api/company/validate/tax:', error);
     return NextResponse.json({ error: 'An internal server error occurred.' }, { status: 500 });
   }
-}
+};
 
-export const POST = createApiHandler(
-  ValidationRequestSchema,
-  (req, auth, data, services) => handlePost(req, auth, data, services),
-  { requireAuth: true }
-);
+export const POST = withValidatedServices({
+  schema: ValidationRequestSchema,
+  requiredServices: [],
+  requireAuth: true,
+  handler: postHandler
+});

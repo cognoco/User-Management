@@ -83,6 +83,7 @@ const SERVICE_KEY_MAP: Record<string, string> = {
   'admin': ServiceKeys.ADMIN_SERVICE,
   'role': ServiceKeys.ROLE_SERVICE,
   'address': ServiceKeys.ADDRESS_SERVICE,
+  'company': ServiceKeys.COMPANY_SERVICE,
   'oauth': ServiceKeys.OAUTH_SERVICE,
   'companyNotification': ServiceKeys.COMPANY_NOTIFICATION_SERVICE,
   'resourceRelationship': ServiceKeys.RESOURCE_RELATIONSHIP_SERVICE,

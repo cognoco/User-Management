@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { createApiHandler } from '@/lib/api/route-helpers';
+import { withValidatedServices } from '@/src/lib/api/with-services';
 import {
   createSuccessResponse,
   ApiError,
@@ -17,34 +17,35 @@ const bodySchema = z.object({
 /**
  * Cancel a user's subscription.
  */
-export const POST = createApiHandler(
-  bodySchema,
-  async (req: NextRequest, authContext: any, data: z.infer<typeof bodySchema>, services: any) => {
-    const isRateLimited = await checkRateLimit(req);
-    if (isRateLimited) {
-      throw new ApiError(ERROR_CODES.INVALID_REQUEST, 'Too many requests', 429);
-    }
-
-    const result = await services.subscription.cancelSubscription(
-      data.subscriptionId,
-      data.immediate
-    );
-
-    if (!result.success) {
-      return NextResponse.json({ error: result.error || 'Failed to cancel' }, { status: 400 });
-    }
-    await logUserAction({
-      userId: authContext.userId,
-      action: 'SUBSCRIPTION_CANCELLED',
-      status: 'SUCCESS',
-      ipAddress: req.headers.get('x-forwarded-for') || 'unknown',
-      userAgent: req.headers.get('user-agent') || 'unknown',
-      targetResourceType: 'subscription',
-      targetResourceId: data.subscriptionId,
-    });
-    return createSuccessResponse({ success: true });
-  },
-  {
-    requireAuth: true,
+const postHandler = async ({ request, data, userId, services }: { request: any, data: z.infer<typeof bodySchema>, userId?: string, services: any }) => {
+  const isRateLimited = await checkRateLimit(request);
+  if (isRateLimited) {
+    throw new ApiError(ERROR_CODES.INVALID_REQUEST, 'Too many requests', 429);
   }
-);
+
+  const result = await services.subscription.cancelSubscription(
+    data.subscriptionId,
+    data.immediate
+  );
+
+  if (!result.success) {
+    return NextResponse.json({ error: result.error || 'Failed to cancel' }, { status: 400 });
+  }
+  await logUserAction({
+    userId: userId!,
+    action: 'SUBSCRIPTION_CANCELLED',
+    status: 'SUCCESS',
+    ipAddress: request.headers.get('x-forwarded-for') || 'unknown',
+    userAgent: request.headers.get('user-agent') || 'unknown',
+    targetResourceType: 'subscription',
+    targetResourceId: data.subscriptionId,
+  });
+  return createSuccessResponse({ success: true });
+};
+
+export const POST = withValidatedServices({
+  schema: bodySchema,
+  requiredServices: ['subscription'],
+  requireAuth: true,
+  handler: postHandler
+});

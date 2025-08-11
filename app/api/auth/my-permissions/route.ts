@@ -1,14 +1,15 @@
-import { type NextRequest } from 'next/server';
 import { createSuccessResponse } from '@/lib/api/common';
-import { createApiHandler } from '@/lib/api/route-helpers';
+import { withValidatedServices } from '@/lib/api/with-services';
 import { z } from 'zod';
 
 const myPermissionsSchema = z.object({});
 
-export const GET = createApiHandler(
-  myPermissionsSchema,
-  async (_req: NextRequest, authContext: any, _data: any, services: any) => {
-    if (!authContext.userId) {
+export const GET = withValidatedServices({
+  schema: myPermissionsSchema,
+  requiredServices: ['permissionService'],
+  requireAuth: true,
+  handler: async ({ services, userId, data }) => {
+    if (!userId) {
       return createSuccessResponse({ 
         roles: [], 
         permissions: [], 
@@ -16,7 +17,7 @@ export const GET = createApiHandler(
       });
     }
 
-    const assignments = await services.permissionService.getUserRoles(authContext.userId);
+    const assignments = await services.permissionService.getUserRoles(userId);
     const roleEntities = await Promise.all(
       assignments.map((r: any) => services.permissionService.getRoleById(r.roleId))
     );
@@ -29,6 +30,5 @@ export const GET = createApiHandler(
       permissions: Array.from(permissions),
       resourcePermissions: []
     });
-  },
-  { requireAuth: true }
-);
+  }
+});

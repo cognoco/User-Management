@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { createApiHandler } from '@/lib/api/route-helpers';
+import { withValidatedServices } from '@/lib/api/with-services';
 import { logUserAction } from '@/lib/audit/auditLogger';
 import {
   createSuccessResponse,
@@ -12,22 +12,25 @@ const DisableMfaSchema = z.object({ code: z.string().min(4) });
 /**
  * POST handler for MFA disable endpoint
  */
-export const POST = createApiHandler(
-  DisableMfaSchema,
-  async (request, authContext, data, services) => {
+export const POST = withValidatedServices({
+  schema: DisableMfaSchema,
+  requiredServices: ['auth'],
+  requireAuth: true,
+  rateLimit: { windowMs: 15 * 60 * 1000, max: 5 },
+  handler: async ({ services, request, data, userId }) => {
     const ipAddress = request.headers.get('x-forwarded-for') || 'unknown';
     const userAgent = request.headers.get('user-agent') || 'unknown';
     
     const result = await services.auth.disableMFA(data.code);
 
     await logUserAction({
-      userId: authContext.userId,
+      userId: userId,
       action: 'MFA_DISABLE',
       status: result.success ? 'SUCCESS' : 'FAILURE',
       ipAddress,
       userAgent,
       targetResourceType: 'auth',
-      targetResourceId: authContext.userId
+      targetResourceId: userId
     });
 
     if (!result.success) {
@@ -39,9 +42,5 @@ export const POST = createApiHandler(
     }
 
     return createSuccessResponse(result);
-  },
-  { 
-    requireAuth: true, // MFA disable requires authentication
-    rateLimit: { windowMs: 15 * 60 * 1000, max: 5 }
   }
-);
+});

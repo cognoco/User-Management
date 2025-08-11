@@ -1,11 +1,15 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createApiHandler, emptySchema } from '@/lib/api/route-helpers';
+import { z } from 'zod';
+import { withValidatedServices } from '@/lib/api/with-services';
+import { createSuccessResponse } from '@/lib/api/common';
 import { PermissionPolicyService, PolicyViolation } from '@/lib/services/permission-policy.service';
 import { PermissionValues } from '@/core/permission/models';
 
-export const POST = createApiHandler(
-  emptySchema,
-  async (_req: NextRequest, authContext: any, _data: any, services: any) => {
+export const POST = withValidatedServices({
+  schema: z.object({}),
+  requiredServices: ['permission'],
+  requireAuth: true,
+  requiredPermissions: [PermissionValues.ADMIN_ACCESS],
+  handler: async ({ services }) => {
     const policy = new PermissionPolicyService();
     const roles = await services.permission.getAllRoles();
     const violations: PolicyViolation[] = [];
@@ -24,10 +28,6 @@ export const POST = createApiHandler(
       await policy.reportViolations(violations);
     }
 
-    return NextResponse.json({ success: true, violations });
+    return createSuccessResponse({ success: true, violations });
   },
-  {
-    requireAuth: true,
-    requiredPermissions: [PermissionValues.ADMIN_ACCESS],
-  }
-);
+});

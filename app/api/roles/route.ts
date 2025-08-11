@@ -1,10 +1,9 @@
-import { type NextRequest } from 'next/server';
 import { z } from 'zod';
 import {
   createSuccessResponse,
   createCreatedResponse,
 } from '@/lib/api/common';
-import { createApiHandler } from '@/lib/api/route-helpers';
+import { withValidatedServices } from '@/src/lib/api/with-services';
 import { mapPermissionServiceError } from '@/lib/api/permission/error-handler';
 import { PermissionValues } from '@/core/permission/models';
 
@@ -21,12 +20,7 @@ const querySchema = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(20),
 });
 
-async function handleGet(
-  _req: NextRequest,
-  _auth: any,
-  data: z.infer<typeof querySchema>,
-  services: any,
-) {
+const getHandler = async ({ data, services }: { data: z.infer<typeof querySchema>, services: any }) => {
   const roles = await services.permission.getAllRoles();
   const start = (data.page - 1) * data.limit;
   const paginated = roles.slice(start, start + data.limit);
@@ -36,28 +30,29 @@ async function handleGet(
     limit: data.limit,
     total: roles.length,
   });
-}
+};
 
-async function handlePost(
-  _req: NextRequest,
-  auth: any,
-  data: CreateRole,
-  services: any,
-) {
+const postHandler = async ({ data, userId, services }: { data: CreateRole, userId?: string, services: any }) => {
   try {
-    const role = await services.permission.createRole(data, auth.userId);
+    const role = await services.permission.createRole(data, userId!);
     return createCreatedResponse({ role });
   } catch (e) {
     throw mapPermissionServiceError(e as Error);
   }
-}
+};
 
-export const GET = createApiHandler(querySchema, handleGet, {
+export const GET = withValidatedServices({
+  schema: querySchema,
+  requiredServices: ['permission'],
   requireAuth: true,
   requiredPermissions: [PermissionValues.MANAGE_ROLES],
+  handler: getHandler
 });
 
-export const POST = createApiHandler(createSchema, handlePost, {
+export const POST = withValidatedServices({
+  schema: createSchema,
+  requiredServices: ['permission'],
   requireAuth: true,
   requiredPermissions: [PermissionValues.MANAGE_ROLES],
+  handler: postHandler
 });
