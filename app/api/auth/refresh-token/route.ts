@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createApiHandler, emptySchema } from '@/lib/api/route-helpers';
+import { withValidatedServices, schemas } from '@/src/lib/api/with-services';
 import { logUserAction } from '@/lib/audit/auditLogger';
 import { createSuccessResponse } from '@/lib/api/common';
 
@@ -8,17 +8,19 @@ const failedRefreshAttempts: Record<string, { count: number; last: number }> = {
 /**
  * POST handler for token refresh endpoint
  */
-export const POST = createApiHandler(
-  emptySchema,
-  async (request, _authContext, _data, services) => {
+export const POST = withValidatedServices({
+  schema: schemas.empty,
+  requiredServices: ['auth'],
+  requireAuth: false,
+  handler: async ({ services, request, data, userId, params }) => {
     const ipAddress = request.headers.get('x-forwarded-for') || 'unknown';
     const userAgent = request.headers.get('user-agent') || 'unknown';
     
-    const success = await services.auth.refreshToken();
+    const success = await services.auth!.refreshToken();
     let expiresAt: number | null = null;
 
     if (success) {
-      expiresAt = services.auth.getTokenExpiry();
+      expiresAt = services.auth!.getTokenExpiry();
       const key = ipAddress;
       delete failedRefreshAttempts[key];
     }
@@ -56,9 +58,5 @@ export const POST = createApiHandler(
     }
 
     return createSuccessResponse({ success: true, expiresAt });
-  },
-  {
-    requireAuth: false, // Token refresh doesn't require active auth
-    rateLimit: { windowMs: 15 * 60 * 1000, max: 30 }
   }
-);
+});

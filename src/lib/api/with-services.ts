@@ -1,15 +1,8 @@
 /**
- * Route Helper with Dependency Injection
+ * API Route Wrapper with Service Validation
  * 
- * This module provides clean service injection for Next.js route handlers,
- * eliminating circular dependencies and making testing simple.
- * 
- * Key features:
- * 1. Services are injected, not retrieved from a global container
- * 2. No circular dependencies - services created in proper order
- * 3. Simple testing - mock services can be easily injected
- * 4. Type-safe - full TypeScript support
- * 5. Middleware support - authentication, validation, etc.
+ * This provides the new pattern for creating API routes with validated services,
+ * authentication, and consistent error handling.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -18,163 +11,158 @@ import type {
   ServiceContainer,
   AuthContext
 } from '@/core/config/interfaces';
+import { ServiceLocator, ServiceKeys } from '@/lib/config/service-locator';
+import { createAuthMiddleware } from './auth-middleware';
 import { 
   createSuccessResponse, 
   createErrorResponse, 
   ApiError, 
   ERROR_CODES 
 } from './common';
-import { createDefaultApiServices } from '@/lib/services/factory';
 
 /**
- * Configuration for route handlers
+ * Handler context with validated services
  */
-export interface RouteConfig {
-  /** Whether authentication is required */
-  requireAuth?: boolean;
-  
-  /** Required permissions for this route */
-  requiredPermissions?: string[];
-  
-  /** Whether to include user data in auth context */
-  includeUser?: boolean;
-  
-  /** Whether to include user permissions in auth context */
-  includePermissions?: boolean;
-  
-  /** Custom services to use (defaults to createDefaultApiServices()) */
-  services?: ServiceContainer;
+export interface WithServicesContext<T = any> {
+  /** Validated request data */
+  data: T;
+  /** HTTP request object */
+  request: NextRequest;
+  /** User ID if authenticated */
+  userId?: string;
+  /** Full user object if includeUser enabled */
+  user?: any;
+  /** User permissions if includePermissions enabled */
+  permissions?: string[];
+  /** Validated services container */
+  services: ServiceContainer;
+  /** Route parameters (for dynamic routes like [id]) */
+  params?: Record<string, string>;
 }
 
 /**
- * Handler function signature with services
+ * Configuration for withValidatedServices
  */
-export type ServiceHandler<T = any> = (
-  services: ServiceContainer,
-  data: T,
-  request: NextRequest,
-  context: AuthContext
-) => Promise<NextResponse>;
+export interface WithServicesOptions<T = any> {
+  /** Zod schema for request validation */
+  schema: z.ZodSchema<T>;
+  /** Array of required service keys */
+  requiredServices: (keyof ServiceContainer)[];
+  /** Whether authentication is required */
+  requireAuth?: boolean;
+  /** Specific permissions required */
+  requiredPermissions?: string[];
+  /** Whether to include user object in context */
+  includeUser?: boolean;
+  /** Whether to include user permissions in context */
+  includePermissions?: boolean;
+  /** Handler function */
+  handler: (context: WithServicesContext<T>) => Promise<NextResponse>;
+}
 
 /**
- * Handler function signature without validation
+ * Mapping of service names to ServiceKeys
  */
-export type SimpleServiceHandler = (
-  services: ServiceContainer,
-  request: NextRequest,
-  context: AuthContext
-) => Promise<NextResponse>;
+const SERVICE_KEY_MAP: Record<string, string> = {
+  'auth': ServiceKeys.AUTH_SERVICE,
+  'user': ServiceKeys.USER_SERVICE,
+  'permission': ServiceKeys.PERMISSION_SERVICE,
+  'team': ServiceKeys.TEAM_SERVICE,
+  'sso': ServiceKeys.SSO_SERVICE,
+  'gdpr': ServiceKeys.GDPR_SERVICE,
+  'twoFactor': ServiceKeys.TWO_FACTOR_SERVICE,
+  'subscription': ServiceKeys.SUBSCRIPTION_SERVICE,
+  'apiKey': ServiceKeys.API_KEY_SERVICE,
+  'notification': ServiceKeys.NOTIFICATION_SERVICE,
+  'webhook': ServiceKeys.WEBHOOK_SERVICE,
+  'session': ServiceKeys.SESSION_SERVICE,
+  'organization': ServiceKeys.ORGANIZATION_SERVICE,
+  'csrf': ServiceKeys.CSRF_SERVICE,
+  'consent': ServiceKeys.CONSENT_SERVICE,
+  'audit': ServiceKeys.AUDIT_SERVICE,
+  'admin': ServiceKeys.ADMIN_SERVICE,
+  'role': ServiceKeys.ROLE_SERVICE,
+  'address': ServiceKeys.ADDRESS_SERVICE,
+  'oauth': ServiceKeys.OAUTH_SERVICE,
+  'companyNotification': ServiceKeys.COMPANY_NOTIFICATION_SERVICE,
+  'resourceRelationship': ServiceKeys.RESOURCE_RELATIONSHIP_SERVICE,
+};
 
 /**
- * Create a route handler with injected services and validation
- * 
- * This is the main function for creating clean route handlers.
- * Services are injected, not retrieved from a global container.
- * 
- * @param schema Zod schema for request validation
- * @param handler The handler function
- * @param config Optional configuration
- * @returns Next.js route handler
- * 
- * @example
- * ```typescript
- * export const POST = withValidatedServices(
- *   z.object({ email: z.string().email() }),
- *   async (services, data) => {
- *     const user = await services.auth.register(data);
- *     return NextResponse.json({ user });
- *   }
- * );
- * ```
+ * Create a service container from required services
  */
-export function withValidatedServices<T>(
-  schema: z.ZodSchema<T>,
-  handler: ServiceHandler<T>,
-  config: RouteConfig = {}
-): (request: NextRequest) => Promise<NextResponse> {
-  return async (request: NextRequest): Promise<NextResponse> => {
+function createValidatedServiceContainer(requiredServices: (keyof ServiceContainer)[]): ServiceContainer {
+  const locator = ServiceLocator.getInstance();
+  const container: Partial<ServiceContainer> = {};
+  
+  for (const serviceName of requiredServices) {
+    const serviceKey = SERVICE_KEY_MAP[serviceName];
+    if (!serviceKey) {
+      throw new Error(`Unknown service: ${serviceName}`);
+    }
+    
+    if (!locator.has(serviceKey)) {
+      throw new Error(`Required service '${serviceName}' is not registered`);
+    }
+    
+    container[serviceName] = locator.get(serviceKey);
+  }
+  
+  return container as ServiceContainer;
+}
+
+/**
+ * Extract route parameters from request URL
+ */
+function extractParams(request: NextRequest): Record<string, string> {
+  const url = new URL(request.url);
+  const pathSegments = url.pathname.split('/').filter(Boolean);
+  const params: Record<string, string> = {};
+  
+  // Simple parameter extraction (works for common cases)
+  // For more complex cases, Next.js will provide these in the route context
+  pathSegments.forEach((segment, index) => {
+    if (segment.startsWith('[') && segment.endsWith(']')) {
+      const paramName = segment.slice(1, -1);
+      const nextSegment = pathSegments[index + 1];
+      if (nextSegment && !nextSegment.startsWith('[')) {
+        params[paramName] = decodeURIComponent(nextSegment);
+      }
+    }
+  });
+  
+  return params;
+}
+
+/**
+ * Main wrapper function for API routes with validated services
+ */
+export function withValidatedServices<T = any>(
+  options: WithServicesOptions<T>
+): (request: NextRequest, params?: { params: Record<string, string> }) => Promise<NextResponse> {
+  
+  return async (
+    request: NextRequest, 
+    context?: { params: Record<string, string> }
+  ): Promise<NextResponse> => {
     try {
-      // 1. Get services (use provided or create default)
-      const services = config.services || createDefaultApiServices();
+      // 1. Validate required services are available
+      const services = createValidatedServiceContainer(options.requiredServices);
       
-      // 2. Handle authentication if required
-      let authContext: AuthContext = { 
-        authenticated: false,
-        sessionId: null,
-        userId: null,
-        user: null,
-        permissions: null
-      };
+      // 2. Create authentication middleware if needed
+      let authContext: AuthContext = { isAuthenticated: false };
       
-      if (config.requireAuth) {
-        const authHeader = request.headers.get('authorization');
-        const token = authHeader?.replace('Bearer ', '');
+      if (options.requireAuth || options.requiredPermissions?.length) {
+        const authMiddleware = createAuthMiddleware({
+          authService: services.auth!,
+          permissionService: services.permission,
+          requireAuth: options.requireAuth ?? false,
+          requiredPermissions: options.requiredPermissions,
+          includeUser: options.includeUser ?? false,
+          includePermissions: options.includePermissions ?? false,
+        });
         
-        if (!token) {
-          return createErrorResponse(
-            new ApiError(
-              ERROR_CODES.UNAUTHORIZED,
-              'Authentication required',
-              401
-            )
-          );
-        }
-        
-        try {
-          const session = await services.auth.validateSession(token);
-          if (!session || !session.user) {
-            return createErrorResponse(
-              new ApiError(
-                ERROR_CODES.UNAUTHORIZED,
-                'Invalid or expired session',
-                401
-              )
-            );
-          }
-          
-          authContext = {
-            authenticated: true,
-            sessionId: session.id,
-            userId: session.user.id,
-            user: config.includeUser ? session.user : null,
-            permissions: null
-          };
-          
-          // Check permissions if required
-          if (config.requiredPermissions?.length && services.permission) {
-            const hasPermissions = await services.permission.checkPermissions(
-              session.user.id,
-              config.requiredPermissions
-            );
-            
-            if (!hasPermissions) {
-              return createErrorResponse(
-                new ApiError(
-                  ERROR_CODES.FORBIDDEN,
-                  'Insufficient permissions',
-                  403
-                )
-              );
-            }
-          }
-          
-          // Include permissions if requested
-          if (config.includePermissions && services.permission) {
-            const permissions = await services.permission.getUserPermissions(
-              session.user.id
-            );
-            authContext.permissions = permissions;
-          }
-        } catch (error) {
-          console.error('Authentication error:', error);
-          return createErrorResponse(
-            new ApiError(
-              ERROR_CODES.UNAUTHORIZED,
-              'Authentication failed',
-              401
-            )
-          );
-        }
+        authContext = await authMiddleware(request);
       }
       
       // 3. Validate request data
@@ -184,7 +172,7 @@ export function withValidatedServices<T>(
           ? Object.fromEntries(new URL(request.url).searchParams)
           : await request.json().catch(() => ({}));
         
-        validatedData = schema.parse(body);
+        validatedData = options.schema.parse(body);
       } catch (error) {
         if (error instanceof z.ZodError) {
           const errorMessages = error.errors.map(err => 
@@ -203,136 +191,22 @@ export function withValidatedServices<T>(
         throw error;
       }
       
-      // 4. Call the handler with services
-      return await handler(services, validatedData, request, authContext);
+      // 4. Extract route parameters
+      const params = context?.params || extractParams(request);
       
-    } catch (error) {
-      // Handle known API errors
-      if (error instanceof ApiError) {
-        return createErrorResponse(error);
-      }
-      
-      // Handle unexpected errors
-      console.error('Unexpected API error:', error);
-      return createErrorResponse(
-        new ApiError(
-          ERROR_CODES.INTERNAL_ERROR,
-          'Internal server error',
-          500
-        )
-      );
-    }
-  };
-}
-
-/**
- * Create a route handler with injected services (no validation)
- * 
- * Use this for simple routes that don't need request validation.
- * 
- * @param handler The handler function
- * @param config Optional configuration
- * @returns Next.js route handler
- * 
- * @example
- * ```typescript
- * export const GET = withServices(async (services, request) => {
- *   const users = await services.user.findAll();
- *   return NextResponse.json({ users });
- * });
- * ```
- */
-export function withServices(
-  handler: SimpleServiceHandler,
-  config: RouteConfig = {}
-): (request: NextRequest) => Promise<NextResponse> {
-  return async (request: NextRequest): Promise<NextResponse> => {
-    try {
-      // 1. Get services (use provided or create default)
-      const services = config.services || createDefaultApiServices();
-      
-      // 2. Handle authentication if required
-      let authContext: AuthContext = { 
-        authenticated: false,
-        sessionId: null,
-        userId: null,
-        user: null,
-        permissions: null
+      // 5. Create handler context
+      const handlerContext: WithServicesContext<T> = {
+        data: validatedData,
+        request,
+        userId: authContext.userId,
+        user: authContext.user,
+        permissions: authContext.permissions,
+        services,
+        params,
       };
       
-      if (config.requireAuth) {
-        const authHeader = request.headers.get('authorization');
-        const token = authHeader?.replace('Bearer ', '');
-        
-        if (!token) {
-          return createErrorResponse(
-            new ApiError(
-              ERROR_CODES.UNAUTHORIZED,
-              'Authentication required',
-              401
-            )
-          );
-        }
-        
-        try {
-          const session = await services.auth.validateSession(token);
-          if (!session || !session.user) {
-            return createErrorResponse(
-              new ApiError(
-                ERROR_CODES.UNAUTHORIZED,
-                'Invalid or expired session',
-                401
-              )
-            );
-          }
-          
-          authContext = {
-            authenticated: true,
-            sessionId: session.id,
-            userId: session.user.id,
-            user: config.includeUser ? session.user : null,
-            permissions: null
-          };
-          
-          // Check permissions if required
-          if (config.requiredPermissions?.length && services.permission) {
-            const hasPermissions = await services.permission.checkPermissions(
-              session.user.id,
-              config.requiredPermissions
-            );
-            
-            if (!hasPermissions) {
-              return createErrorResponse(
-                new ApiError(
-                  ERROR_CODES.FORBIDDEN,
-                  'Insufficient permissions',
-                  403
-                )
-              );
-            }
-          }
-          
-          // Include permissions if requested
-          if (config.includePermissions && services.permission) {
-            const permissions = await services.permission.getUserPermissions(
-              session.user.id
-            );
-            authContext.permissions = permissions;
-          }
-        } catch (error) {
-          console.error('Authentication error:', error);
-          return createErrorResponse(
-            new ApiError(
-              ERROR_CODES.UNAUTHORIZED,
-              'Authentication failed',
-              401
-            )
-          );
-        }
-      }
-      
-      // 3. Call the handler with services
-      return await handler(services, request, authContext);
+      // 6. Call the handler
+      return await options.handler(handlerContext);
       
     } catch (error) {
       // Handle known API errors
@@ -354,27 +228,31 @@ export function withServices(
 }
 
 /**
- * Create services for a specific route configuration
- * 
- * This is useful when you want to pre-configure services
- * for multiple routes with the same configuration.
- * 
- * @param config Service configuration
- * @returns Configured services
- * 
- * @example
- * ```typescript
- * // In a route file
- * const services = createRouteServices({
- *   featureFlags: { teams: false }
- * });
- * 
- * export const GET = withServices(
- *   async (services) => { ... },
- *   { services }
- * );
- * ```
+ * Utility schemas for common use cases
  */
-export function createRouteServices(config?: Parameters<typeof createDefaultApiServices>[0]): ServiceContainer {
-  return createDefaultApiServices();
-}
+export const schemas = {
+  /** Empty schema for handlers that don't need request data */
+  empty: z.object({}),
+  
+  /** Schema for ID-based requests */
+  withId: z.object({
+    id: z.string().min(1, 'ID is required'),
+  }),
+  
+  /** Schema for pagination */
+  paginated: z.object({
+    page: z.coerce.number().min(1).default(1),
+    limit: z.coerce.number().min(1).max(100).default(20),
+  }),
+};
+
+/**
+ * Type helpers for common handler patterns
+ */
+export type EmptyHandler = (context: WithServicesContext<Record<string, never>>) => Promise<NextResponse>;
+export type IdHandler<T = any> = (context: WithServicesContext<T & { id: string }>) => Promise<NextResponse>;
+export type PaginatedHandler<T = any> = (context: WithServicesContext<T & { page: number; limit: number }>) => Promise<NextResponse>;
+
+// Keep the legacy function for backward compatibility during migration
+export const emptySchema = z.object({});
+export type EmptyApiHandler = (context: WithServicesContext<Record<string, never>>) => Promise<NextResponse>;

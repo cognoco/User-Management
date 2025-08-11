@@ -1,9 +1,8 @@
 import { type NextRequest } from 'next/server';
 import { z } from 'zod';
-import { createApiHandler } from '@/lib/api/route-helpers';
+import { withValidatedServices } from '@/lib/api/with-services';
 import { createSuccessResponse } from '@/lib/api/common';
 import { permissionCheckCache } from '@/lib/auth/permission-cache';
-import type { AuthContext, ServiceContainer } from '@/core/config/interfaces';
 
 const CheckPermissionSchema = z.object({
   permission: z.string().min(1),
@@ -11,28 +10,24 @@ const CheckPermissionSchema = z.object({
   resourceId: z.string().optional()
 });
 
-async function handleCheckPermission(
-  _req: NextRequest,
-  auth: AuthContext,
-  data: z.infer<typeof CheckPermissionSchema>,
-  services: ServiceContainer,
-) {
-  if (!auth.userId) {
+async function handleCheckPermission({ userId, data, services }: { userId?: string, data: z.infer<typeof CheckPermissionSchema>, services: any }) {
+  if (!userId) {
     return createSuccessResponse({ hasPermission: false });
   }
 
-  const key = `${auth.userId}:${data.permission}:${data.resourceType ?? ''}:${
+  const key = `${userId}:${data.permission}:${data.resourceType ?? ''}:${
     data.resourceId ?? ''}`;
 
   const allowed = await permissionCheckCache.getOrCreate(key, () =>
-    services.permission!.hasPermission(auth.userId!, data.permission as any)
+    services.permission.hasPermission(userId, data.permission as any)
   );
 
   return createSuccessResponse({ hasPermission: allowed });
 }
 
-export const POST = createApiHandler(
-  CheckPermissionSchema,
-  handleCheckPermission,
-  { requireAuth: true },
-);
+export const POST = withValidatedServices({
+  schema: CheckPermissionSchema,
+  requiredServices: ['permission'],
+  requireAuth: true,
+  handler: handleCheckPermission
+});
