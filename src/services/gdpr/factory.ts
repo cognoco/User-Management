@@ -8,7 +8,7 @@
 import { GdprService } from '@/core/gdpr/interfaces';
 import type { IGdprDataProvider } from '@/core/gdpr';
 import { AdapterRegistry } from '@/adapters/registry';
-import { getServiceContainer } from '@/lib/config/service-container';
+// Service container import removed - using new pure factory pattern
 import { DefaultGdprService } from './default-gdpr.service';
 
 export interface GdprServiceOptions {
@@ -26,10 +26,6 @@ let gdprServiceInstance: GdprService | null = null;
 export function getApiGdprService(options: GdprServiceOptions = {}): GdprService {
   if (options.reset) {
     gdprServiceInstance = null;
-  }
-
-  if (!gdprServiceInstance) {
-    gdprServiceInstance = getServiceContainer().gdpr || null;
   }
 
   if (!gdprServiceInstance) {

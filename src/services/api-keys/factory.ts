@@ -8,7 +8,7 @@
 import { ApiKeyService } from '@/core/api-keys/interfaces';
 import type { IApiKeyDataProvider } from '@/core/api-keys';
 import { AdapterRegistry } from '@/adapters/registry';
-import { getServiceContainer } from '@/lib/config/service-container';
+// Service container import removed - using new pure factory pattern
 import { DefaultApiKeysService } from './default-api-keys.service';
 
 export interface ApiKeysServiceOptions {
@@ -26,10 +26,6 @@ let apiKeyServiceInstance: ApiKeyService | null = null;
 export function getApiKeyService(options: ApiKeysServiceOptions = {}): ApiKeyService {
   if (options.reset) {
     apiKeyServiceInstance = null;
-  }
-
-  if (!apiKeyServiceInstance) {
-    apiKeyServiceInstance = getServiceContainer().apiKey || null;
   }
 
   if (!apiKeyServiceInstance) {

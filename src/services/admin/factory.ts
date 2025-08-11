@@ -9,7 +9,7 @@ import { AdminService } from '@/core/admin/interfaces';
 import type { IAdminDataProvider } from '@/core/admin';
 import { AdapterRegistry } from '@/adapters/registry';
 import { DefaultAdminService } from './default-admin.service';
-import { getServiceContainer } from '@/lib/config/service-container';
+// Service container import removed - using new pure factory pattern
 
 // Singleton instance for API routes
 let adminServiceInstance: AdminService | null = null;
@@ -37,14 +37,8 @@ export function getApiAdminService(
   }
 
   if (!adminServiceInstance) {
-    // Check ServiceContainer first (respects host app overrides)
-    adminServiceInstance = getServiceContainer().admin as AdminService | undefined || null;
-
-    // Fall back to adapter registry (current behavior)
-    if (!adminServiceInstance) {
-      const provider = AdapterRegistry.getInstance().getAdapter<IAdminDataProvider>('admin');
-      adminServiceInstance = new DefaultAdminService(provider);
-    }
+    const provider = AdapterRegistry.getInstance().getAdapter<IAdminDataProvider>('admin');
+    adminServiceInstance = new DefaultAdminService(provider);
   }
 
   return adminServiceInstance;

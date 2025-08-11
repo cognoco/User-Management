@@ -8,10 +8,7 @@
 import { TwoFactorService } from '@/core/two-factor/interfaces';
 import { UserManagementConfiguration } from '@/core/config';
 import { DefaultTwoFactorService } from './default-two-factor.service';
-import {
-  getServiceContainer,
-  getServiceConfiguration
-} from '@/lib/config/service-container';
+// Service container import removed - using new pure factory pattern
 
 // Singleton instance for API routes
 export interface ApiTwoFactorServiceOptions {
@@ -45,24 +42,10 @@ export function getApiTwoFactorService(
   }
 
   if (!twoFactorServiceInstance) {
-    const config = getServiceConfiguration();
-
-    if (config.twoFactorService) {
-      twoFactorServiceInstance = config.twoFactorService;
-    } else {
-      try {
-        twoFactorServiceInstance = getServiceContainer().twoFactor ?? null;
-      } catch {
-        // Service container not fully configured
-      }
-
-      if (!twoFactorServiceInstance) {
-        twoFactorServiceInstance =
-          (UserManagementConfiguration.getServiceProvider(
-            'twoFactorService'
-          ) as TwoFactorService | null) || new DefaultTwoFactorService();
-      }
-    }
+    twoFactorServiceInstance =
+      (UserManagementConfiguration.getServiceProvider(
+        'twoFactorService'
+      ) as TwoFactorService | null) || new DefaultTwoFactorService();
 
     if (typeof globalThis !== 'undefined') {
       (globalThis as any)[GLOBAL_CACHE_KEY] = twoFactorServiceInstance;

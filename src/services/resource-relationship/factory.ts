@@ -6,7 +6,7 @@
  */
 
 import { AdapterRegistry } from '@/adapters/registry';
-import { getServiceContainer } from '@/lib/config/service-container';
+// Service container import removed - using new pure factory pattern
 import type { ResourceRelationshipService } from '@/core/resource-relationship/interfaces';
 import type { IResourceRelationshipDataProvider } from '@/core/resource-relationship/IResourceRelationshipDataProvider';
 import { DefaultResourceRelationshipService } from './default-resource-relationship.service';
@@ -38,14 +38,8 @@ export function getApiResourceRelationshipService(
   }
 
   if (!resourceRelationshipServiceInstance) {
-    // Check ServiceContainer first (respects host app overrides)
-    resourceRelationshipServiceInstance = getServiceContainer().resourceRelationship;
-    
-    // Fall back to adapter registry
-    if (!resourceRelationshipServiceInstance) {
-      const provider = AdapterRegistry.getInstance().getAdapter<IResourceRelationshipDataProvider>('resourceRelationship');
-      resourceRelationshipServiceInstance = new DefaultResourceRelationshipService(provider);
-    }
+    const provider = AdapterRegistry.getInstance().getAdapter<IResourceRelationshipDataProvider>('resourceRelationship');
+    resourceRelationshipServiceInstance = new DefaultResourceRelationshipService(provider);
   }
 
   return resourceRelationshipServiceInstance;

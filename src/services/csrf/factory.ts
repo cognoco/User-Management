@@ -10,10 +10,7 @@ import type { ICsrfDataProvider } from '@/core/csrf';
 import { DefaultCsrfService } from './default-csrf.service';
 import { AdapterRegistry } from '@/adapters/registry';
 import { UserManagementConfiguration } from '@/core/config';
-import {
-  getServiceContainer,
-  getServiceConfiguration
-} from '@/lib/config/service-container';
+// Service container import removed - using new pure factory pattern
 
 // Singleton instance for API routes
 export interface ApiCsrfServiceOptions {
@@ -47,29 +44,15 @@ export function getApiCsrfService(
   }
 
   if (!csrfServiceInstance) {
-    const config = getServiceConfiguration();
+    csrfServiceInstance =
+      UserManagementConfiguration.getServiceProvider(
+        'csrfService'
+      ) as CsrfService | null;
 
-    if (config.csrfService) {
-      csrfServiceInstance = config.csrfService;
-    } else {
-      try {
-        csrfServiceInstance = getServiceContainer().csrf ?? null;
-      } catch {
-        // Service container not fully configured
-      }
-
-      if (!csrfServiceInstance) {
-        csrfServiceInstance =
-          UserManagementConfiguration.getServiceProvider(
-            'csrfService'
-          ) as CsrfService | null;
-
-        if (!csrfServiceInstance) {
-          const csrfDataProvider =
-            AdapterRegistry.getInstance().getAdapter<ICsrfDataProvider>('csrf');
-          csrfServiceInstance = new DefaultCsrfService(csrfDataProvider);
-        }
-      }
+    if (!csrfServiceInstance) {
+      const csrfDataProvider =
+        AdapterRegistry.getInstance().getAdapter<ICsrfDataProvider>('csrf');
+      csrfServiceInstance = new DefaultCsrfService(csrfDataProvider);
     }
 
     if (typeof globalThis !== 'undefined') {

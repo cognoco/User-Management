@@ -9,7 +9,7 @@ import { PermissionService } from "@/core/permission/interfaces";
 import type { IPermissionDataProvider } from "@/core/permission/IPermissionDataProvider";
 import { DefaultPermissionService } from "./default-permission.service";
 import { AdapterRegistry } from "@/adapters/registry";
-import { getServiceContainer } from "@/lib/config/service-container";
+// Service container import removed - using new pure factory pattern
 
 export interface ApiPermissionServiceOptions {
   /**
@@ -19,7 +19,6 @@ export interface ApiPermissionServiceOptions {
 }
 
 let cachedService: PermissionService | null = null;
-let constructing = false;
 
 /**
  * Get the configured permission service instance for API routes
@@ -35,18 +34,6 @@ export function getApiPermissionService(
 
   if (cachedService && !options.reset) {
     return cachedService;
-  }
-
-  if (!constructing) {
-    constructing = true;
-    try {
-      const container = getServiceContainer();
-      if (container.permission) {
-        cachedService = container.permission;
-      }
-    } finally {
-      constructing = false;
-    }
   }
 
   if (!cachedService) {

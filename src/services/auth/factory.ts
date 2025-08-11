@@ -87,22 +87,10 @@ export function getApiAuthService(options: ApiAuthServiceOptions = {}): AuthServ
       const storage = options.storage ?? new BrowserAuthStorage();
       cachedService = new DefaultAuthService(options.provider, storage);
     } else {
-      const config = getServiceConfiguration();
-      if (config.authService) {
-        cachedService = config.authService;
-      } else {
-        try {
-          cachedService = getServiceContainer().auth;
-        } catch {
-          // ServiceContainer not fully configured
-        }
-
-        if (!cachedService) {
-          const provider = resolveProvider();
-          const storage = options.storage ?? new BrowserAuthStorage();
-          cachedService = new DefaultAuthService(provider, storage);
-        }
-      }
+      // Use the new pattern - directly create the service
+      const provider = resolveProvider();
+      const storage = options.storage ?? new BrowserAuthStorage();
+      cachedService = new DefaultAuthService(provider, storage);
     }
 
     // Store on the global object for thread safety in server environments

@@ -10,7 +10,7 @@ import { UserManagementConfiguration } from '@/core/config';
 import type { IAuditDataProvider } from '@/core/audit';
 import { AdapterRegistry } from '@/adapters/registry';
 import { DefaultAuditService } from './default-audit.service';
-import { getServiceContainer } from '@/lib/config/service-container';
+// Service container import removed - using new pure factory pattern
 
 /** Options for {@link getApiAuditService}. */
 export interface ApiAuditServiceOptions {
@@ -20,7 +20,6 @@ export interface ApiAuditServiceOptions {
 
 // Singleton instance for API routes
 let auditServiceInstance: AuditService | null = null;
-let constructing = false;
 
 /**
  * Get the configured audit service instance for API routes
@@ -32,18 +31,6 @@ export function getApiAuditService(
 ): AuditService {
   if (options.reset) {
     auditServiceInstance = null;
-  }
-
-  if (!auditServiceInstance && !constructing) {
-    constructing = true;
-    try {
-      const containerService = getServiceContainer().audit;
-      if (containerService) {
-        auditServiceInstance = containerService;
-      }
-    } finally {
-      constructing = false;
-    }
   }
 
   if (!auditServiceInstance) {

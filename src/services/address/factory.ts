@@ -10,7 +10,7 @@ import { UserManagementConfiguration } from '@/core/config';
 import type { IAddressDataProvider } from '@/core/address';
 import { AdapterRegistry } from '@/adapters/registry';
 import { DefaultAddressService } from './default-address.service';
-import { getServiceContainer, getServiceConfiguration } from '@/lib/config/service-container';
+// Service container import removed - using new pure factory pattern
 
 export interface ApiAddressServiceOptions {
   /** Reset cached instances, mainly for testing */
@@ -23,8 +23,6 @@ const PERSONAL_CACHE_KEY = '__UM_PERSONAL_ADDRESS_SERVICE__';
 
 let addressServiceInstance: CompanyAddressService | null = null;
 let personalAddressServiceInstance: AddressService | null = null;
-let constructingCompany = false;
-let constructingPersonal = false;
 
 /**
  * Get the configured address service instance for API routes (Company addresses)
@@ -45,20 +43,8 @@ export function getApiAddressService(
     addressServiceInstance = (globalThis as any)[COMPANY_CACHE_KEY] as CompanyAddressService | null;
   }
 
-  if (!addressServiceInstance && !constructingCompany) {
-    constructingCompany = true;
-    const existing = getServiceContainer().address;
-    if (existing) {
-      addressServiceInstance = existing;
-    }
-    constructingCompany = false;
-  }
-
   if (!addressServiceInstance) {
-    const config = getServiceConfiguration();
-    const override =
-      (config as any).addressService ??
-      UserManagementConfiguration.getServiceProvider('addressService');
+    const override = UserManagementConfiguration.getServiceProvider('addressService');
 
     if (override) {
       addressServiceInstance = override as CompanyAddressService;
@@ -94,18 +80,14 @@ export function getApiPersonalAddressService(
     personalAddressServiceInstance = (globalThis as any)[PERSONAL_CACHE_KEY] as AddressService | null;
   }
 
-  if (!personalAddressServiceInstance && !constructingPersonal) {
-    constructingPersonal = true;
+  if (!personalAddressServiceInstance) {
     const configService = UserManagementConfiguration.getServiceProvider('personalAddressService') as AddressService | undefined;
     if (configService) {
       personalAddressServiceInstance = configService;
+    } else {
+      const provider = AdapterRegistry.getInstance().getAdapter<IAddressDataProvider>('address');
+      personalAddressServiceInstance = new DefaultAddressService(provider);
     }
-    constructingPersonal = false;
-  }
-
-  if (!personalAddressServiceInstance) {
-    const provider = AdapterRegistry.getInstance().getAdapter<IAddressDataProvider>('address');
-    personalAddressServiceInstance = new DefaultAddressService(provider);
   }
 
   if (personalAddressServiceInstance && typeof globalThis !== 'undefined') {

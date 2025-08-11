@@ -1,6 +1,6 @@
 import type { RoleService as IRoleService } from "@/core/role/interfaces";
 import { RoleService } from "./role.service";
-import { getServiceContainer } from "@/lib/config/service-container";
+// Service container import removed - using new pure factory pattern
 
 export interface ApiRoleServiceOptions {
   /** Reset cached instance */
@@ -8,7 +8,6 @@ export interface ApiRoleServiceOptions {
 }
 
 let cachedService: IRoleService | null = null;
-let constructing = false;
 
 /**
  * Role Service Factory for API routes
@@ -22,18 +21,6 @@ export function getApiRoleService(
 
   if (cachedService && !options.reset) {
     return cachedService;
-  }
-
-  if (!constructing) {
-    constructing = true;
-    try {
-      const container = getServiceContainer();
-      if (container.role) {
-        cachedService = container.role;
-      }
-    } finally {
-      constructing = false;
-    }
   }
 
   if (!cachedService) {

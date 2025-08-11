@@ -7,7 +7,7 @@
 import type { OrganizationService } from '@/core/organization/interfaces';
 import type { IOrganizationDataProvider } from '@/core/organization/IOrganizationDataProvider';
 import { AdapterRegistry } from '@/adapters/registry';
-import { getServiceContainer } from '@/lib/config/service-container';
+// Service container import removed - using new pure factory pattern
 import { DefaultOrganizationService } from './default-organization.service';
 
 /** Options for {@link getApiOrganizationService}. */
@@ -17,7 +17,6 @@ export interface ApiOrganizationServiceOptions {
 }
 
 let organizationServiceInstance: OrganizationService | null = null;
-let constructing = false;
 
 /**
  * Get a configured organization service instance for API routes.
@@ -27,18 +26,6 @@ export function getApiOrganizationService(
 ): OrganizationService {
   if (options.reset) {
     organizationServiceInstance = null;
-  }
-
-  if (!organizationServiceInstance && !constructing) {
-    constructing = true;
-    try {
-      const containerService = getServiceContainer().organization;
-      if (containerService) {
-        organizationServiceInstance = containerService;
-      }
-    } finally {
-      constructing = false;
-    }
   }
 
   if (!organizationServiceInstance) {

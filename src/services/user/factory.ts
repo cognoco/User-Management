@@ -9,7 +9,7 @@ import { UserService } from "@/core/user/interfaces";
 import type { IUserDataProvider } from "@/core/user/IUserDataProvider";
 import { DefaultUserService } from "./default-user.service";
 import { AdapterRegistry } from "@/adapters/registry";
-import { getServiceContainer } from "@/lib/config/service-container";
+// Service container import removed - using new pure factory pattern
 
 export interface ApiUserServiceOptions {
   /**
@@ -20,7 +20,6 @@ export interface ApiUserServiceOptions {
 }
 
 let cachedService: UserService | null = null;
-let constructing = false;
 
 /**
  * Get the configured user service instance for API routes
@@ -36,18 +35,6 @@ export function getApiUserService(
 
   if (cachedService && !options.reset) {
     return cachedService;
-  }
-
-  if (!constructing) {
-    constructing = true;
-    try {
-      const container = getServiceContainer();
-      if (container.user) {
-        cachedService = container.user;
-      }
-    } finally {
-      constructing = false;
-    }
   }
 
   if (!cachedService) {

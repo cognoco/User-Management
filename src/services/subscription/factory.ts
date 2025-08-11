@@ -10,7 +10,7 @@ import { UserManagementConfiguration } from '@/core/config';
 import type { ISubscriptionDataProvider } from '@/core/subscription';
 import { AdapterRegistry } from '@/adapters/registry';
 import { DefaultSubscriptionService } from './default-subscription.service';
-import { getServiceContainer } from '@/lib/config/service-container';
+// Service container import removed - using new pure factory pattern
 
 /** Options for {@link getApiSubscriptionService}. */
 export interface ApiSubscriptionServiceOptions {
@@ -20,7 +20,6 @@ export interface ApiSubscriptionServiceOptions {
 
 // Singleton instance for API routes
 let subscriptionServiceInstance: SubscriptionService | null = null;
-let constructing = false;
 
 /**
  * Get the configured subscription service instance for API routes
@@ -32,18 +31,6 @@ export function getApiSubscriptionService(
 ): SubscriptionService {
   if (options.reset) {
     subscriptionServiceInstance = null;
-  }
-
-  if (!subscriptionServiceInstance && !constructing) {
-    constructing = true;
-    try {
-      const containerService = getServiceContainer().subscription;
-      if (containerService) {
-        subscriptionServiceInstance = containerService;
-      }
-    } finally {
-      constructing = false;
-    }
   }
 
   if (!subscriptionServiceInstance) {

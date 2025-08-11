@@ -11,7 +11,7 @@ import { DefaultNotificationService } from './default-notification.service';
 import { DefaultNotificationHandler } from './default-notification.handler';
 import { AdapterRegistry } from '@/adapters/registry';
 import { UserManagementConfiguration } from '@/core/config';
-import { getServiceContainer } from '@/lib/config/service-container';
+// Service container import removed - using new pure factory pattern
 
 /** Options for {@link getApiNotificationService}. */
 export interface ApiNotificationServiceOptions {
@@ -21,7 +21,6 @@ export interface ApiNotificationServiceOptions {
 
 // Singleton instance for API routes
 let notificationServiceInstance: NotificationService | null = null;
-let constructing = false;
 
 /**
  * Get the configured notification service instance for API routes
@@ -33,18 +32,6 @@ export function getApiNotificationService(
 ): NotificationService {
   if (options.reset) {
     notificationServiceInstance = null;
-  }
-
-  if (!notificationServiceInstance && !constructing) {
-    constructing = true;
-    try {
-      const containerService = getServiceContainer().notification;
-      if (containerService) {
-        notificationServiceInstance = containerService;
-      }
-    } finally {
-      constructing = false;
-    }
   }
 
   if (!notificationServiceInstance) {

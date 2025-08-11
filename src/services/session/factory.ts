@@ -9,7 +9,7 @@ import { SessionService } from '@/core/session/interfaces';
 import type { ISessionDataProvider } from '@/core/session';
 import { AdapterRegistry } from '@/adapters/registry';
 import { DefaultSessionService } from './default-session.service';
-import { getServiceContainer, getServiceConfiguration } from '@/lib/config/service-container';
+// Service container import removed - using new pure factory pattern
 
 export interface ApiSessionServiceOptions {
   /** Reset the cached instance, used in tests */
@@ -19,7 +19,6 @@ export interface ApiSessionServiceOptions {
 const GLOBAL_CACHE_KEY = '__UM_SESSION_SERVICE__';
 
 let cachedService: SessionService | null = null;
-let building = false;
 
 /**
  * Get the configured session service instance for API routes
@@ -28,7 +27,7 @@ let building = false;
  */
 export function getApiSessionService(
   options: ApiSessionServiceOptions = {}
-): SessionService | undefined {
+): SessionService {
   if (options.reset) {
     cachedService = null;
     if (typeof globalThis !== 'undefined') {
@@ -40,26 +39,10 @@ export function getApiSessionService(
     cachedService = (globalThis as any)[GLOBAL_CACHE_KEY] as SessionService | null;
   }
 
-  if (!cachedService && !building) {
-    building = true;
-    const existing = getServiceContainer().session;
-    if (existing) {
-      cachedService = existing;
-    }
-    building = false;
-  }
-
   if (!cachedService) {
-    const config = getServiceConfiguration();
-    if (config.featureFlags?.sessions === false) {
-      return undefined;
-    }
-
-    cachedService =
-      config.sessionService ??
-      new DefaultSessionService(
-        AdapterRegistry.getInstance().getAdapter<ISessionDataProvider>('session')
-      );
+    cachedService = new DefaultSessionService(
+      AdapterRegistry.getInstance().getAdapter<ISessionDataProvider>('session')
+    );
   }
 
   if (cachedService && typeof globalThis !== 'undefined') {

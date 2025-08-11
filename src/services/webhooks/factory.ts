@@ -10,7 +10,7 @@ import type { IWebhookDataProvider } from '@/core/webhooks';
 import { AdapterRegistry } from '@/adapters/registry';
 import { WebhookService } from './WebhookService';
 import { UserManagementConfiguration } from '@/core/config';
-import { getServiceContainer } from '@/lib/config/service-container';
+// Service container import removed - using new pure factory pattern
 
 /** Options for {@link getApiWebhookService}. */
 export interface ApiWebhookServiceOptions {
@@ -20,7 +20,6 @@ export interface ApiWebhookServiceOptions {
 
 // Singleton instance for API routes
 let webhookServiceInstance: IWebhookService | null = null;
-let constructing = false;
 
 /**
  * Get the configured webhook service instance for API routes
@@ -32,18 +31,6 @@ export function getApiWebhookService(
 ): IWebhookService {
   if (options.reset) {
     webhookServiceInstance = null;
-  }
-
-  if (!webhookServiceInstance && !constructing) {
-    constructing = true;
-    try {
-      const containerService = getServiceContainer().webhook;
-      if (containerService) {
-        webhookServiceInstance = containerService;
-      }
-    } finally {
-      constructing = false;
-    }
   }
 
   if (!webhookServiceInstance) {

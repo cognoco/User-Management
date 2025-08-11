@@ -6,7 +6,7 @@
  */
 import { UserManagementConfiguration } from '@/core/config';
 import { DefaultCompanyService, type CompanyService } from './companyService';
-import { getServiceContainer } from '@/lib/config/service-container';
+// Service container import removed - using new pure factory pattern
 
 /** Options for {@link getApiCompanyService}. */
 export interface ApiCompanyServiceOptions {
@@ -15,25 +15,12 @@ export interface ApiCompanyServiceOptions {
 }
 
 let companyServiceInstance: CompanyService | null = null;
-let constructing = false;
 
 export function getApiCompanyService(
   options: ApiCompanyServiceOptions = {}
 ): CompanyService {
   if (options.reset) {
     companyServiceInstance = null;
-  }
-
-  if (!companyServiceInstance && !constructing) {
-    constructing = true;
-    try {
-      const containerService = (getServiceContainer() as any).company as CompanyService | undefined;
-      if (containerService) {
-        companyServiceInstance = containerService;
-      }
-    } finally {
-      constructing = false;
-    }
   }
 
   if (!companyServiceInstance) {

@@ -9,7 +9,7 @@ import { TeamService } from '@/core/team/interfaces';
 import type { ITeamDataProvider } from '@/core/team/ITeamDataProvider';
 import { DefaultTeamService } from './default-team.service';
 import { AdapterRegistry } from '@/adapters/registry';
-import { getServiceContainer, getServiceConfiguration } from '@/lib/config/service-container';
+// Service container import removed - using new pure factory pattern
 
 export interface ApiTeamServiceOptions {
   /** When true, resets the cached instance. Useful for tests */
@@ -19,7 +19,6 @@ export interface ApiTeamServiceOptions {
 const GLOBAL_CACHE_KEY = '__UM_TEAM_SERVICE__';
 
 let cachedService: TeamService | null = null;
-let building = false;
 
 /**
  * Get the configured team service instance for API routes
@@ -28,7 +27,7 @@ let building = false;
  */
 export function getApiTeamService(
   options: ApiTeamServiceOptions = {}
-): TeamService | undefined {
+): TeamService {
   if (options.reset) {
     cachedService = null;
     if (typeof globalThis !== 'undefined') {
@@ -40,26 +39,10 @@ export function getApiTeamService(
     cachedService = (globalThis as any)[GLOBAL_CACHE_KEY] as TeamService | null;
   }
 
-  if (!cachedService && !building) {
-    building = true;
-    const existing = getServiceContainer().team;
-    if (existing) {
-      cachedService = existing;
-    }
-    building = false;
-  }
-
   if (!cachedService) {
-    const config = getServiceConfiguration();
-    if (config.featureFlags?.teams === false) {
-      return undefined;
-    }
-
-    cachedService =
-      config.teamService ??
-      new DefaultTeamService(
-        AdapterRegistry.getInstance().getAdapter<ITeamDataProvider>('team')
-      );
+    cachedService = new DefaultTeamService(
+      AdapterRegistry.getInstance().getAdapter<ITeamDataProvider>('team')
+    );
   }
 
   if (cachedService && typeof globalThis !== 'undefined') {
