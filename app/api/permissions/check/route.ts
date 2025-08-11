@@ -1,7 +1,6 @@
-import { type NextRequest } from 'next/server';
 import { z } from 'zod';
 
-import { createApiHandler } from '@/lib/api/route-helpers';
+import { withValidatedServices } from '@/src/lib/api/with-services';
 import { createSuccessResponse } from '@/lib/api/common';
 import {
   createPermissionNotFoundError,
@@ -22,8 +21,8 @@ const batchSchema = z.object({
 type QueryParams = z.infer<typeof querySchema>;
 
 async function handlePermissionCheck(
-  _req: NextRequest,
-  authContext: any,
+  userId: string,
+  user: any,
   services: any,
   data: QueryParams,
 ) {
@@ -37,17 +36,17 @@ async function handlePermissionCheck(
     let allowed = false;
     if (resource && resourceId) {
       allowed = await services.permission.hasResourcePermission(
-        authContext.userId,
+        userId,
         permission as Permission,
         resource,
         resourceId,
       );
     } else {
       const metadataPerms: string[] =
-        (authContext.user?.app_metadata as any)?.permissions ?? [];
+        (user?.app_metadata as any)?.permissions ?? [];
       allowed = metadataPerms.includes(permission);
       if (!allowed) {
-        allowed = await services.permission.hasPermission(authContext.userId, permission as Permission);
+        allowed = await services.permission.hasPermission(userId, permission as Permission);
       }
     }
     return { allowed };
@@ -56,32 +55,34 @@ async function handlePermissionCheck(
   }
 }
 
-export const GET = createApiHandler(
-  querySchema,
-  async (req: NextRequest, authContext: any, data: QueryParams, services: any) => {
-    const result = await handlePermissionCheck(req, authContext, services, data);
-    return createSuccessResponse(result);
-  },
-  {
-    requireAuth: true,
-    includeUser: true,
-  }
-);
+const getHandler = async ({ data, userId, user, services }: { data: QueryParams, userId?: string, user?: any, services: any }) => {
+  const result = await handlePermissionCheck(userId!, user, services, data);
+  return createSuccessResponse(result);
+};
 
-export const POST = createApiHandler(
-  batchSchema,
-  async (req: NextRequest, authContext: any, data: z.infer<typeof batchSchema>, services: any) => {
-    const results = await Promise.all(
-      data.checks.map(async (c) => {
-        const response = await handlePermissionCheck(req, authContext, services, c);
-        return response.allowed;
-      }),
-    );
-    const formatted = data.checks.map((c, idx) => ({ ...c, allowed: results[idx] }));
-    return createSuccessResponse({ results: formatted });
-  },
-  {
-    requireAuth: true,
-    includeUser: true,
-  }
-);
+const postHandler = async ({ data, userId, user, services }: { data: z.infer<typeof batchSchema>, userId?: string, user?: any, services: any }) => {
+  const results = await Promise.all(
+    data.checks.map(async (c) => {
+      const response = await handlePermissionCheck(userId!, user, services, c);
+      return response.allowed;
+    }),
+  );
+  const formatted = data.checks.map((c, idx) => ({ ...c, allowed: results[idx] }));
+  return createSuccessResponse({ results: formatted });
+};
+
+export const GET = withValidatedServices({
+  schema: querySchema,
+  requiredServices: ['permission'],
+  requireAuth: true,
+  includeUser: true,
+  handler: getHandler
+});
+
+export const POST = withValidatedServices({
+  schema: batchSchema,
+  requiredServices: ['permission'],
+  requireAuth: true,
+  includeUser: true,
+  handler: postHandler
+});

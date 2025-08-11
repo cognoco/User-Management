@@ -1,7 +1,7 @@
-import { NextResponse, type NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { TwoFactorMethod } from '@/types/2fa';
-import { createApiHandler } from '@/lib/api/route-helpers';
+import { withValidatedServices } from '@/src/lib/api/with-services';
 import { createSuccessResponse } from '@/lib/api/common';
 
 // Request schema
@@ -11,35 +11,37 @@ const setupRequestSchema = z.object({
   email: z.string().optional(),
 });
 
-export const POST = createApiHandler(
-  setupRequestSchema,
-  async (_req: NextRequest, authContext, data, services) => {
-    try {
-      const user = authContext.user!;
-      const { method, phone, email } = data;
+const postHandler = async ({ data, userId, services }: { data: z.infer<typeof setupRequestSchema>, userId?: string, services: any }) => {
+  try {
+    const { method, phone, email } = data;
 
-      const result = await services.twoFactor!.startSetup({
-        userId: user.id,
-        method,
-        phone,
-        email,
-      });
+    const result = await services.twoFactor.startSetup({
+      userId: userId!,
+      method,
+      phone,
+      email,
+    });
 
-      if (!result.success) {
-        return NextResponse.json(
-          { error: result.error || 'Failed to start 2FA setup' },
-          { status: 400 },
-        );
-      }
-
-      return createSuccessResponse(result);
-    } catch (error) {
-      console.error('Error in 2FA setup:', error);
+    if (!result.success) {
       return NextResponse.json(
-        { error: error instanceof Error ? error.message : 'An unexpected error occurred' },
-        { status: 500 },
+        { error: result.error || 'Failed to start 2FA setup' },
+        { status: 400 },
       );
     }
-  },
-  { requireAuth: true, includeUser: true }
-);
+
+    return createSuccessResponse(result);
+  } catch (error) {
+    console.error('Error in 2FA setup:', error);
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'An unexpected error occurred' },
+      { status: 500 },
+    );
+  }
+};
+
+export const POST = withValidatedServices({
+  schema: setupRequestSchema,
+  requiredServices: ['twoFactor'],
+  requireAuth: true,
+  handler: postHandler
+});

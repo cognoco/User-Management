@@ -1,25 +1,32 @@
 // GET /api/permissions - List all permissions
 // POST /api/permissions - Not supported (permissions are static)
 
-import { type NextRequest, NextResponse } from 'next/server';
-import { createApiHandler, emptySchema } from '@/lib/api/route-helpers';
+import { NextResponse } from 'next/server';
+import { withValidatedServices, schemas } from '@/src/lib/api/with-services';
 import { createSuccessResponse } from '@/lib/api/common';
 import { PermissionValues } from '@/core/permission/models';
 
-async function handleGet(_req: NextRequest, _auth: any, _data: any, services: any) {
+const getHandler = async ({ services }: { services: any }) => {
   const permissions = await services.permission.getAllPermissions();
   return createSuccessResponse({ permissions });
-}
+};
 
-export const GET = createApiHandler(emptySchema, handleGet, {
+const postHandler = async () => {
+  return NextResponse.json({ error: 'Method Not Allowed' }, { status: 405 });
+};
+
+export const GET = withValidatedServices({
+  schema: schemas.empty,
+  requiredServices: ['permission'],
   requireAuth: true,
   requiredPermissions: [PermissionValues.MANAGE_ROLES],
-  rateLimit: { windowMs: 15 * 60 * 1000, max: 50 },
+  handler: getHandler
 });
 
-export const POST = createApiHandler(emptySchema, async () => {
-  return NextResponse.json({ error: 'Method Not Allowed' }, { status: 405 });
-}, {
+export const POST = withValidatedServices({
+  schema: schemas.empty,
+  requiredServices: ['permission'],
   requireAuth: true,
   requiredPermissions: [PermissionValues.MANAGE_ROLES],
+  handler: postHandler
 });

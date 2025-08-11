@@ -5,43 +5,46 @@ import {
   createSuccessResponse,
   createNoContentResponse,
 } from '@/lib/api/common';
-import { createApiHandler, emptySchema } from '@/lib/api/route-helpers';
+import { withValidatedServices, schemas } from '@/lib/api/with-services';
 
 function extractAddressId(url: string): string {
   const parts = new URL(url).pathname.split('/');
   return parts[parts.length - 1] || '';
 }
 
-export const GET = createApiHandler(
-  emptySchema,
-  async (req: NextRequest, auth, _data, services) => {
-    const id = extractAddressId(req.url);
-    const address = await services.addressService.getAddress(id, auth.userId!);
+export const GET = withValidatedServices({
+  schema: schemas.empty,
+  requiredServices: ['address'],
+  requireAuth: true,
+  handler: async ({ request, userId, services }) => {
+    const id = extractAddressId(request.url);
+    const address = await services.address.getAddress(id, userId!);
     return createSuccessResponse({ address });
-  },
-  { requireAuth: true }
-);
+  }
+});
 
-export const PUT = createApiHandler(
-  addressSchema.partial(),
-  async (req: NextRequest, auth, data, services) => {
-    const id = extractAddressId(req.url);
-    const updated = await services.addressService.updateAddress(
+export const PUT = withValidatedServices({
+  schema: addressSchema.partial(),
+  requiredServices: ['address'],
+  requireAuth: true,
+  handler: async ({ request, userId, data, services }) => {
+    const id = extractAddressId(request.url);
+    const updated = await services.address.updateAddress(
       id,
       data,
-      auth.userId!
+      userId!
     );
     return createSuccessResponse({ address: updated });
-  },
-  { requireAuth: true }
-);
+  }
+});
 
-export const DELETE = createApiHandler(
-  emptySchema,
-  async (req: NextRequest, auth, _data, services) => {
-    const id = extractAddressId(req.url);
-    await services.addressService.deleteAddress(id, auth.userId!);
+export const DELETE = withValidatedServices({
+  schema: schemas.empty,
+  requiredServices: ['address'],
+  requireAuth: true,
+  handler: async ({ request, userId, services }) => {
+    const id = extractAddressId(request.url);
+    await services.address.deleteAddress(id, userId!);
     return createNoContentResponse();
-  },
-  { requireAuth: true }
-);
+  }
+});

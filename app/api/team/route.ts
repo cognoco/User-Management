@@ -1,40 +1,36 @@
 import { z } from 'zod';
-import { createApiHandler, emptySchema } from '@/lib/api/route-helpers';
+import { withValidatedServices, schemas } from '@/lib/api/with-services';
 import {
   createSuccessResponse,
   createCreatedResponse,
   ApiError,
   ERROR_CODES
 } from '@/lib/api/common';
-import type { AuthContext, ServiceContainer } from '@/core/config/interfaces';
 
 const CreateTeamSchema = z.object({
   name: z.string().min(1),
   description: z.string().optional()
 });
 
-async function handleGet(
-  _req: Request,
-  auth: AuthContext,
-  _data: unknown,
-  services: ServiceContainer
-) {
-  const teams = await services.team.getUserTeams(auth.userId!);
-  return createSuccessResponse({ teams });
-}
-
-async function handlePost(
-  _req: Request,
-  auth: AuthContext,
-  data: z.infer<typeof CreateTeamSchema>,
-  services: ServiceContainer
-) {
-  const result = await services.team.createTeam(auth.userId!, data);
-  if (!result.success || !result.team) {
-    throw new ApiError(ERROR_CODES.INVALID_REQUEST, result.error || 'Failed to create team', 400);
+export const GET = withValidatedServices({
+  schema: schemas.empty,
+  requiredServices: ['team'],
+  requireAuth: true,
+  handler: async ({ userId, services }) => {
+    const teams = await services.team.getUserTeams(userId!);
+    return createSuccessResponse({ teams });
   }
-  return createCreatedResponse({ team: result.team });
-}
+});
 
-export const GET = createApiHandler(emptySchema, handleGet, { requireAuth: true });
-export const POST = createApiHandler(CreateTeamSchema, handlePost, { requireAuth: true });
+export const POST = withValidatedServices({
+  schema: CreateTeamSchema,
+  requiredServices: ['team'],
+  requireAuth: true,
+  handler: async ({ userId, data, services }) => {
+    const result = await services.team.createTeam(userId!, data);
+    if (!result.success || !result.team) {
+      throw new ApiError(ERROR_CODES.INVALID_REQUEST, result.error || 'Failed to create team', 400);
+    }
+    return createCreatedResponse({ team: result.team });
+  }
+});

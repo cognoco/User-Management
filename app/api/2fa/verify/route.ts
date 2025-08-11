@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { createApiHandler } from '@/lib/api/route-helpers';
+import { withValidatedServices } from '@/src/lib/api/with-services';
 import { createSuccessResponse, ApiError, ERROR_CODES } from '@/lib/api/common';
 import { TwoFactorMethod } from '@/types/2fa';
 
@@ -8,24 +8,27 @@ const VerifySchema = z.object({
   code: z.string().min(4)
 });
 
-export const POST = createApiHandler(
-  VerifySchema,
-  async (_req, auth, data, services) => {
-    const result = await services.twoFactor!.verifySetup({
-      userId: auth.userId,
-      method: data.method,
-      code: data.code
-    });
+const postHandler = async ({ data, userId, services }: { data: z.infer<typeof VerifySchema>, userId?: string, services: any }) => {
+  const result = await services.twoFactor.verifySetup({
+    userId: userId!,
+    method: data.method,
+    code: data.code
+  });
 
-    if (!result.success) {
-      throw new ApiError(
-        ERROR_CODES.INVALID_REQUEST,
-        result.error || 'Verification failed',
-        400
-      );
-    }
+  if (!result.success) {
+    throw new ApiError(
+      ERROR_CODES.INVALID_REQUEST,
+      result.error || 'Verification failed',
+      400
+    );
+  }
 
-    return createSuccessResponse(result);
-  },
-  { requireAuth: true }
-);
+  return createSuccessResponse(result);
+};
+
+export const POST = withValidatedServices({
+  schema: VerifySchema,
+  requiredServices: ['twoFactor'],
+  requireAuth: true,
+  handler: postHandler
+});

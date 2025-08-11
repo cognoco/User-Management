@@ -1,6 +1,6 @@
 import { type NextRequest } from 'next/server';
 import { z } from 'zod';
-import { createApiHandler } from '@/lib/api/route-helpers';
+import { withValidatedServices } from '@/lib/api/with-services';
 import { createSuccessResponse } from '@/lib/api/common';
 import { PermissionValues } from '@/core/permission/models';
 
@@ -21,9 +21,12 @@ const searchQuerySchema = z.object({
 
 export type SearchQuery = z.infer<typeof searchQuerySchema>;
 
-export const GET = createApiHandler(
-  searchQuerySchema,
-  async (req: NextRequest, authContext: any, params: SearchQuery, services: any) => {
+export const GET = withValidatedServices({
+  schema: searchQuerySchema,
+  requiredServices: ['admin'],
+  requireAuth: true,
+  requiredPermissions: [PermissionValues.ADMIN_ACCESS],
+  handler: async ({ data, services }) => {
     // Apply defaults for undefined values
     const searchParams = {
       page: 1,
@@ -31,7 +34,7 @@ export const GET = createApiHandler(
       status: 'all' as const,
       sortBy: 'createdAt' as const,
       sortOrder: 'desc' as const,
-      ...params,
+      ...data,
     };
     
     const result = await services.admin.searchUsers(searchParams);
@@ -39,9 +42,5 @@ export const GET = createApiHandler(
       users: result.users,
       pagination: result.pagination,
     });
-  },
-  {
-    requireAuth: true,
-    requiredPermissions: [PermissionValues.ADMIN_ACCESS],
   }
-);
+});

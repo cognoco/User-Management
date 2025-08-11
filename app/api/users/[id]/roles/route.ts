@@ -1,7 +1,7 @@
 import { type NextRequest } from 'next/server';
 import { z } from 'zod';
 import { createSuccessResponse, createCreatedResponse } from '@/lib/api/common';
-import { createApiHandler } from '@/lib/api/route-helpers';
+import { withValidatedServices, schemas } from '@/lib/api/with-services';
 import { mapPermissionServiceError } from '@/lib/api/permission/error-handler';
 import { PermissionValues } from '@/core/permission/models';
 
@@ -51,12 +51,22 @@ async function handlePost(
   }
 }
 
-export const GET = createApiHandler(z.object({}), handleGet, {
+export const GET = withValidatedServices({
+  schema: schemas.empty,
+  requiredServices: ['permission'],
   requireAuth: true,
   requiredPermissions: [PermissionValues.MANAGE_ROLES],
+  handler: async ({ request, services }) => {
+    return await handleGet(request, null, null, services);
+  }
 });
 
-export const POST = createApiHandler(assignSchema, handlePost, {
+export const POST = withValidatedServices({
+  schema: assignSchema,
+  requiredServices: ['permission'],
   requireAuth: true,
   requiredPermissions: [PermissionValues.MANAGE_ROLES],
+  handler: async ({ request, userId, data, services }) => {
+    return await handlePost(request, { userId }, data, services);
+  }
 });

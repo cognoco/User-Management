@@ -1,9 +1,6 @@
-import { type NextRequest } from 'next/server';
 import { z } from "zod";
 import { OAuthProvider } from "@/types/oauth";
-import { createApiHandler } from "@/lib/api/route-helpers";
-import type { AuthContext, ServiceContainer } from "@/core/config/interfaces";
-import { getApiOAuthService } from "@/services/oauth/factory";
+import { withValidatedServices } from "@/src/lib/api/with-services";
 import {
   createSuccessResponse,
   ApiError,
@@ -16,21 +13,15 @@ const disconnectRequestSchema = z.object({
   provider: z.nativeEnum(OAuthProvider),
 });
 
-async function handlePost(
-  request: NextRequest,
-  auth: AuthContext,
-  data: z.infer<typeof disconnectRequestSchema>,
-  services: ServiceContainer,
-) {
+const postHandler = async ({ request, data, userId, services }: { request: any, data: z.infer<typeof disconnectRequestSchema>, userId?: string, services: any }) => {
   const { provider } = data;
-  const service = services.oauth ?? getApiOAuthService();
   const ipAddress = request.headers.get('x-forwarded-for') || 'unknown';
   const userAgent = request.headers.get('user-agent') || 'unknown';
 
-  const result = await service.disconnectProvider(provider);
+  const result = await services.oauth.disconnectProvider(provider);
 
   await logUserAction({
-    userId: auth.userId,
+    userId: userId!,
     action: 'OAUTH_DISCONNECT',
     status: result.success ? 'SUCCESS' : 'FAILURE',
     ipAddress,
@@ -49,9 +40,11 @@ async function handlePost(
   }
 
   return createSuccessResponse({ success: true });
-}
+};
 
-export const POST = createApiHandler(disconnectRequestSchema, handlePost, {
+export const POST = withValidatedServices({
+  schema: disconnectRequestSchema,
+  requiredServices: ['oauth'],
   requireAuth: true,
-  rateLimit: { windowMs: 15 * 60 * 1000, max: 10 }
+  handler: postHandler
 });

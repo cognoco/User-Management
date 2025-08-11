@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { createApiHandler } from '@/lib/api/route-helpers';
+import { withValidatedServices } from '@/lib/api/with-services';
 import { logUserAction } from '@/lib/audit/auditLogger';
 
 const exportQuerySchema = z.object({
@@ -15,10 +15,13 @@ const exportQuerySchema = z.object({
   teamId: z.string().optional(),
 });
 
-export const GET = createApiHandler(
-  exportQuerySchema,
-  async (req: NextRequest, authContext: any, params: z.infer<typeof exportQuerySchema>, services: any) => {
-    const { format = 'csv', ...searchParams } = params;
+export const GET = withValidatedServices({
+  schema: exportQuerySchema,
+  requiredServices: ['admin'],
+  requireAuth: true,
+  requiredPermissions: ['admin.users.export'],
+  handler: async ({ data, services }) => {
+    const { format = 'csv', ...searchParams } = data;
     const result = await services.admin.searchUsers({ ...searchParams, limit: 10000, page: 1 });
     
     await logUserAction({
@@ -52,9 +55,5 @@ export const GET = createApiHandler(
         },
       });
     }
-  },
-  {
-    requireAuth: true,
-    requiredPermissions: ['admin.users.export'],
   }
-);
+});

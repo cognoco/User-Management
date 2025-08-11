@@ -1,8 +1,7 @@
 import { prisma } from '@/lib/database/prisma';
 import { z } from 'zod';
-import { createApiHandler } from '@/lib/api/route-helpers';
+import { withValidatedServices } from '@/lib/api/with-services';
 import { createSuccessResponse, ApiError, ERROR_CODES } from '@/lib/api/common';
-import type { AuthContext, ServiceContainer } from '@/core/config/interfaces';
 import { Permission } from '@/lib/rbac/roles';
 
 const querySchema = z.object({
@@ -162,14 +161,22 @@ async function handleAddMember(
   return createSuccessResponse(result.member, 201);
 }
 
-export const GET = createApiHandler(
-  querySchema,
-  handleTeamMembers,
-  { requireAuth: true, requiredPermissions: [Permission.VIEW_TEAM_MEMBERS] }
-);
+export const GET = withValidatedServices({
+  schema: querySchema,
+  requiredServices: ['team'],
+  requireAuth: true,
+  requiredPermissions: [Permission.VIEW_TEAM_MEMBERS],
+  handler: async ({ userId, data }) => {
+    return await handleTeamMembers(null as any, { userId, isAuthenticated: true }, data);
+  }
+});
 
-export const POST = createApiHandler(
-  addMemberSchema,
-  handleAddMember,
-  { requireAuth: true, requiredPermissions: [Permission.INVITE_TEAM_MEMBER] }
-);
+export const POST = withValidatedServices({
+  schema: addMemberSchema,
+  requiredServices: ['team'],
+  requireAuth: true,
+  requiredPermissions: [Permission.INVITE_TEAM_MEMBER],
+  handler: async ({ userId, data, services }) => {
+    return await handleAddMember(null as any, { userId, isAuthenticated: true }, data, services as any);
+  }
+});

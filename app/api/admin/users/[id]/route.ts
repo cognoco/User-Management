@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { createApiHandler, emptySchema } from '@/lib/api/route-helpers';
+import { withValidatedServices, schemas } from '@/lib/api/with-services';
 import { createSuccessResponse, createNoContentResponse } from '@/lib/api/common';
 import { PermissionValues } from '@/core/permission/models';
 import { createUserNotFoundError } from '@/lib/api/admin/error-handler';
@@ -22,27 +22,29 @@ function extractUserIdFromPath(pathname: string): string {
   return userId;
 }
 
-export const GET = createApiHandler(
-  emptySchema,
-  async (req: NextRequest, authContext: any, data: any, services: any) => {
-    const userId = extractUserIdFromPath(req.url);
+export const GET = withValidatedServices({
+  schema: schemas.empty,
+  requiredServices: ['admin'],
+  requireAuth: true,
+  requiredPermissions: [PermissionValues.ADMIN_ACCESS],
+  handler: async ({ request, services }) => {
+    const userId = extractUserIdFromPath(request.url);
     
     const user = await services.admin.getUserById(userId);
     if (!user) {
       throw createUserNotFoundError(userId);
     }
     return createSuccessResponse({ user });
-  },
-  {
-    requireAuth: true,
-    requiredPermissions: [PermissionValues.ADMIN_ACCESS],
   }
-);
+});
 
-export const PUT = createApiHandler(
-  updateUserSchema,
-  async (req: NextRequest, authContext: any, data: z.infer<typeof updateUserSchema>, services: any) => {
-    const userId = extractUserIdFromPath(req.url);
+export const PUT = withValidatedServices({
+  schema: updateUserSchema,
+  requiredServices: ['admin'],
+  requireAuth: true,
+  requiredPermissions: [PermissionValues.ADMIN_ACCESS],
+  handler: async ({ request, data, services }) => {
+    const userId = extractUserIdFromPath(request.url);
     
     const existingUser = await services.admin.getUserById(userId);
     if (!existingUser) {
@@ -51,17 +53,16 @@ export const PUT = createApiHandler(
     const updated = await services.admin.updateUser(userId, data);
     await notifyUserChanges('UPDATE', userId, updated, existingUser);
     return createSuccessResponse({ user: updated });
-  },
-  {
-    requireAuth: true,
-    requiredPermissions: [PermissionValues.ADMIN_ACCESS],
   }
-);
+});
 
-export const DELETE = createApiHandler(
-  emptySchema,
-  async (req: NextRequest, authContext: any, data: any, services: any) => {
-    const userId = extractUserIdFromPath(req.url);
+export const DELETE = withValidatedServices({
+  schema: schemas.empty,
+  requiredServices: ['admin'],
+  requireAuth: true,
+  requiredPermissions: [PermissionValues.ADMIN_ACCESS],
+  handler: async ({ request, services }) => {
+    const userId = extractUserIdFromPath(request.url);
     
     const existingUser = await services.admin.getUserById(userId);
     if (!existingUser) {
@@ -70,9 +71,5 @@ export const DELETE = createApiHandler(
     await services.admin.deleteUser(userId);
     await notifyUserChanges('DELETE', userId, null, existingUser);
     return createNoContentResponse();
-  },
-  {
-    requireAuth: true,
-    requiredPermissions: [PermissionValues.ADMIN_ACCESS],
   }
-);
+});

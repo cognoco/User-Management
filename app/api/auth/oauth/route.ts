@@ -1,7 +1,7 @@
 import { cookies } from 'next/headers';
 import { z } from 'zod';
 import { OAuthProvider, oauthProviderConfigSchema } from '@/types/oauth';
-import { createApiHandler } from '@/lib/api/route-helpers';
+import { withValidatedServices } from '@/src/lib/api/with-services';
 import {
   createSuccessResponse,
   ApiError,
@@ -94,73 +94,73 @@ const redirectAllowList: Record<OAuthProvider, string[]> = {
   [OAuthProvider.LINKEDIN]: [],
 };
 
-export const POST = createApiHandler(
-  initiationRequestSchema,
-  async (request, _authContext, data, services) => {
-    const ipAddress = request.headers.get('x-forwarded-for') || 'unknown';
-    const userAgent = request.headers.get('user-agent') || 'unknown';
+const postHandler = async ({ request, data, services }: { request: any, data: z.infer<typeof initiationRequestSchema>, services: any }) => {
+  const ipAddress = request.headers.get('x-forwarded-for') || 'unknown';
+  const userAgent = request.headers.get('user-agent') || 'unknown';
 
-    const config = providerConfigs[data.provider];
-    if (!config || !config.enabled) {
-      await logUserAction({
-        action: 'OAUTH_INIT',
-        status: 'FAILURE',
-        ipAddress,
-        userAgent,
-        targetResourceType: 'oauth',
-        details: { provider: data.provider, error: 'not_enabled' }
-      });
-      throw new ApiError(
-        ERROR_CODES.INVALID_REQUEST,
-        'Provider not supported or not enabled.',
-        400
-      );
-    }
-
-    if (!redirectAllowList[data.provider].includes(config.redirectUri)) {
-      await logUserAction({
-        action: 'OAUTH_INIT',
-        status: 'FAILURE',
-        ipAddress,
-        userAgent,
-        targetResourceType: 'oauth',
-        details: { provider: data.provider, error: 'redirect_not_allowed' }
-      });
-      throw new ApiError(
-        ERROR_CODES.INVALID_REQUEST,
-        'Redirect URI not allowed',
-        400
-      );
-    }
-
-    const state = generateState();
-    const cookieStore = cookies();
-    cookieStore.set({
-      name: `oauth_state_${data.provider}`,
-      value: state,
-      httpOnly: true,
-      secure: true,
-      sameSite: 'lax',
-      maxAge: 600,
-      path: '/'
-    });
-
-    services.auth.configureOAuthProvider(config);
-    const url = services.auth.getOAuthAuthorizationUrl(data.provider, state);
-
+  const config = providerConfigs[data.provider];
+  if (!config || !config.enabled) {
     await logUserAction({
       action: 'OAUTH_INIT',
-      status: 'SUCCESS',
+      status: 'FAILURE',
       ipAddress,
       userAgent,
       targetResourceType: 'oauth',
-      details: { provider: data.provider }
+      details: { provider: data.provider, error: 'not_enabled' }
     });
-
-    return createSuccessResponse({ url, state });
-  },
-  {
-    requireAuth: false,
-    rateLimit: { windowMs: 15 * 60 * 1000, max: 30 }
+    throw new ApiError(
+      ERROR_CODES.INVALID_REQUEST,
+      'Provider not supported or not enabled.',
+      400
+    );
   }
-);
+
+  if (!redirectAllowList[data.provider].includes(config.redirectUri)) {
+    await logUserAction({
+      action: 'OAUTH_INIT',
+      status: 'FAILURE',
+      ipAddress,
+      userAgent,
+      targetResourceType: 'oauth',
+      details: { provider: data.provider, error: 'redirect_not_allowed' }
+    });
+    throw new ApiError(
+      ERROR_CODES.INVALID_REQUEST,
+      'Redirect URI not allowed',
+      400
+    );
+  }
+
+  const state = generateState();
+  const cookieStore = cookies();
+  cookieStore.set({
+    name: `oauth_state_${data.provider}`,
+    value: state,
+    httpOnly: true,
+    secure: true,
+    sameSite: 'lax',
+    maxAge: 600,
+    path: '/'
+  });
+
+  services.auth.configureOAuthProvider(config);
+  const url = services.auth.getOAuthAuthorizationUrl(data.provider, state);
+
+  await logUserAction({
+    action: 'OAUTH_INIT',
+    status: 'SUCCESS',
+    ipAddress,
+    userAgent,
+    targetResourceType: 'oauth',
+    details: { provider: data.provider }
+  });
+
+  return createSuccessResponse({ url, state });
+};
+
+export const POST = withValidatedServices({
+  schema: initiationRequestSchema,
+  requiredServices: ['auth'],
+  requireAuth: false,
+  handler: postHandler
+});

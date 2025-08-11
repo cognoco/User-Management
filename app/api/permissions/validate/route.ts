@@ -1,6 +1,5 @@
-import { NextRequest } from 'next/server';
 import { z } from 'zod';
-import { createApiHandler } from '@/lib/api/route-helpers';
+import { withValidatedServices } from '@/src/lib/api/with-services';
 import { createSuccessResponse } from '@/lib/api/common';
 import { createResourcePermissionResolver } from '@/lib/services/resource-permission-resolver.service';
 
@@ -11,45 +10,46 @@ const querySchema = z.object({
   resourceId: z.string().optional(),
 });
 
-export const GET = createApiHandler(
-  querySchema,
-  async (_req: NextRequest, authContext: any, data: z.infer<typeof querySchema>, services: any) => {
-    const resolver = createResourcePermissionResolver();
-    const { userId, permission, resourceType, resourceId } = data;
+const getHandler = async ({ data, services }: { data: z.infer<typeof querySchema>, services: any }) => {
+  const resolver = createResourcePermissionResolver();
+  const { userId, permission, resourceType, resourceId } = data;
 
-    let allowed: boolean;
-    if (resourceType && resourceId) {
-      allowed = await services.permission.hasResourcePermission(
-        userId,
-        permission as any,
-        resourceType,
-        resourceId,
-      );
-    } else {
-      allowed = await services.permission.hasPermission(userId, permission as any);
-    }
-
-    const userRoles = await services.permission.getUserRoles(userId);
-    const contributingRoles: string[] = [];
-    for (const r of userRoles) {
-      const perms = await services.role.getEffectivePermissions(r.roleId);
-      if (perms.includes(permission as any)) {
-        contributingRoles.push(r.roleId);
-      }
-    }
-
-    let inheritance: any[] = [];
-    if (resourceType && resourceId) {
-      inheritance = await resolver.getResourceAncestors(resourceType, resourceId);
-    }
-
-    return createSuccessResponse({
-      allowed,
-      roles: contributingRoles,
-      inheritance,
-    });
-  },
-  {
-    requireAuth: true,
+  let allowed: boolean;
+  if (resourceType && resourceId) {
+    allowed = await services.permission.hasResourcePermission(
+      userId,
+      permission as any,
+      resourceType,
+      resourceId,
+    );
+  } else {
+    allowed = await services.permission.hasPermission(userId, permission as any);
   }
-);
+
+  const userRoles = await services.permission.getUserRoles(userId);
+  const contributingRoles: string[] = [];
+  for (const r of userRoles) {
+    const perms = await services.role.getEffectivePermissions(r.roleId);
+    if (perms.includes(permission as any)) {
+      contributingRoles.push(r.roleId);
+    }
+  }
+
+  let inheritance: any[] = [];
+  if (resourceType && resourceId) {
+    inheritance = await resolver.getResourceAncestors(resourceType, resourceId);
+  }
+
+  return createSuccessResponse({
+    allowed,
+    roles: contributingRoles,
+    inheritance,
+  });
+};
+
+export const GET = withValidatedServices({
+  schema: querySchema,
+  requiredServices: ['permission', 'role'],
+  requireAuth: true,
+  handler: getHandler
+});

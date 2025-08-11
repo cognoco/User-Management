@@ -1,6 +1,6 @@
 import { type NextRequest } from 'next/server';
 import { z } from 'zod';
-import { createApiHandler } from '@/lib/api/route-helpers';
+import { withValidatedServices } from '@/lib/api/with-services';
 import { createSuccessResponse } from '@/lib/api/common';
 import { PermissionValues } from '@/core/permission/models';
 
@@ -15,14 +15,13 @@ const querySchema = z.object({
   sortOrder: z.enum(['asc', 'desc']).optional().default('desc'),
 });
 
-export const GET = createApiHandler(
-  querySchema,
-  async (req: NextRequest, authContext: any, params: z.infer<typeof querySchema>, services: any) => {
-    const result = await services.admin.getAuditLogs(params);
+export const GET = withValidatedServices({
+  schema: querySchema,
+  requiredServices: ['admin'],
+  requireAuth: true,
+  requiredPermissions: [PermissionValues.ADMIN_ACCESS], // Using generic admin permission for now
+  handler: async ({ data, services }) => {
+    const result = await services.admin.getAuditLogs(data);
     return createSuccessResponse({ logs: result.logs, pagination: result.pagination });
-  },
-  {
-    requireAuth: true,
-    requiredPermissions: [PermissionValues.ADMIN_ACCESS], // Using generic admin permission for now
   }
-);
+});

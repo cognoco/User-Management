@@ -12,7 +12,7 @@ export const POST = createApiHandler(
   emptySchema,
   async (req: NextRequest, auth, _data, services) => {
     const id = extractAddressId(req.url);
-    await services.addressService.setDefaultAddress(id, auth.userId!);
+    await services.address.setDefaultAddress(id, auth.userId!);
     return createNoContentResponse();
   },
   { requireAuth: true }

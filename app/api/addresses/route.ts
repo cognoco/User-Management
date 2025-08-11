@@ -1,30 +1,28 @@
 export const runtime = 'nodejs';
 import { NextRequest } from 'next/server';
-import { createApiHandler, emptySchema } from '@/lib/api/route-helpers';
+import { withValidatedServices, schemas } from '@/lib/api/with-services';
 import { addressSchema } from '@/core/address/validation';
 import {
   createSuccessResponse,
   createCreatedResponse,
 } from '@/lib/api/common';
 
-export const GET = createApiHandler(
-  emptySchema,
-  async (req: NextRequest, authContext: any, data: any, services: any) => {
-    const addresses = await services.addressService.getAddresses(authContext.userId);
+export const GET = withValidatedServices({
+  schema: schemas.empty,
+  requiredServices: ['address'],
+  requireAuth: true,
+  handler: async ({ userId, services }) => {
+    const addresses = await services.address.getAddresses(userId);
     return createSuccessResponse({ addresses });
-  },
-  {
-    requireAuth: true,
   }
-);
+});
 
-export const POST = createApiHandler(
-  addressSchema,
-  async (req: NextRequest, authContext: any, data: any, services: any) => {
-    const address = await services.addressService.createAddress({ ...data, userId: authContext.userId });
+export const POST = withValidatedServices({
+  schema: addressSchema,
+  requiredServices: ['address'],
+  requireAuth: true,
+  handler: async ({ userId, data, services }) => {
+    const address = await services.address.createAddress({ ...data, userId });
     return createCreatedResponse({ address });
-  },
-  {
-    requireAuth: true,
   }
-);
+});
