@@ -1,6 +1,9 @@
 import { test, expect, Page } from '@playwright/test';
 import { loginAs } from '../utils/auth';
 import * as path from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // --- Constants and Test Data --- //
 const USER_EMAIL = process.env.E2E_USER_EMAIL || 'user@example.com';
