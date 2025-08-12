@@ -1,7 +1,7 @@
 export const runtime = 'nodejs';
 import { z } from 'zod';
 import { withSecurity } from '@/middleware/with-security';
-import { withValidatedServices } from '@/src/lib/api/with-services';
+import { withValidatedServices } from '@/lib/api/with-services';
 import { createSuccessResponse, ApiError, ERROR_CODES } from '@/lib/api/common';
 import { logUserAction } from '@/lib/audit/auditLogger';
 
