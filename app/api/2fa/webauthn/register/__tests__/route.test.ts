@@ -3,9 +3,6 @@ import { POST } from '../route';
 import { ServiceLocator, ServiceKeys } from '@/lib/config/service-locator';
 import { logUserAction } from '@/lib/audit/auditLogger';
 
-vi.mock('@/lib/config/service-container', () => ({ 
-  getServiceContainer: vi.fn() 
-}));
 vi.mock('@/lib/api/auth-middleware', () => ({
   createAuthMiddleware: vi.fn(() => vi.fn(() => Promise.resolve({ userId: 'u1' })))
 }));
@@ -27,9 +24,9 @@ describe('WebAuthn register API', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (getServiceContainer as vi.Mock).mockReturnValue({
-      twoFactor: mockTwoFactorService
-    });
+    const locator = ServiceLocator.getInstance();
+    locator.clear();
+    locator.register(ServiceKeys.TWO_FACTOR_SERVICE, mockTwoFactorService);
   });
 
   it('returns registration options', async () => {
