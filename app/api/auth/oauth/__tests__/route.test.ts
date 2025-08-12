@@ -3,7 +3,7 @@ let POST: (req: Request) => Promise<Response>;
 // import { NextResponse } from 'next/server';
 import { OAuthProvider } from "@/types/oauth";
 import { describe, it, expect, vi, beforeEach, type Mock } from "vitest";
-import { getServiceContainer } from '@/lib/config/service-container';
+import { ServiceLocator, ServiceKeys } from '@/lib/config/service-locator';
 
 // --- Mocks ---
 

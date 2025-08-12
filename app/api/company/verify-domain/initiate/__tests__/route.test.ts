@@ -6,16 +6,17 @@ import { getApiCompanyService } from '@/services/company/factory';
 vi.mock('@/middleware/rate-limit', () => ({
   checkRateLimit: vi.fn().mockResolvedValue(false)
 }));
-vi.mock('@/services/company/factory', () => ({
-  getApiCompanyService: vi.fn()
-}));
+
 
 describe('POST /api/company/verify-domain/initiate', () => {
   const service: any = { initiateProfileDomainVerification: vi.fn() };
 
   beforeEach(() => {
     vi.resetAllMocks();
-    vi.mocked(getApiCompanyService).mockReturnValue(service);
+    // Clear and register services in ServiceLocator
+  const locator = ServiceLocator.getInstance();
+  locator.clear();
+  locator.register(ServiceKeys.ADDRESS_SERVICE, service);
     service.initiateProfileDomainVerification.mockResolvedValue({ domainName: 'example.com', verificationToken: 'token' });
   });
 

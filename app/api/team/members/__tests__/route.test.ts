@@ -19,14 +19,9 @@ vi.mock('@/middleware/auth', () => ({
   )
 }));
 
-vi.mock('@/services/auth/factory', () => ({}));
 
-vi.mock('@/services/permission/factory', () => ({
-  getApiPermissionService: () => ({
-    hasPermission: vi.fn().mockResolvedValue(true),
-    getUserRoles: vi.fn().mockResolvedValue([]),
-  }),
-}));
+
+
 
 vi.mock('@/lib/database/prisma', () => ({
   prisma: {

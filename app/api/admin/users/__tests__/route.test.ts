@@ -2,9 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { NextRequest } from "next/server";
 import { GET } from "../route";
 
-vi.mock("@/services/admin/factory", () => ({
-  getApiAdminService: vi.fn(),
-}));
+
 vi.mock("@/middleware/createMiddlewareChain", async () => {
   const actual = await vi.importActual<any>(
     "@/middleware/createMiddlewareChain",
@@ -67,7 +65,10 @@ describe("Admin Users API", () => {
 
   beforeEach(() => {
     vi.useFakeTimers();
-    vi.mocked(getApiAdminService).mockReturnValue(service);
+    // Clear and register services in ServiceLocator
+  const locator = ServiceLocator.getInstance();
+  locator.clear();
+  locator.register(ServiceKeys.ADDRESS_SERVICE, service);
     service.searchUsers.mockResolvedValue({
       users: [{ id: "1" }],
       pagination: { page: 1, pageSize: 10, totalItems: 1, totalPages: 1 },

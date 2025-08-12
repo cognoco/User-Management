@@ -3,9 +3,7 @@ import { NextRequest } from 'next/server';
 import { GET, POST } from '../route';
 import { getApiOrganizationService } from '@/services/organization/factory';
 
-vi.mock('@/services/organization/factory', () => ({
-  getApiOrganizationService: vi.fn()
-}));
+
 
 describe('organizations API', () => {
   const service = {
@@ -14,7 +12,10 @@ describe('organizations API', () => {
   } as any;
 
   beforeEach(() => {
-    vi.mocked(getApiOrganizationService).mockReturnValue(service);
+    // Clear and register services in ServiceLocator
+  const locator = ServiceLocator.getInstance();
+  locator.clear();
+  locator.register(ServiceKeys.ADDRESS_SERVICE, service);
     vi.clearAllMocks();
   });
 

@@ -1,9 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { GET, PATCH, PUT, DELETE } from '../route';
-import { configureServices, resetServiceContainer } from '@/lib/config/service-container';
+import { ServiceLocator, ServiceKeys } from '@/lib/config/service-locator';
 import type { PermissionService } from '@/core/permission/interfaces';
 import type { AuthService } from '@/core/auth/interfaces';
 import { createAuthenticatedRequest } from '@/tests/utils/request-helpers';
+
+// Mock the auth middleware to bypass authentication
+vi.mock('@/lib/api/auth-middleware', () => ({
+  createAuthMiddleware: () => vi.fn((req: any) => Promise.resolve({
+    userId: 'u1',
+    user: { id: 'u1', email: 'test@example.com' },
+    permissions: []
+  }))
+}));
 
 const mockService: Partial<PermissionService> = {
   getRoleById: vi.fn(),
@@ -16,11 +25,12 @@ const mockAuth: Partial<AuthService> = {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  resetServiceContainer();
-  configureServices({
-    permissionService: mockService as PermissionService,
-    authService: mockAuth as AuthService,
-  });
+  
+  // Clear and register services in ServiceLocator
+  const locator = ServiceLocator.getInstance();
+  locator.clear();
+  locator.register(ServiceKeys.PERMISSION_SERVICE, permission || service);
+  locator.register(ServiceKeys.AUTH_SERVICE, auth || service);
 });
 
 describe('roles id API', () => {

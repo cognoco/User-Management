@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { POST } from '../route';
 import { ERROR_CODES } from '@/lib/api/common';
-import { mockAuthService } from '@/lib/config/service-container';
+import { ServiceLocator, ServiceKeys } from '@/lib/config/service-locator';
 
 // Mock the middleware
 vi.mock('@/middleware/rate-limit', () => ({

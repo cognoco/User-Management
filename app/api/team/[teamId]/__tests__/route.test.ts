@@ -4,7 +4,7 @@ import { GET, PATCH, DELETE } from '../route';
 import { getApiTeamService } from '@/services/team/factory';
 import { withRouteAuth } from '@/middleware/auth';
 
-vi.mock('@/services/team/factory', () => ({ getApiTeamService: vi.fn() }));
+
 vi.mock('@/middleware/auth', () => ({
   withRouteAuth: vi.fn((handler: any) => async (req: any) => handler(req, { userId: 'u1', role: 'user' }))
 }));
@@ -17,7 +17,10 @@ describe('[teamId] API', () => {
   } as any;
 
   beforeEach(() => {
-    vi.mocked(getApiTeamService).mockReturnValue(service);
+    // Clear and register services in ServiceLocator
+  const locator = ServiceLocator.getInstance();
+  locator.clear();
+  locator.register(ServiceKeys.ADDRESS_SERVICE, service);
     vi.clearAllMocks();
   });
 

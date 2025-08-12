@@ -6,9 +6,7 @@ import { logUserAction } from '@/lib/audit/auditLogger';
 import { createApiHandler } from '@/lib/api/route-helpers';
 import { createSuccessResponse } from '@/lib/api/common/response-formatter';
 
-vi.mock('@/services/subscription/factory', () => ({
-  getApiSubscriptionService: vi.fn(),
-}));
+
 vi.mock('@/middleware/rate-limit', () => ({ checkRateLimit: vi.fn().mockResolvedValue(false) }));
 vi.mock('@/lib/audit/auditLogger', () => ({ logUserAction: vi.fn() }));
 vi.mock('@/lib/api/route-helpers', () => ({

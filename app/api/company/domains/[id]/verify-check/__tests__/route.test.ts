@@ -14,9 +14,7 @@ vi.mock('@/lib/database/supabase', () => {
   const mockSupabaseClient = { auth: { getUser: vi.fn() } };
   return { getServiceSupabase: vi.fn().mockReturnValue(mockSupabaseClient) };
 });
-vi.mock('@/services/company/factory', () => ({
-  getApiCompanyService: vi.fn(),
-}));
+
 
 // Mock DNS lookup
 vi.mock('dns/promises', () => ({
@@ -49,7 +47,10 @@ describe('Domain Verification Check API', () => {
     supabase = getServiceSupabase();
     vi.resetAllMocks();
     supabase.auth.getUser.mockResolvedValue({ data: { user: mockUser }, error: null });
-    vi.mocked(getApiCompanyService).mockReturnValue(service);
+    // Clear and register services in ServiceLocator
+  const locator = ServiceLocator.getInstance();
+  locator.clear();
+  locator.register(ServiceKeys.ADDRESS_SERVICE, service);
     service.checkDomainVerification.mockResolvedValue({ verified: true, message: 'ok' });
 
     (dns.resolveTxt as any).mockResolvedValue([[mockToken]]);

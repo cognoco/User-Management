@@ -3,7 +3,16 @@ import { GET, POST, DELETE, PATCH } from '../route';
 import { getApiCompanyService } from '@/services/company/factory';
 import { createAuthenticatedRequest } from '@/tests/utils/request-helpers';
 
-vi.mock('@/services/company/factory', () => ({ getApiCompanyService: vi.fn() }));
+// Mock the auth middleware to bypass authentication
+vi.mock('@/lib/api/auth-middleware', () => ({
+  createAuthMiddleware: () => vi.fn((req: any) => Promise.resolve({
+    userId: 'u1',
+    user: { id: 'u1', email: 'test@example.com' },
+    permissions: []
+  }))
+}));
+
+
 vi.mock('@/middleware/rate-limit', () => ({ checkRateLimit: vi.fn().mockResolvedValue(false) }));
 vi.mock('@/middleware/auth', () => ({
   withRouteAuth: vi.fn((handler: any, req: any) => handler(req, { userId: 'u1' })),
@@ -18,7 +27,10 @@ describe('Company Domains API', () => {
   } as any;
 
   beforeEach(() => {
-    vi.mocked(getApiCompanyService).mockReturnValue(service);
+    // Clear and register services in ServiceLocator
+  const locator = ServiceLocator.getInstance();
+  locator.clear();
+  locator.register(ServiceKeys.ADDRESS_SERVICE, service);
     vi.clearAllMocks();
   });
 

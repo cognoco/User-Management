@@ -5,7 +5,7 @@ import { getApiWebhookService } from '@/services/webhooks/factory';
 import { getCurrentUser } from '@/lib/auth/session';
 import { checkRateLimit } from '@/middleware/rate-limit';
 
-vi.mock('@/services/webhooks/factory', () => ({ getApiWebhookService: vi.fn() }));
+
 vi.mock('@/lib/auth/session', () => ({ getCurrentUser: vi.fn().mockResolvedValue({ id: 'u1' }) }));
 vi.mock('@/middleware/rate-limit', () => ({ checkRateLimit: vi.fn().mockResolvedValue(false) }));
 
@@ -20,7 +20,10 @@ describe('webhook deliveries route', () => {
   } as any;
 
   beforeEach(() => {
-    vi.mocked(getApiWebhookService).mockReturnValue(service);
+    // Clear and register services in ServiceLocator
+  const locator = ServiceLocator.getInstance();
+  locator.clear();
+  locator.register(ServiceKeys.ADDRESS_SERVICE, service);
     vi.clearAllMocks();
   });
 

@@ -5,9 +5,7 @@ import { checkRateLimit } from '@/middleware/rate-limit';
 import { createApiHandler } from '@/lib/api/route-helpers';
 import { createSuccessResponse } from '@/lib/api/common/response-formatter';
 
-vi.mock('@/services/subscription/factory', () => ({
-  getApiSubscriptionService: vi.fn(),
-}));
+
 vi.mock('@/middleware/rate-limit', () => ({ checkRateLimit: vi.fn().mockResolvedValue(false) }));
 vi.mock('@/lib/api/route-helpers', () => ({
   createApiHandler: vi.fn((schema, handler, options) => {

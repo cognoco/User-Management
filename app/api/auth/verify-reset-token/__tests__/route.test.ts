@@ -4,7 +4,7 @@ import { getApiAuthService } from '@/services/auth/factory';
 import { withAuthRateLimit } from '@/middleware/with-auth-rate-limit';
 import { withSecurity } from '@/middleware/with-security';
 
-vi.mock('@/services/auth/factory', () => ({ getApiAuthService: vi.fn() }));
+
 vi.mock('@/middleware/with-auth-rate-limit', () => ({
   withAuthRateLimit: vi.fn((_req, handler) => handler(_req)),
 }));

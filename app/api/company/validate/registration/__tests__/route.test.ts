@@ -3,9 +3,7 @@ import { POST } from '../route';
 import { getApiCompanyService } from '@/services/company/factory';
 import { createAuthenticatedRequest } from '@/tests/utils/request-helpers';
 
-vi.mock('@/services/company/factory', () => ({
-  getApiCompanyService: vi.fn(),
-}));
+
 
 vi.mock('@/middleware/rate-limit', () => ({
   checkRateLimit: vi.fn(() => Promise.resolve(false)),
@@ -23,7 +21,10 @@ describe('POST /api/company/validate/registration', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(getApiCompanyService).mockReturnValue(service);
+    // Clear and register services in ServiceLocator
+  const locator = ServiceLocator.getInstance();
+  locator.clear();
+  locator.register(ServiceKeys.ADDRESS_SERVICE, service);
     service.getProfileByUserId.mockResolvedValue({ id: 'cp1' });
     service.updateProfile.mockResolvedValue({});
   });

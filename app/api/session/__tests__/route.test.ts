@@ -4,13 +4,20 @@ import { withRouteAuth } from '@/middleware/auth';
 import { getApiSessionService } from '@/services/session/factory';
 import { createAuthenticatedRequest } from '@/tests/utils/request-helpers';
 
+// Mock the auth middleware to bypass authentication
+vi.mock('@/lib/api/auth-middleware', () => ({
+  createAuthMiddleware: () => vi.fn((req: any) => Promise.resolve({
+    userId: 'u1',
+    user: { id: 'u1', email: 'test@example.com' },
+    permissions: []
+  }))
+}));
+
 vi.mock('@/middleware/auth', () => ({
   withRouteAuth: vi.fn((handler: any) => async (req: any) => handler(req, { userId: 'user-1', role: 'user' })),
 }));
 
-vi.mock('@/services/session/factory', () => ({
-  getApiSessionService: vi.fn(),
-}));
+
 
 interface MockService {
   listUserSessions?: vi.Mock;

@@ -14,12 +14,8 @@ const mockResolver = {
   getResourceAncestors: vi.fn(),
 };
 
-vi.mock('@/services/permission/factory', () => ({
-  getApiPermissionService: () => mockPermissionService,
-}));
-vi.mock('@/services/role/factory', () => ({
-  getApiRoleService: () => mockRoleService,
-}));
+
+
 vi.mock('@/lib/services/resource-permission-resolver.service', () => ({
   createResourcePermissionResolver: () => mockResolver,
 }));

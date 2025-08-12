@@ -3,6 +3,15 @@ import { GET, DELETE } from '../route';
 import { getStorageService } from '@/services/storage';
 import { createAuthenticatedRequest } from '@/tests/utils/request-helpers';
 
+// Mock the auth middleware to bypass authentication
+vi.mock('@/lib/api/auth-middleware', () => ({
+  createAuthMiddleware: () => vi.fn((req: any) => Promise.resolve({
+    userId: 'u1',
+    user: { id: 'u1', email: 'test@example.com' },
+    permissions: []
+  }))
+}));
+
 vi.mock('@/services/storage', () => ({ getStorageService: vi.fn() }));
 vi.mock('@/lib/auth/utils', () => ({
   getUserFromRequest: vi.fn().mockResolvedValue({ id: 'u1' })

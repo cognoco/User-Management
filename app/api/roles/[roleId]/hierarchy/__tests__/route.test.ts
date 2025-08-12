@@ -6,9 +6,7 @@ const mockService = {
   getDescendantRoles: vi.fn(),
   setParentRole: vi.fn(),
 };
-vi.mock('@/services/role/factory', () => ({
-  getApiRoleService: () => mockService,
-}));
+
 
 beforeEach(() => {
   vi.resetAllMocks();

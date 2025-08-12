@@ -3,7 +3,7 @@ import { NextRequest } from 'next/server';
 import { GET, PUT } from '../route';
 import { getApiSsoService } from '@/services/sso/factory';
 
-vi.mock('@/services/sso/factory', () => ({ getApiSsoService: vi.fn() }));
+
 
 describe('SSO API Routes', () => {
   const mockOrgId = 'test-org-123';

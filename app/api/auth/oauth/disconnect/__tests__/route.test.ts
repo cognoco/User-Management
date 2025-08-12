@@ -1,11 +1,20 @@
 import { POST } from '../route';
 import { OAuthProvider } from '@/types/oauth';
 import { describe, it, expect, vi, beforeEach, MockedFunction } from 'vitest';
-import { getServiceContainer, configureServices, resetServiceContainer } from '@/lib/config/service-container';
+import { ServiceLocator, ServiceKeys } from '@/lib/config/service-locator';
 import type { PermissionService } from '@/core/permission/interfaces';
 import type { AuthService } from '@/core/auth/interfaces';
 import { createAuthenticatedRequest } from '@/tests/utils/request-helpers';
 import { logUserAction } from '@/lib/audit/auditLogger';
+
+// Mock the auth middleware to bypass authentication
+vi.mock('@/lib/api/auth-middleware', () => ({
+  createAuthMiddleware: () => vi.fn((req: any) => Promise.resolve({
+    userId: 'u1',
+    user: { id: 'u1', email: 'test@example.com' },
+    permissions: []
+  }))
+}));
 
 // --- Mocks ---
 
@@ -45,9 +54,7 @@ const mockPermissionService: Partial<PermissionService> = {
 };
 
 // 4. Mock OAuth service factory
-vi.mock('@/services/oauth/factory', () => ({
-  getApiOAuthService: vi.fn(() => mockOAuthService)
-}));
+
 
 // 5. Mock Audit Logger
 vi.mock('@/lib/audit/auditLogger', () => ({
@@ -72,14 +79,12 @@ describe('POST /api/auth/oauth/disconnect', () => {
   beforeEach(() => {
     vi.resetAllMocks();
     mockCookies.clear();
-    resetServiceContainer();
     
-    // Configure services
-    configureServices({
-      permissionService: mockPermissionService as PermissionService,
-      authService: { getCurrentUser: vi.fn().mockResolvedValue({ id: loggedInUserId }) } as AuthService,
-      oauth: mockOAuthService
-    });
+  // Clear and register services in ServiceLocator
+  const locator = ServiceLocator.getInstance();
+  locator.clear();
+  locator.register(ServiceKeys.PERMISSION_SERVICE, permission || service);
+  locator.register(ServiceKeys.AUTH_SERVICE, auth || service);
     
     (getServiceContainer as vi.Mock).mockReturnValue({
       oauth: mockOAuthService,

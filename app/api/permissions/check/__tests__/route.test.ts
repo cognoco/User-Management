@@ -6,9 +6,7 @@ const mockPermissionService = {
   hasPermission: vi.fn(),
   hasResourcePermission: vi.fn(),
 };
-vi.mock('@/services/permission/factory', () => ({
-  getApiPermissionService: () => mockPermissionService,
-}));
+
 
 vi.mock('@/lib/api/permission/error-handler', async () => {
   return await vi.importActual('@/lib/api/permission/error-handler');

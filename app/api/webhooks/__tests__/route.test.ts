@@ -1,9 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { GET, POST, DELETE } from '../route'
-import { configureServices, resetServiceContainer } from '@/lib/config/service-container'
+import { ServiceLocator, ServiceKeys } from '@/lib/config/service-locator'
 import type { IWebhookService } from '@/core/webhooks'
 import type { AuthService } from '@/core/auth/interfaces'
 import { createAuthenticatedRequest } from '@/tests/utils/request-helpers'
+
+// Mock the auth middleware to bypass authentication
+vi.mock('@/lib/api/auth-middleware', () => ({
+  createAuthMiddleware: () => vi.fn((req: any) => Promise.resolve({
+    userId: 'u1',
+    user: { id: 'u1', email: 'test@example.com' },
+    permissions: []
+  }))
+}));
 
 vi.mock('@/services/webhooks/factory', () => ({}))
 vi.mock('@/services/auth/factory', () => ({}))

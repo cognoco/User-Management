@@ -30,9 +30,7 @@ const mockAdminService = {
   deleteUser: vi.fn()
 };
 
-vi.mock('@/services/admin/factory', () => ({ 
-  getApiAdminService: vi.fn(() => mockAdminService)
-}));
+
 
 vi.mock('@/lib/realtime/notifyUserChanges', () => ({ 
   notifyUserChanges: vi.fn()

@@ -5,6 +5,15 @@ import type { AuthService } from '@/core/auth/interfaces';
 import createMockUserService from '@/tests/mocks/user.service.mock';
 import { createAuthenticatedRequest } from '@/tests/utils/request-helpers';
 
+// Mock the auth middleware to bypass authentication
+vi.mock('@/lib/api/auth-middleware', () => ({
+  createAuthMiddleware: () => vi.fn((req: any) => Promise.resolve({
+    userId: 'u1',
+    user: { id: 'u1', email: 'test@example.com' },
+    permissions: []
+  }))
+}));
+
 // Mock the service container
 vi.mock('@/lib/config/service-container', () => ({
   resetServiceContainer: vi.fn(),

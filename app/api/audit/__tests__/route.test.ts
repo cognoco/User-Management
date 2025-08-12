@@ -5,14 +5,26 @@ import { hasPermission } from '@/lib/auth/hasPermission';
 import { getApiAuditService } from '@/services/audit/factory';
 import { createAuthenticatedRequest } from '@/tests/utils/request-helpers';
 
+// Mock the auth middleware to bypass authentication
+vi.mock('@/lib/api/auth-middleware', () => ({
+  createAuthMiddleware: () => vi.fn((req: any) => Promise.resolve({
+    userId: 'u1',
+    user: { id: 'u1', email: 'test@example.com' },
+    permissions: []
+  }))
+}));
+
 vi.mock('@/middleware/auth', () => ({ withRouteAuth: vi.fn((h: any) => h) }));
 vi.mock('@/lib/auth/hasPermission', () => ({ hasPermission: vi.fn().mockResolvedValue(true) }));
-vi.mock('@/services/audit/factory', () => ({ getApiAuditService: vi.fn() }));
+
 
 describe('audit route', () => {
   const service = { getLogs: vi.fn() } as any;
   beforeEach(() => {
-    vi.mocked(getApiAuditService).mockReturnValue(service);
+    // Clear and register services in ServiceLocator
+  const locator = ServiceLocator.getInstance();
+  locator.clear();
+  locator.register(ServiceKeys.ADDRESS_SERVICE, service);
     vi.clearAllMocks();
   });
 

@@ -24,18 +24,12 @@ vi.mock('@/adapters/registry', () => ({
 }));
 
 // Mock all service factories to prevent initialization loops
-vi.mock('@/services/auth/factory', () => ({
-  getApiAuthService: vi.fn()
-}));
+
 
 // Mock other factories that might be loaded
-vi.mock('@/services/user/factory', () => ({
-  getApiUserService: vi.fn()
-}));
 
-vi.mock('@/services/permission/factory', () => ({
-  getApiPermissionService: vi.fn()
-}));
+
+
 
 // Mock the auth middleware to prevent initialization issues  
 vi.mock('@/lib/api/auth-middleware', () => ({

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { POST } from '../route';
-import { getServiceContainer } from '@/lib/config/service-container';
+import { ServiceLocator, ServiceKeys } from '@/lib/config/service-locator';
 
 vi.mock('@/lib/config/service-container', () => ({ 
   getServiceContainer: vi.fn() 

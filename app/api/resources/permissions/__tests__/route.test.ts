@@ -8,7 +8,7 @@ vi.mock('@/middleware/with-security', () => ({ withSecurity: (h: any) => h }));
 vi.mock('@/middleware/auth', () => ({
   withRouteAuth: vi.fn((handler: any, req: any) => handler(req, { userId: 'u1' })),
 }));
-vi.mock('@/services/permission/factory', () => ({ getApiPermissionService: vi.fn() }));
+
 vi.mock('@/lib/auth/permissionCheck', () => ({ checkPermission: vi.fn() }));
 
 const mockService = {

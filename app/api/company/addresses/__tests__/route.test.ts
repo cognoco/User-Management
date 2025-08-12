@@ -4,9 +4,18 @@ import { getApiAddressService } from '@/services/address/factory';
 import { getApiCompanyService } from '@/services/company/factory';
 import { createAuthenticatedRequest } from '@/tests/utils/request-helpers';
 
+// Mock the auth middleware to bypass authentication
+vi.mock('@/lib/api/auth-middleware', () => ({
+  createAuthMiddleware: () => vi.fn((req: any) => Promise.resolve({
+    userId: 'u1',
+    user: { id: 'u1', email: 'test@example.com' },
+    permissions: []
+  }))
+}));
+
 // Mock service factories
-vi.mock('@/services/address/factory', () => ({ getApiAddressService: vi.fn() }));
-vi.mock('@/services/company/factory', () => ({ getApiCompanyService: vi.fn() }));
+
+
 vi.mock('@/middleware/auth', () => ({
   withRouteAuth: vi.fn((handler: any, req: any) => handler(req, { userId: 'test-user-id' })),
 }));

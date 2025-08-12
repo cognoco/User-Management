@@ -5,9 +5,16 @@ import { getApiCompanyService } from '@/services/company/factory';
 import { withRouteAuth } from '@/middleware/auth';
 import { createAuthenticatedRequest } from '@/tests/utils/request-helpers';
 
-vi.mock('@/services/company/factory', () => ({
-  getApiCompanyService: vi.fn(),
+// Mock the auth middleware to bypass authentication
+vi.mock('@/lib/api/auth-middleware', () => ({
+  createAuthMiddleware: () => vi.fn((req: any) => Promise.resolve({
+    userId: 'u1',
+    user: { id: 'u1', email: 'test@example.com' },
+    permissions: []
+  }))
 }));
+
+
 
 // Mock rate limiter
 vi.mock('@/middleware/rate-limit', () => ({
@@ -45,7 +52,10 @@ describe('Company Profile API', () => {
   describe('POST /api/company/profile', () => {
     it('should create a new company profile', async () => {
       const service = { createProfile: vi.fn().mockResolvedValue(mockProfile), getProfileByUserId: vi.fn().mockResolvedValue(null) } as any;
-      vi.mocked(getApiCompanyService).mockReturnValue(service);
+      // Clear and register services in ServiceLocator
+  const locator = ServiceLocator.getInstance();
+  locator.clear();
+  locator.register(ServiceKeys.ADDRESS_SERVICE, service);
 
       const request = createAuthenticatedRequest('POST', 'http://localhost/api/company/profile', {
         name: mockProfile.name,
@@ -78,7 +88,10 @@ describe('Company Profile API', () => {
   describe('GET /api/company/profile', () => {
     it('should return the company profile', async () => {
       const service = { getProfileByUserId: vi.fn().mockResolvedValue(mockProfile) } as any;
-      vi.mocked(getApiCompanyService).mockReturnValue(service);
+      // Clear and register services in ServiceLocator
+  const locator = ServiceLocator.getInstance();
+  locator.clear();
+  locator.register(ServiceKeys.ADDRESS_SERVICE, service);
 
       const request = createAuthenticatedRequest('GET', 'http://localhost/api/company/profile');
 
@@ -92,7 +105,10 @@ describe('Company Profile API', () => {
 
     it('should return 404 if profile not found', async () => {
       const service = { getProfileByUserId: vi.fn().mockResolvedValue(null) } as any;
-      vi.mocked(getApiCompanyService).mockReturnValue(service);
+      // Clear and register services in ServiceLocator
+  const locator = ServiceLocator.getInstance();
+  locator.clear();
+  locator.register(ServiceKeys.ADDRESS_SERVICE, service);
 
       const request = createAuthenticatedRequest('GET', 'http://localhost/api/company/profile');
 

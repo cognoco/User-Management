@@ -28,7 +28,7 @@ const mockAuth: Partial<AuthService> = {
   getCurrentUser: vi.fn().mockResolvedValue({ id: 'u1', email: 'test@example.com' }),
 };
 
-import { getServiceContainer } from '@/lib/config/service-container';
+import { ServiceLocator, ServiceKeys } from '@/lib/config/service-locator';
 vi.mocked(getServiceContainer).mockReturnValue({
   permission: mockService as PermissionService,
   auth: mockAuth as AuthService,

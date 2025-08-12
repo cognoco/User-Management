@@ -1,9 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { GET, PUT, DELETE } from '../route';
-import { configureServices, resetServiceContainer } from '@/lib/config/service-container';
+import { ServiceLocator, ServiceKeys } from '@/lib/config/service-locator';
 import type { AddressService } from '@/core/address/interfaces';
 import type { AuthService } from '@/core/auth/interfaces';
 import { createAuthenticatedRequest } from '@/tests/utils/request-helpers';
+
+// Mock the auth middleware to bypass authentication
+vi.mock('@/lib/api/auth-middleware', () => ({
+  createAuthMiddleware: () => vi.fn((req: any) => Promise.resolve({
+    userId: 'u1',
+    user: { id: 'u1', email: 'test@example.com' },
+    permissions: []
+  }))
+}));
 
 const service: AddressService = {
   getAddress: vi.fn(async () => ({ id: '1', fullName: 'John Doe' })),
@@ -20,17 +29,18 @@ const authService: Partial<AuthService> = {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  resetServiceContainer();
-  configureServices({
-    addressService: service as AddressService,
-    authService: authService as AuthService,
-  });
+  
+  // Clear and register services in ServiceLocator
+  const locator = ServiceLocator.getInstance();
+  locator.clear();
+  locator.register(ServiceKeys.ADDRESS_SERVICE, service);
+  locator.register(ServiceKeys.AUTH_SERVICE, authService);
 });
 
 describe('[id] address API', () => {
   it('GET returns address', async () => {
     const req = createAuthenticatedRequest('GET', 'http://test/api/addresses/1');
-    const res = await GET(req);
+    const res = await GET(req, { params: { id: '1' } });
     expect(res.status).toBe(200);
     expect(service.getAddress).toHaveBeenCalledWith('1', 'u1');
   });
@@ -39,7 +49,7 @@ describe('[id] address API', () => {
     const updateData = { fullName: 'John Updated' };
     const req = createAuthenticatedRequest('PUT', 'http://test/api/addresses/1', updateData);
     (req as any).json = vi.fn().mockResolvedValue(updateData);
-    const res = await PUT(req);
+    const res = await PUT(req, { params: { id: '1' } });
     expect(res.status).toBe(200);
     expect(service.updateAddress).toHaveBeenCalledWith('1', updateData, 'u1');
   });
@@ -48,13 +58,13 @@ describe('[id] address API', () => {
     const invalidData = { postalCode: 123 };
     const req = createAuthenticatedRequest('PUT', 'http://test/api/addresses/1', invalidData);
     (req as any).json = vi.fn().mockResolvedValue(invalidData);
-    const res = await PUT(req);
+    const res = await PUT(req, { params: { id: '1' } });
     expect(res.status).toBe(400);
   });
 
   it('DELETE deletes address', async () => {
     const req = createAuthenticatedRequest('DELETE', 'http://test/api/addresses/1');
-    const res = await DELETE(req);
+    const res = await DELETE(req, { params: { id: '1' } });
     expect(res.status).toBe(204);
     expect(service.deleteAddress).toHaveBeenCalledWith('1', 'u1');
   });

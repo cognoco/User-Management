@@ -1,10 +1,19 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { GET, PATCH } from '../route';
-import { configureServices, resetServiceContainer } from '@/lib/config/service-container';
+import { ServiceLocator, ServiceKeys } from '@/lib/config/service-locator';
 import type { UserService } from '@/core/user/interfaces';
 import type { AuthService } from '@/core/auth/interfaces';
 import createMockUserService from '@/tests/mocks/user.service.mock';
 import { createAuthenticatedRequest } from '@/tests/utils/request-helpers';
+
+// Mock the auth middleware to bypass authentication
+vi.mock('@/lib/api/auth-middleware', () => ({
+  createAuthMiddleware: () => vi.fn((req: any) => Promise.resolve({
+    userId: 'u1',
+    user: { id: 'u1', email: 'test@example.com' },
+    permissions: []
+  }))
+}));
 
 vi.mock('@/services/user/factory', () => ({}));
 vi.mock('@/services/auth/factory', () => ({}));
@@ -16,11 +25,12 @@ const authService: Partial<AuthService> = {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  resetServiceContainer();
-  configureServices({
-    userService: userService as UserService,
-    authService: authService as AuthService,
-  });
+  
+  // Clear and register services in ServiceLocator
+  const locator = ServiceLocator.getInstance();
+  locator.clear();
+  locator.register(ServiceKeys.USER_SERVICE, user || service);
+  locator.register(ServiceKeys.AUTH_SERVICE, auth || service);
 });
 
 describe('/api/settings GET', () => {

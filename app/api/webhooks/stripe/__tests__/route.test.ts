@@ -9,9 +9,7 @@ vi.mock('@/lib/payments/stripe', () => ({
   }
 }));
 
-vi.mock('@/services/subscription/factory', () => ({
-  getApiSubscriptionService: vi.fn(),
-}));
+
 vi.mock('@/middleware/rate-limit', () => ({ checkRateLimit: vi.fn().mockResolvedValue(false) }));
 vi.mock('@/lib/audit/auditLogger', () => ({ logUserAction: vi.fn() }));
 
@@ -45,7 +43,10 @@ describe('/api/webhooks/stripe', () => {
       data: { object: { id: 'sub', metadata: { user_id: 'u1' }, items: { data: [{ price: { id: 'price' } }] }, start_date: 0, current_period_end: 0 } }
     });
     const service = { reconcileSubscription: vi.fn() } as any;
-    vi.mocked(getApiSubscriptionService).mockReturnValue(service);
+    // Clear and register services in ServiceLocator
+  const locator = ServiceLocator.getInstance();
+  locator.clear();
+  locator.register(ServiceKeys.ADDRESS_SERVICE, service);
     const res = await POST(createRequest({}));
     expect(res.status).toBe(200);
     expect(getApiSubscriptionService).toHaveBeenCalled();

@@ -1,25 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest, NextResponse } from 'next/server';
 import { POST, GET } from '../route';
-import { getApiAddressService } from '@/services/address/factory';
+import { ServiceLocator, ServiceKeys } from '@/lib/config/service-locator';
+import type { AddressService } from '@/core/address/interfaces';
 
-vi.mock('@/services/address/factory', () => ({
-  getApiAddressService: vi.fn(),
-}));
-
-vi.mock('@/middleware/with-security', () => ({
-  withSecurity: vi.fn((handler: any) => handler),
-}));
-
-vi.mock('@/middleware/rate-limit', () => ({
-  withRateLimit: vi.fn((req: any, handler: any) => handler(req)),
-}));
-
-vi.mock('@/middleware/auth', () => ({
-  withAuthRequest: vi.fn((req: any, handler: any) => {
-    // Mock successful authentication
-    return handler(req, { userId: 'u1', role: 'user', permissions: [] });
-  }),
+// Mock the auth middleware to bypass authentication
+vi.mock('@/lib/api/auth-middleware', () => ({
+  createAuthMiddleware: () => vi.fn((req: any) => Promise.resolve({
+    userId: 'u1',
+    user: { id: 'u1', email: 'test@example.com' },
+    permissions: []
+  }))
 }));
 
 vi.mock('@/lib/api/common', () => {
@@ -65,11 +56,19 @@ describe('addresses API', () => {
   const service = {
     getAddresses: vi.fn(async () => []),
     createAddress: vi.fn(async (a: any) => ({ ...a, id: '1' })),
+    getAddress: vi.fn(),
+    updateAddress: vi.fn(),
+    deleteAddress: vi.fn(),
+    setDefaultAddress: vi.fn(),
   } as any;
 
   beforeEach(() => {
-    vi.mocked(getApiAddressService).mockReturnValue(service);
     vi.clearAllMocks();
+    
+    // Clear and register services in ServiceLocator
+    const locator = ServiceLocator.getInstance();
+    locator.clear();
+    locator.register(ServiceKeys.ADDRESS_SERVICE, service);
   });
 
   it('GET returns addresses', async () => {

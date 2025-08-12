@@ -3,7 +3,7 @@ import { POST } from '../route';
 import { getApiAuthService } from '@/services/auth/factory';
 import { createRateLimit } from '@/middleware/rate-limit';
 
-vi.mock('@/services/auth/factory', () => ({ getApiAuthService: vi.fn() }));
+
 vi.mock('@/middleware/rate-limit', () => ({
   createRateLimit: vi.fn(() => vi.fn((_req: any, h: any) => h(_req)))
 }));

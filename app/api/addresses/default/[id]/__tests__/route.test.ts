@@ -1,9 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { POST } from '../route';
-import { configureServices, resetServiceContainer } from '@/lib/config/service-container';
+import { ServiceLocator, ServiceKeys } from '@/lib/config/service-locator';
 import type { AddressService } from '@/core/address/interfaces';
 import type { AuthService } from '@/core/auth/interfaces';
 import { createAuthenticatedRequest } from '@/tests/utils/request-helpers';
+
+// Mock the auth middleware to bypass authentication
+vi.mock('@/lib/api/auth-middleware', () => ({
+  createAuthMiddleware: () => vi.fn((req: any) => Promise.resolve({
+    userId: 'u1',
+    user: { id: 'u1', email: 'test@example.com' },
+    permissions: []
+  }))
+}));
 
 const service: AddressService = {
   setDefaultAddress: vi.fn(async () => {}),
@@ -20,17 +29,18 @@ const authService: Partial<AuthService> = {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  resetServiceContainer();
-  configureServices({
-    addressService: service as AddressService,
-    authService: authService as AuthService,
-  });
+  
+  // Clear and register services in ServiceLocator
+  const locator = ServiceLocator.getInstance();
+  locator.clear();
+  locator.register(ServiceKeys.ADDRESS_SERVICE, service);
+  locator.register(ServiceKeys.AUTH_SERVICE, authService);
 });
 
 describe('default address API', () => {
   it('sets default address', async () => {
     const req = createAuthenticatedRequest('POST', 'http://test/api/addresses/default/1');
-    const res = await POST(req);
+    const res = await POST(req, { params: { id: '1' } });
     expect(res.status).toBe(204);
     expect(service.setDefaultAddress).toHaveBeenCalledWith('1', 'u1');
   });

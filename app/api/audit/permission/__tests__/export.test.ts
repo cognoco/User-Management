@@ -5,6 +5,15 @@ import { setTableMockData, resetSupabaseMock } from '@/tests/mocks/supabase';
 import { NextResponse } from 'next/server';
 import { createAuthenticatedRequest } from '@/tests/utils/request-helpers';
 
+// Mock the auth middleware to bypass authentication
+vi.mock('@/lib/api/auth-middleware', () => ({
+  createAuthMiddleware: () => vi.fn((req: any) => Promise.resolve({
+    userId: 'u1',
+    user: { id: 'u1', email: 'test@example.com' },
+    permissions: []
+  }))
+}));
+
 vi.mock('@/middleware/auth', () => ({
   withRouteAuth: vi.fn((handler: any) => async (req: any) => handler(req, { userId: 'u1' }))
 }));

@@ -3,7 +3,7 @@ import { NextRequest } from 'next/server';
 import { DELETE } from '../route';
 import { getApiAuthService } from '@/services/auth/factory';
 
-vi.mock('@/services/auth/factory', () => ({ getApiAuthService: vi.fn() }));
+
 vi.mock('@/middleware/with-auth-rate-limit', () => ({
   withAuthRateLimit: vi.fn((_req, handler) => handler(_req))
 }));

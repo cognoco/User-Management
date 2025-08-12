@@ -1,8 +1,17 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest } from 'next/server';
 import { GET, PUT, DELETE } from '../route';
-import { configureServices, resetServiceContainer } from '@/lib/config/service-container';
+import { ServiceLocator, ServiceKeys } from '@/lib/config/service-locator';
 import { createAuthenticatedRequest } from '@/tests/utils/request-helpers';
+
+// Mock the auth middleware to bypass authentication
+vi.mock('@/lib/api/auth-middleware', () => ({
+  createAuthMiddleware: () => vi.fn((req: any) => Promise.resolve({
+    userId: 'u1',
+    user: { id: 'u1', email: 'test@example.com' },
+    permissions: []
+  }))
+}));
 
 
 describe('[orgId] API', () => {
@@ -14,16 +23,16 @@ describe('[orgId] API', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    resetServiceContainer();
-    configureServices({
-      organizationService: service as any,
-      authService: { getCurrentUser: vi.fn().mockResolvedValue({ id: 'u1' }) } as any,
-      userService: {} as any,
-      permissionService: {} as any,
-      teamService: {} as any,
-      ssoService: {} as any,
-      featureFlags: { permissions: false, teams: false, sso: false },
-    });
+    
+  // Clear and register services in ServiceLocator
+  const locator = ServiceLocator.getInstance();
+  locator.clear();
+  locator.register(ServiceKeys.ORGANIZATION_SERVICE, organization || service);
+  locator.register(ServiceKeys.AUTH_SERVICE, auth || service);
+  locator.register(ServiceKeys.USER_SERVICE, user || service);
+  locator.register(ServiceKeys.PERMISSION_SERVICE, permission || service);
+  locator.register(ServiceKeys.TEAM_SERVICE, team || service);
+  locator.register(ServiceKeys.SSO_SERVICE, sso || service);
   });
 
   it('GET returns organization', async () => {

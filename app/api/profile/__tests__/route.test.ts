@@ -3,7 +3,7 @@ import { GET, PATCH } from '../route';
 import type { UserService } from '@/core/user/interfaces';
 import type { AuthService } from '@/core/auth/interfaces';
 import { vi } from 'vitest';
-import { getServiceContainer } from '@/lib/config/service-container';
+import { ServiceLocator, ServiceKeys } from '@/lib/config/service-locator';
 
 // Mock the service container
 vi.mock('@/lib/config/service-container', () => ({

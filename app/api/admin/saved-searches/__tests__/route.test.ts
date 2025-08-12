@@ -49,7 +49,10 @@ describe("saved searches API", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(getApiSavedSearchService).mockReturnValue(service);
+    // Clear and register services in ServiceLocator
+  const locator = ServiceLocator.getInstance();
+  locator.clear();
+  locator.register(ServiceKeys.ADDRESS_SERVICE, service);
     service.listSavedSearches.mockResolvedValue([]);
     service.createSavedSearch.mockResolvedValue({ id: "1" });
   });
