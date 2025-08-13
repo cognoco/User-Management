@@ -1,16 +1,50 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest, NextResponse } from 'next/server';
 import { POST, GET } from '../route';
-import { ServiceLocator, ServiceKeys } from '@/lib/config/service-locator';
-import type { AddressService } from '@/core/address/interfaces';
 
-// Mock the auth middleware to bypass authentication
-vi.mock('@/lib/api/auth-middleware', () => ({
-  createAuthMiddleware: () => vi.fn((req: any) => Promise.resolve({
-    userId: 'u1',
-    user: { id: 'u1', email: 'test@example.com' },
-    permissions: []
-  }))
+// Mock withValidatedServices to bypass ServiceLocator entirely
+vi.mock('@/lib/api/with-services', () => ({
+  schemas: {
+    empty: {},
+    address: {}
+  },
+  withValidatedServices: vi.fn((config: any) => {
+    return async (req: NextRequest) => {
+      try {
+        // Parse body for POST
+        let data;
+        if (req.method === 'POST') {
+          try {
+            data = await req.json();
+          } catch {
+            return NextResponse.json({ error: { code: 'VALIDATION_ERROR' } }, { status: 400 });
+          }
+        }
+
+        // Get mock services from test
+        const mockServices = (global as any).__testMockServices || {};
+
+        // Call the actual handler with mocked context
+        return await config.handler({
+          request: req,
+          data,
+          services: mockServices,
+          userId: 'u1',
+          params: {}
+        });
+      } catch (error: any) {
+        console.error('Handler error:', error);
+        // Handle validation errors
+        if (error.name === 'ApiError') {
+          return NextResponse.json({ error: error.message }, { status: error.status || 400 });
+        }
+        return NextResponse.json(
+          { error: { code: error.code || 'SERVER_GENERAL_001', message: error.message } },
+          { status: error.status || 500 }
+        );
+      }
+    };
+  })
 }));
 
 vi.mock('@/lib/api/common', () => {
@@ -53,7 +87,7 @@ vi.mock('@/core/address/validation', () => ({
 }));
 
 describe('addresses API', () => {
-  const service = {
+  const mockAddressService = {
     getAddresses: vi.fn(async () => []),
     createAddress: vi.fn(async (a: any) => ({ ...a, id: '1' })),
     getAddress: vi.fn(),
@@ -65,17 +99,17 @@ describe('addresses API', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     
-    // Clear and register services in ServiceLocator
-    const locator = ServiceLocator.getInstance();
-    locator.clear();
-    locator.register(ServiceKeys.ADDRESS_SERVICE, service);
+    // Set up global mock services for withValidatedServices mock
+    (global as any).__testMockServices = {
+      address: mockAddressService
+    };
   });
 
   it('GET returns addresses', async () => {
     const req = new NextRequest('http://test');
     const res = await GET(req);
     expect(res.status).toBe(200);
-    expect(service.getAddresses).toHaveBeenCalledWith('u1');
+    expect(mockAddressService.getAddresses).toHaveBeenCalledWith('u1');
   });
 
   it('POST creates address with valid data', async () => {
@@ -99,7 +133,7 @@ describe('addresses API', () => {
     
     const res = await POST(req);
     expect(res.status).toBe(201);
-    expect(service.createAddress).toHaveBeenCalledWith({ ...validAddress, userId: 'u1' });
+    expect(mockAddressService.createAddress).toHaveBeenCalledWith({ ...validAddress, userId: 'u1' });
   });
 
   it('POST validates input and returns 400 for invalid data', async () => {
@@ -112,7 +146,8 @@ describe('addresses API', () => {
     
     req.json = vi.fn().mockResolvedValue(invalidAddress);
     
-    // The validation error should be thrown and handled
-    await expect(POST(req)).rejects.toThrow();
+    // The validation error should be handled and return 400 (not throw)
+    const res = await POST(req);
+    expect(res.status).toBe(400);
   });
 });

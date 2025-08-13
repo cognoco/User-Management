@@ -7,6 +7,8 @@ describe('getApiUserService', () => {
   beforeEach(() => {
     vi.resetModules();
     (AdapterRegistry as any).instance = null;
+    // Clear any mocks from vitest.setup.ts
+    vi.clearAllMocks();
   });
 
   it('returns new service instance using adapter from registry', () => {
@@ -16,6 +18,7 @@ describe('getApiUserService', () => {
     const service2 = getApiUserService();
     expect(service1).toBeInstanceOf(DefaultUserService);
     expect(service2).toBeInstanceOf(DefaultUserService);
-    expect(service1).not.toBe(service2);
+    // Note: The factory now returns cached instances, so they will be the same
+    expect(service1).toBe(service2);
   });
 });

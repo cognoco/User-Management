@@ -1,82 +1,103 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { NextRequest, NextResponse } from 'next/server';
 import { GET, DELETE } from '../route';
-import { withRouteAuth } from '@/middleware/auth';
-import { getApiSessionService } from '@/services/session/factory';
-import { createAuthenticatedRequest } from '@/tests/utils/request-helpers';
 
-// Mock the auth middleware to bypass authentication
-vi.mock('@/lib/api/auth-middleware', () => ({
-  createAuthMiddleware: () => vi.fn((req: any) => Promise.resolve({
-    userId: 'u1',
-    user: { id: 'u1', email: 'test@example.com' },
-    permissions: []
-  }))
+// Mock getUserFromRequest
+vi.mock('@/lib/auth/utils', () => ({
+  getUserFromRequest: vi.fn()
 }));
 
-vi.mock('@/middleware/auth', () => ({
-  withRouteAuth: vi.fn((handler: any) => async (req: any) => handler(req, { userId: 'user-1', role: 'user' })),
+// Mock the session service factory
+vi.mock('@/services/session/factory', () => ({
+  getApiSessionService: vi.fn()
+}));
+
+// Mock response helpers
+vi.mock('@/lib/api/common', () => ({
+  createSuccessResponse: vi.fn((data) => {
+    return NextResponse.json({ success: true, ...data });
+  }),
+  createErrorResponse: vi.fn((error, status) => {
+    return NextResponse.json({ error }, { status });
+  })
 }));
 
 
-
-interface MockService {
-  listUserSessions?: vi.Mock;
-  revokeUserSession?: vi.Mock;
-}
 
 describe('/api/session', () => {
-  const user = { id: 'user-1', email: 'test@example.com' };
-  let service: MockService;
+  const mockSessionService = {
+    listUserSessions: vi.fn().mockResolvedValue([]),
+    revokeUserSession: vi.fn().mockResolvedValue({ success: true })
+  };
 
-  beforeEach(() => {
-    service = {
-      listUserSessions: vi.fn().mockResolvedValue([]),
-      revokeUserSession: vi.fn().mockResolvedValue({ success: true }),
-    };
-    (getApiSessionService as unknown as vi.Mock).mockReturnValue(service);
+  const mockUser = { id: 'user-1', email: 'test@example.com' };
+
+  beforeEach(async () => {
+    vi.clearAllMocks();
+    
+    // Mock the imports
+    const { getUserFromRequest } = await import('@/lib/auth/utils');
+    const { getApiSessionService } = await import('@/services/session/factory');
+    
+    // Set up the mocks
+    (getUserFromRequest as any).mockResolvedValue(mockUser);
+    (getApiSessionService as any).mockReturnValue(mockSessionService);
   });
 
   it('GET returns sessions for authenticated user', async () => {
-    service.listUserSessions!.mockResolvedValue([{ id: '1' }]);
-    const res = await GET(createAuthenticatedRequest('GET', 'http://localhost/api/session'));
+    mockSessionService.listUserSessions.mockResolvedValue([{ id: '1' }]);
+    const req = new NextRequest('http://localhost/api/session');
+    const res = await GET(req);
     const data = await res.json();
     expect(res.status).toBe(200);
     expect(data.sessions.length).toBe(1);
-    expect(service.listUserSessions).toHaveBeenCalledWith('user-1');
+    expect(mockSessionService.listUserSessions).toHaveBeenCalledWith('user-1');
   });
 
   it('GET returns 401 for unauthenticated user', async () => {
-    vi.mocked(withRouteAuth).mockResolvedValueOnce(new NextResponse('unauth', { status: 401 }));
-    const res = await GET(createAuthenticatedRequest('GET', 'http://localhost/api/session'));
+    const { getUserFromRequest } = await import('@/lib/auth/utils');
+    (getUserFromRequest as any).mockResolvedValueOnce(null);
+    
+    const req = new NextRequest('http://localhost/api/session');
+    const res = await GET(req);
     expect(res.status).toBe(401);
   });
 
   it('GET returns 500 on service error', async () => {
-    service.listUserSessions!.mockRejectedValue(new Error('fail'));
-    const res = await GET(createAuthenticatedRequest('GET', 'http://localhost/api/session'));
+    mockSessionService.listUserSessions.mockRejectedValue(new Error('fail'));
+    const req = new NextRequest('http://localhost/api/session');
+    const res = await GET(req);
     expect(res.status).toBe(500);
   });
 
   it('DELETE revokes all sessions for authenticated user', async () => {
-    service.listUserSessions!.mockResolvedValue([{ id: '1' }, { id: '2' }]);
-    service.revokeUserSession!.mockResolvedValue({ success: true });
-    const res = await DELETE(createAuthenticatedRequest('DELETE', 'http://localhost/api/session'));
+    mockSessionService.listUserSessions.mockResolvedValue([{ id: '1' }, { id: '2' }]);
+    mockSessionService.revokeUserSession.mockResolvedValue({ success: true });
+    
+    const req = new NextRequest('http://localhost/api/session', { method: 'DELETE' });
+    const res = await DELETE(req);
     const data = await res.json();
     expect(res.status).toBe(200);
     expect(data.success).toBe(true);
-    expect(service.listUserSessions).toHaveBeenCalledWith('user-1');
-    expect(service.revokeUserSession).toHaveBeenCalledTimes(2);
+    expect(data.count).toBe(2);
+    expect(mockSessionService.listUserSessions).toHaveBeenCalledWith('user-1');
+    expect(mockSessionService.revokeUserSession).toHaveBeenCalledTimes(2);
   });
 
   it('DELETE returns 401 for unauthenticated user', async () => {
-    vi.mocked(withRouteAuth).mockResolvedValueOnce(new NextResponse('unauth', { status: 401 }));
-    const res = await DELETE(createAuthenticatedRequest('DELETE', 'http://localhost/api/session'));
+    const { getUserFromRequest } = await import('@/lib/auth/utils');
+    (getUserFromRequest as any).mockResolvedValueOnce(null);
+    
+    const req = new NextRequest('http://localhost/api/session', { method: 'DELETE' });
+    const res = await DELETE(req);
     expect(res.status).toBe(401);
   });
 
   it('DELETE returns 500 on service error', async () => {
-    service.listUserSessions!.mockRejectedValue(new Error('fail'));
-    const res = await DELETE(createAuthenticatedRequest('DELETE', 'http://localhost/api/session'));
+    mockSessionService.listUserSessions.mockRejectedValue(new Error('fail'));
+    
+    const req = new NextRequest('http://localhost/api/session', { method: 'DELETE' });
+    const res = await DELETE(req);
     expect(res.status).toBe(500);
   });
 });

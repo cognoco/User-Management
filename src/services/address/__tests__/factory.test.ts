@@ -1,46 +1,32 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
-vi.mock('@/lib/config/service-container', () => {
-  let config: any = {};
-  let container: any = { address: undefined };
-  return {
-    getServiceContainer: vi.fn(() => container),
-    getServiceConfiguration: vi.fn(() => config),
-    configureServices: vi.fn((cfg: any) => {
-      config = { ...config, ...cfg };
-      if (cfg.addressService) {
-        container.address = cfg.addressService;
-      }
-    }),
-    resetServiceContainer: vi.fn(() => {
-      config = {};
-      container = { address: undefined };
-    })
-  };
-});
-
+// Use the global mock from vitest.setup.ts instead of creating new mock
 let getApiAddressService: typeof import('../factory').getApiAddressService;
 let getApiPersonalAddressService: typeof import('../factory').getApiPersonalAddressService;
 let DefaultAddressService: typeof import('../default-address.service').DefaultAddressService;
 let AdapterRegistry: typeof import('@/adapters/registry').AdapterRegistry;
-let configureServices: typeof import('@/lib/config/service-container').configureServices;
-let resetServiceContainer: typeof import('@/lib/config/service-container').resetServiceContainer;
 let UserManagementConfiguration: typeof import('@/core/config').UserManagementConfiguration;
 
 describe('getApiAddressService', () => {
   beforeEach(async () => {
     vi.resetModules();
     ({ AdapterRegistry } = await import('@/adapters/registry'));
-    ({ configureServices, resetServiceContainer } = await import('@/lib/config/service-container'));
     ({ UserManagementConfiguration } = await import('@/core/config'));
     (AdapterRegistry as any).instance = null;
-    resetServiceContainer();
     UserManagementConfiguration.reset();
+    vi.clearAllMocks();
+    
+    // Set required environment variables
+    process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-service-role-key';
+    process.env.NEXT_PUBLIC_SUPABASE_URL = 'http://localhost:54321';
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'test-anon-key';
+    
     ({ getApiAddressService, getApiPersonalAddressService } = await import('../factory'));
     ({ DefaultAddressService } = await import('../default-address.service'));
   });
 
   it('returns configured service if registered', () => {
+    const { configureServices } = require('@/lib/config/service-container');
     const svc = {} as any;
     configureServices({ addressService: svc });
     expect(getApiAddressService()).toBe(svc);
@@ -52,6 +38,7 @@ describe('getApiAddressService', () => {
     AdapterRegistry.getInstance().registerAdapter('address', adapter);
     const service = getApiAddressService({ reset: true });
     expect(service).toBeInstanceOf(DefaultAddressService);
+    // Services are now cached as singletons
     expect(getApiAddressService()).toBe(service);
   });
 
@@ -70,11 +57,16 @@ describe('getApiPersonalAddressService', () => {
   beforeEach(async () => {
     vi.resetModules();
     ({ AdapterRegistry } = await import('@/adapters/registry'));
-    ({ configureServices, resetServiceContainer } = await import('@/lib/config/service-container'));
     ({ UserManagementConfiguration } = await import('@/core/config'));
     (AdapterRegistry as any).instance = null;
-    resetServiceContainer();
     UserManagementConfiguration.reset();
+    vi.clearAllMocks();
+    
+    // Set required environment variables
+    process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-service-role-key';
+    process.env.NEXT_PUBLIC_SUPABASE_URL = 'http://localhost:54321';
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'test-anon-key';
+    
     ({ getApiAddressService, getApiPersonalAddressService } = await import('../factory'));
     ({ DefaultAddressService } = await import('../default-address.service'));
   });
@@ -91,6 +83,7 @@ describe('getApiPersonalAddressService', () => {
     AdapterRegistry.getInstance().registerAdapter('address', adapter);
     const svc = getApiPersonalAddressService({ reset: true });
     expect(svc).toBeInstanceOf(DefaultAddressService);
+    // Services are now cached as singletons
     expect(getApiPersonalAddressService()).toBe(svc);
   });
 

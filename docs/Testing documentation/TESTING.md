@@ -2,6 +2,9 @@
 
 ## Core Testing Principles & Approach
 
+node scripts/update-test-results.js to update the result md files if needed
+node scripts/run-tests.js to run and show results directly in terminal
+
 ### A. Production-First, Test-Second Approach
 - The project now follows a production-first, test-second approach for new features.
 - Test skeletons are only created in advance if a feature is high-risk or likely to cause regressions.

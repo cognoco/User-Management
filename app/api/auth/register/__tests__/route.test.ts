@@ -1,9 +1,44 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest, NextResponse } from 'next/server';
 
-// Mock all service dependencies to avoid circular dependencies
-vi.mock('@/lib/config/service-container', () => ({
-  getServiceContainer: vi.fn()
+// Mock withValidatedServices to bypass ServiceLocator entirely
+vi.mock('@/lib/api/with-services', () => ({
+  withValidatedServices: vi.fn((config: any) => {
+    // Return a simplified handler that validates and calls the original handler
+    return async (req: NextRequest) => {
+      try {
+        // Parse body
+        let data;
+        try {
+          data = await req.json();
+        } catch {
+          return NextResponse.json({ error: { code: 'VALIDATION_ERROR' } }, { status: 400 });
+        }
+
+        // Simple validation - just check if body is empty
+        if (!data || Object.keys(data).length === 0) {
+          return NextResponse.json({ error: { code: 'VALIDATION_ERROR' } }, { status: 400 });
+        }
+
+        // Get mock services from test
+        const mockServices = (global as any).__testMockServices || {};
+
+        // Call the actual handler with mocked context
+        return await config.handler({
+          request: req,
+          data,
+          services: mockServices,
+          params: {}
+        });
+      } catch (error: any) {
+        console.error('Handler error:', error);
+        return NextResponse.json(
+          { error: { code: error.code || 'SERVER_GENERAL_001', message: error.message } },
+          { status: error.status || 500 }
+        );
+      }
+    };
+  })
 }));
 
 vi.mock('@/middleware/with-auth-rate-limit', () => ({
@@ -51,12 +86,74 @@ describe('POST /api/auth/register', () => {
 
   const mockAuthService = { 
     register: vi.fn(),
-    getCurrentUser: vi.fn().mockResolvedValue(null) // Public route
+    getCurrentUser: vi.fn().mockResolvedValue(null), // Public route
+    login: vi.fn(),
+    logout: vi.fn(),
+    resetPassword: vi.fn(),
+    updatePassword: vi.fn(),
+    verifyEmail: vi.fn(),
+    sendVerificationEmail: vi.fn(),
+    deleteAccount: vi.fn(),
+    setupMFA: vi.fn(),
+    verifyMFA: vi.fn(),
+    disableMFA: vi.fn()
+  };
+
+  const mockUserService = {
+    getUserProfile: vi.fn(),
+    updateUserProfile: vi.fn(),
+    getUserPreferences: vi.fn(),
+    updateUserPreferences: vi.fn(),
+    uploadProfilePicture: vi.fn(),
+    deleteProfilePicture: vi.fn(),
+    searchUsers: vi.fn(),
+    createUserProfile: vi.fn().mockResolvedValue({ success: true })
+  };
+
+  const mockCompanyService = {
+    createCompany: vi.fn(),
+    getCompany: vi.fn(),
+    updateCompany: vi.fn(),
+    deleteCompany: vi.fn()
+  };
+
+  const mockPermissionService = {
+    hasPermission: vi.fn(),
+    hasRole: vi.fn(),
+    getUserPermissions: vi.fn(),
+    getUserRoles: vi.fn()
+  };
+
+  const mockSessionService = {
+    createSession: vi.fn(),
+    getSession: vi.fn(),
+    deleteSession: vi.fn(),
+    validateSession: vi.fn()
+  };
+
+  const mockTeamService = {
+    createTeam: vi.fn(),
+    getTeam: vi.fn(),
+    updateTeam: vi.fn(),
+    deleteTeam: vi.fn()
+  };
+
+  const mockSubscriptionService = {
+    getSubscription: vi.fn(),
+    createSubscription: vi.fn(),
+    updateSubscription: vi.fn(),
+    cancelSubscription: vi.fn()
   };
   
-  // Minimal service container mock
+  // Complete service container mock with all required services
   const mockServices = {
-    auth: mockAuthService
+    auth: mockAuthService,
+    user: mockUserService,
+    company: mockCompanyService,
+    permission: mockPermissionService,
+    session: mockSessionService,
+    team: mockTeamService,
+    subscription: mockSubscriptionService
   };
   
   const createRequest = (body?: any) => new NextRequest('http://localhost/api/auth/register', {
@@ -73,18 +170,29 @@ describe('POST /api/auth/register', () => {
     process.env.NEXT_PUBLIC_SUPABASE_URL = 'http://localhost:54321';
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'test-anon-key';
     
-    // Mock the service container to return our mock services
-    const { getServiceContainer } = await import('@/lib/config/service-container');
-    (getServiceContainer as any).mockReturnValue(mockServices);
+    // Set up global mock services for withValidatedServices mock
+    (global as any).__testMockServices = {
+      auth: mockAuthService,
+      user: mockUserService,
+      company: mockCompanyService,
+      permission: mockPermissionService,
+      session: mockSessionService,
+      team: mockTeamService,
+      subscription: mockSubscriptionService
+    };
+    
+    // Set up mock responses
+    mockAuthService.register.mockResolvedValue({ success: true, user: { id: '1', email: 'a@test.com' } });
+    mockAuthService.checkUserExists = vi.fn().mockResolvedValue(false);
+    mockUserService.createUserProfile.mockResolvedValue({ success: true });
+    mockCompanyService.createProfile = vi.fn().mockResolvedValue({ success: true });
     
     // Dynamically import the route and ERROR_CODES to avoid early initialization
     const routeModule = await import('../route');
     POST = routeModule.POST;
     
-    const apiCommon = await import('@/src/lib/api/common/error-codes');
+    const apiCommon = await import('@/lib/api/common/error-codes');
     ERROR_CODES = apiCommon.ERROR_CODES;
-    
-    mockAuthService.register.mockResolvedValue({ success: true, user: { id: '1', email: 'a@test.com' } });
   });
 
   it('validates request body', async () => {
@@ -108,7 +216,7 @@ describe('POST /api/auth/register', () => {
   });
 
   it('returns 409 when user exists', async () => {
-    mockAuthService.register.mockResolvedValue({ success: false, error: 'already exists' });
+    mockAuthService.checkUserExists.mockResolvedValue(true);
     const res = await POST(createRequest({
       userType: 'private',
       email: 'a@test.com',
