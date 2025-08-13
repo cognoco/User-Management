@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import RootLayoutClient from './RootLayoutClient';
+import RootLayoutClient from '@app/RootLayoutClient';
 import './globals.css';
 import { initializeErrorSystem, initializeMonitoringSystem } from '@/lib/monitoring';
 
