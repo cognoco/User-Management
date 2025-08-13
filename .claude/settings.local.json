@@ -23,7 +23,9 @@
       "Bash(do sed -i 's|@/src/lib/api/with-services|@/lib/api/with-services|g' \"$file\")",
       "Bash(done)",
       "Bash(for file in app/api/permissions/categories/route.ts app/api/permissions/check/route.ts app/api/permissions/route.ts app/api/permissions/validate/route.ts)",
-      "Bash(sed:*)"
+      "Bash(sed:*)",
+      "Bash(del srchooksauth__tests__useAuth.simple.test.ts)",
+      "Bash(npx vitest run:*)"
     ],
     "deny": []
   }

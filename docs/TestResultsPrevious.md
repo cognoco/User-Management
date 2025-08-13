@@ -1,6 +1,6 @@
 # Test Results
 
-**Passed Test Files:** 248  |  **Failed Test Files:** 218  |  **Skipped/Timeout Test Files:** 4
+**Passed Test Files:** 260  |  **Failed Test Files:** 205  |  **Skipped/Timeout Test Files:** 5
 
 ## Passing Test Files
 
@@ -10,15 +10,25 @@
 - app\api\2fa\webauthn\register\__tests__\route.test.ts
 - app\api\2fa\webauthn\verify\__tests__\route.test.ts
 - app\api\addresses\[id]\__tests__\route.test.ts
+- app\api\addresses\__tests__\route.test.ts
 - app\api\addresses\default\[id]\__tests__\route.test.ts
 - app\api\admin\dashboard\__tests__\route.test.ts
 - app\api\admin\saved-searches\[id]\__tests__\route.test.ts
+- app\api\admin\saved-searches\__tests__\route.test.ts
 - app\api\admin\users\__tests__\route.test.ts
+- app\api\admin\users\search\__tests__\route.test.ts
+- app\api\api-keys\[keyId]\__tests__\route.test.ts
+- app\api\api-keys\__tests__\route.test.ts
 - app\api\audit\__tests__\route.test.ts
 - app\api\auth\check-permission\__tests__\route.test.ts
+- app\api\auth\check-permissions\__tests__\route.test.ts
+- app\api\auth\check-role\__tests__\route.test.ts
 - app\api\auth\delete-account\__tests__\route.test.ts
 - app\api\auth\login\__tests__\route.test.ts
 - app\api\auth\logout\__tests__\route.test.ts
+- app\api\auth\mfa\disable\__tests__\route.test.ts
+- app\api\auth\mfa\enable\__tests__\route.test.ts
+- app\api\auth\my-permissions\__tests__\route.test.ts
 - app\api\auth\refresh-token\__tests__\route.test.ts
 - app\api\auth\register\__tests__\route.simple.test.ts
 - app\api\auth\register\__tests__\route.test.ts
@@ -28,6 +38,7 @@
 - app\api\auth\verify-email\__tests__\route.test.ts
 - app\api\auth\verify-reset-token\__tests__\route.test.ts
 - app\api\company\addresses\__tests__\route.test.ts
+- app\api\company\domains\__tests__\route.test.ts
 - app\api\health\__tests__\route.test.ts
 - app\api\openapi\__tests__\route.test.ts
 - app\api\profile\__tests__\route.test.ts
@@ -76,6 +87,7 @@
 - src\hooks\auth\__tests__\useLogin.test.ts
 - src\hooks\core\__tests__\useApi.test.ts
 - src\hooks\csrf\__tests__\useCsrf.test.tsx
+- src\hooks\errors\__tests__\useErrorHandling.test.tsx
 - src\hooks\gdpr\__tests__\useDataDeletion.test.ts
 - src\hooks\gdpr\__tests__\useDataExport.test.ts
 - src\hooks\notification\__tests__\useNotifications.test.tsx
@@ -255,10 +267,69 @@
 
 ## Failing Test Files
 
-- app\api\addresses\__tests__\route.test.ts
+- app\api\admin\users\[id]\__tests__\route.test.ts
+- app\api\audit\permission\__tests__\export.test.ts
+- app\api\audit\permission\__tests__\route.test.ts
+- app\api\auth\disable-mfa\__tests__\route.test.ts
+- app\api\auth\oauth\__tests__\route.test.ts
+- app\api\auth\oauth\disconnect\__tests__\route.test.ts
+- app\api\auth\oauth\link\__tests__\route.test.ts
+- app\api\auth\oauth\verify\__tests__\route.test.ts
+- app\api\auth\passwordless\__tests__\route.test.ts
+- app\api\auth\setup-mfa\__tests__\route.test.ts
+- app\api\auth\verify-mfa\__tests__\route.test.ts
+- app\api\company\domains\[id]\__tests__\route.test.ts
+- app\api\company\domains\[id]\verify-check\__tests__\route.test.ts
+- app\api\company\domains\[id]\verify-initiate\__tests__\route.test.ts
+- app\api\company\profile\__tests__\route.test.ts
+- app\api\company\validate\__tests__\route.test.ts
+- app\api\company\validate\registration\__tests__\route.test.ts
+- app\api\company\verify-domain\check\__tests__\route.test.ts
+- app\api\company\verify-domain\initiate\__tests__\route.test.ts
+- app\api\organizations\[orgId]\__tests__\route.test.ts
+- app\api\organizations\[orgId]\members\__tests__\route.test.ts
+- app\api\organizations\[orgId]\sso\[idpType]\config\__tests__\route.test.ts
+- app\api\organizations\[orgId]\sso\__tests__\route.test.ts
+- app\api\organizations\[orgId]\sso\domains\__tests__\route.test.ts
+- app\api\organizations\__tests__\route.test.ts
+- app\api\permissions\[id]\__tests__\route.test.ts
+- app\api\permissions\__tests__\route.test.ts
+- app\api\permissions\categories\__tests__\route.test.ts
+- app\api\permissions\check\__tests__\route.test.ts
+- app\api\permissions\validate\__tests__\route.test.ts
+- app\api\profile\avatar\__tests__\route.test.ts
+- app\api\resources\[type]\[id]\ancestors\__tests__\route.test.ts
+- app\api\resources\[type]\[id]\permissions\__tests__\route.test.ts
+- app\api\resources\permissions\__tests__\route.test.ts
+- app\api\resources\relationships\__tests__\route.test.ts
+- app\api\roles\[roleId]\__tests__\route.test.ts
+- app\api\roles\[roleId]\hierarchy\__tests__\route.test.ts
+- app\api\roles\[roleId]\hierarchy\info\__tests__\route.test.ts
+- app\api\roles\[roleId]\permissions\__tests__\route.test.ts
+- app\api\roles\__tests__\route.test.ts
+- app\api\settings\__tests__\route.test.ts
+- app\api\sso\__tests__\route.test.ts
+- app\api\storage\files\__tests__\route.test.ts
+- app\api\storage\upload\__tests__\route.test.ts
+- app\api\subscriptions\cancel\__tests__\route.test.ts
+- app\api\subscriptions\plans\__tests__\route.test.ts
+- app\api\subscriptions\status\__tests__\route.test.ts
+- app\api\team\[teamId]\__tests__\route.test.ts
+- app\api\team\__tests__\route.test.ts
+- app\api\team\invites\__tests__\route.test.ts
+- app\api\team\invites\accept\__tests__\route.test.ts
+- app\api\team\members\[memberId]\__tests__\route.test.ts
+- app\api\team\members\[memberId]\role\__tests__\route.test.ts
+- app\api\team\members\__tests__\route.test.ts
+- app\api\team\roles\[roleId]\__tests__\route.test.ts
+- app\api\users\[id]\permissions\resources\__tests__\route.test.ts
+- app\api\webhooks\[webhookId]\__tests__\route.test.ts
+- app\api\webhooks\[webhookId]\deliveries\__tests__\route.test.ts
+- app\api\webhooks\__tests__\route.test.ts
+- app\api\webhooks\stripe\__tests__\route.test.ts
+- app\settings\sessions\__tests__\page.test.tsx
 - src\adapters\auth\__tests__\supabase-auth-provider.test.ts
 - src\adapters\database\factory\__tests__\database-factory.test.ts
-- src\components\ui\__tests__\QueryError.test.tsx
 - src\components\ui\errors\__tests__\ErrorDisplay.test.tsx
 - src\core\auth\__tests__\business-policies.test.tsx
 - src\core\common\__tests__\errors.test.ts
@@ -269,7 +340,6 @@
 - src\hooks\auth\__tests__\useAuth.integration.test.ts
 - src\hooks\auth\__tests__\useAuth.test.ts
 - src\hooks\auth\__tests__\useAuth.test.tsx
-- src\hooks\errors\__tests__\useErrorHandling.test.tsx
 - src\hooks\session\__tests__\useSession.test.tsx
 - src\hooks\team\__tests__\useTeamInvite.test.tsx
 - src\hooks\user\__tests__\useProfile.test.tsx
@@ -405,6 +475,7 @@
 
 ## Skipped/Timeout Test Files
 
+- src\components\ui\__tests__\QueryError.test.tsx (TIMEOUT)
 - src\tests\integration\theme-settings-flow.test.tsx (TIMEOUT)
 - src\ui\styled\auth\__tests__\OrganizationSSO.test.tsx (TIMEOUT)
 - src\ui\styled\profile\__tests__\ProfileEditor.test.tsx (TIMEOUT)

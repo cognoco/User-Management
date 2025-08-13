@@ -10,7 +10,7 @@ import { UserManagementConfiguration } from '@/core/config';
 import { createMockNotificationService } from '../mocks/notification.service.mock';
 
 // Import our standardized mock
-import { NotificationCenter } from '@/ui/styled/common/NotificationCenter';
+import { NotificationCenter } from '@/ui/styled/notification/NotificationCenter';
 
 // Mock the API module with proper vi.fn() functions
 vi.mock('@/lib/api/axios', () => ({
@@ -70,20 +70,18 @@ describe('Notification Management Flow', () => {
     
     // Wait for settings to load by looking for switches
     await waitFor(() => {
-      expect(screen.getByRole('switch')).toBeInTheDocument();
+      expect(screen.getAllByRole('switch')).toHaveLength(3);
     });
     
-    // Get switches by their IDs (from the component)
-    const emailSwitch = screen.getByRole('switch', { name: '' }) || document.getElementById('email');
-    const pushSwitch = document.getElementById('push');
-    const marketingSwitch = document.getElementById('marketing');
-    
-    // Verify they exist
-    expect(emailSwitch).toBeInTheDocument();
-    expect(pushSwitch).toBeInTheDocument();
-    expect(marketingSwitch).toBeInTheDocument();
+    // Get all switches and verify they're rendered
+    const switches = screen.getAllByRole('switch');
+    expect(switches).toHaveLength(3);
     
     // Verify initial states match our mock data
+    const emailSwitch = switches.find(sw => sw.id === 'email');
+    const pushSwitch = switches.find(sw => sw.id === 'push');
+    const marketingSwitch = switches.find(sw => sw.id === 'marketing');
+    
     expect(emailSwitch).toBeChecked();
     expect(pushSwitch).not.toBeChecked();
     expect(marketingSwitch).not.toBeChecked();
@@ -142,11 +140,13 @@ describe('Notification Management Flow', () => {
     
     // Wait for component to load
     await waitFor(() => {
-      expect(screen.getByRole('switch')).toBeInTheDocument();
+      expect(screen.getAllByRole('switch')).toHaveLength(3);
     });
     
     // Make a change - click on a switch
-    const pushSwitch = document.getElementById('push');
+    const switches = screen.getAllByRole('switch');
+    const pushSwitch = switches.find(sw => sw.id === 'push');
+    
     if (pushSwitch) {
       await user.click(pushSwitch);
     }
@@ -161,12 +161,12 @@ describe('Notification Management Flow', () => {
     
     // Wait for settings to load
     await waitFor(() => {
-      expect(screen.getByRole('switch')).toBeInTheDocument();
+      expect(screen.getAllByRole('switch')).toHaveLength(3);
     });
     
     // Test just verifies the component renders with default values
     const switches = screen.getAllByRole('switch');
-    expect(switches.length).toBeGreaterThan(0);
+    expect(switches.length).toBe(3);
   });
   
   test('can toggle individual notification channels', async () => {
@@ -175,7 +175,7 @@ describe('Notification Management Flow', () => {
     
     // Wait for settings to load
     await waitFor(() => {
-      expect(screen.getByRole('switch')).toBeInTheDocument();
+      expect(screen.getAllByRole('switch')).toHaveLength(3);
     });
     
     // Get all switches and verify they're interactive
@@ -196,11 +196,12 @@ describe('Notification Management Flow', () => {
     
     // Wait for settings to load
     await waitFor(() => {
-      expect(screen.getByRole('switch')).toBeInTheDocument();
+      expect(screen.getAllByRole('switch')).toHaveLength(3);
     });
     
     // This component doesn't actually have frequency settings - just verify it renders
-    expect(screen.getByText(/notifications/i)).toBeInTheDocument();
+    const headings = screen.getAllByText(/notifications/i);
+    expect(headings.length).toBeGreaterThan(0);
   });
   
   test('supports quiet hours configuration', async () => {
@@ -209,12 +210,13 @@ describe('Notification Management Flow', () => {
     
     // Wait for settings to load
     await waitFor(() => {
-      expect(screen.getByRole('switch')).toBeInTheDocument();
+      expect(screen.getAllByRole('switch')).toHaveLength(3);
     });
     
     // This component doesn't have quiet hours - just verify it renders basic preferences
-    expect(screen.getByText(/notifications/i)).toBeInTheDocument();
-    expect(screen.getAllByRole('switch').length).toBeGreaterThan(0);
+    const headings = screen.getAllByText(/notifications/i);
+    expect(headings.length).toBeGreaterThan(0);
+    expect(screen.getAllByRole('switch').length).toBe(3);
   });
 
   test('Admin receives and views SSO event notification end-to-end', async () => {
