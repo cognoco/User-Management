@@ -1,10 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import RootLayoutClient from './RootLayoutClient';
 import './globals.css';
-// import { initializeErrorSystem } from '@/lib/monitoring/error-system';
-// Avoid importing the monitoring barrel in the root layout to prevent
-// accidental inclusion of server-only modules in client bundles.
-// initializeMonitoringSystem();
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -38,7 +33,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className="antialiased">
       <head />
       <body className="font-sans">
-        <RootLayoutClient>{children}</RootLayoutClient>
+        {children}
       </body>
     </html>
   );
