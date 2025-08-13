@@ -15,7 +15,17 @@ vi.mock('@/lib/api/with-services', () => ({
         let data;
         if (req.method === 'POST') {
           try {
-            data = await req.json();
+            const body = await req.json();
+            // Validate with schema if provided
+            if (config.schema && config.schema.safeParse) {
+              const result = config.schema.safeParse(body);
+              if (!result.success) {
+                return NextResponse.json({ error: { code: 'VALIDATION_ERROR', message: 'Validation failed' } }, { status: 400 });
+              }
+              data = result.data;
+            } else {
+              data = body;
+            }
           } catch {
             return NextResponse.json({ error: { code: 'VALIDATION_ERROR' } }, { status: 400 });
           }

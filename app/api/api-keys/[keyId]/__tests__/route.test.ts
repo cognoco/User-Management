@@ -1,8 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { DELETE } from '../route'
-import { ServiceLocator, ServiceKeys } from '@/lib/config/service-locator'
 import type { ApiKeyService } from '@/core/api-keys/interfaces'
-import type { AuthService } from '@/core/auth/interfaces'
 import { createAuthenticatedRequest } from '@/tests/utils/request-helpers'
 
 // Mock the auth middleware to bypass authentication
@@ -14,8 +12,6 @@ vi.mock('@/lib/api/auth-middleware', () => ({
   }))
 }));
 
-vi.mock('@/services/api-keys/factory', () => ({}))
-
 vi.mock('@/middleware/rate-limit', () => ({ checkRateLimit: vi.fn().mockResolvedValue(false) }))
 vi.mock('@/lib/audit/auditLogger', () => ({ logUserAction: vi.fn().mockResolvedValue(undefined) }))
 
@@ -23,14 +19,27 @@ const service: Partial<ApiKeyService> = {
   revokeApiKey: vi.fn(),
   getApiKey: vi.fn(),
 }
-const authService: Partial<AuthService> = {
-  getCurrentUser: vi.fn().mockResolvedValue({ id: 'u1' }),
-}
+
+// Mock withValidatedServices pattern
+vi.mock('@/lib/api/with-services', async () => {
+  const actual = await vi.importActual('@/lib/api/with-services');
+  return {
+    ...actual,
+    withValidatedServices: ({ handler }: any) => async (req: any, context: any) => {
+      return handler({
+        request: req,
+        userId: 'u1',
+        services: {
+          apiKey: service,
+        },
+        params: context.params,
+      });
+    },
+  };
+});
 
 beforeEach(() => {
   vi.clearAllMocks()
-  resetServiceContainer()
-  configureServices({ apiKeyService: service as ApiKeyService, authService: authService as AuthService })
 })
 
 describe('api key delete route', () => {

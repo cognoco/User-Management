@@ -1,17 +1,44 @@
 import { POST } from '../route';
 import { OAuthProvider } from '@/types/oauth';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { ServiceLocator, ServiceKeys } from '@/lib/config/service-locator';
-
-vi.mock('@/lib/config/service-container', () => ({
-  getServiceContainer: vi.fn(),
-  resetServiceContainer: vi.fn(),
-  configureServices: vi.fn()
-}));
 
 const mockService = {
   linkProvider: vi.fn(),
 };
+
+// Mock withValidatedServices pattern
+vi.mock('@/lib/api/with-services', async () => {
+  const actual = await vi.importActual('@/lib/api/with-services');
+  return {
+    ...actual,
+    withValidatedServices: ({ handler, schema }: any) => async (req: any) => {
+      try {
+        const body = await req.json();
+        const data = schema.parse(body);
+        return handler({
+          data,
+          request: req,
+          services: {
+            oauth: mockService,
+          },
+        });
+      } catch (error: any) {
+        if (error.name === 'ZodError') {
+          return new Response(JSON.stringify({ 
+            error: { 
+              code: 'VALIDATION_ERROR', 
+              message: error.issues?.[0]?.message || 'Validation failed' 
+            } 
+          }), { 
+            status: 400,
+            headers: { 'Content-Type': 'application/json' }
+          });
+        }
+        throw error;
+      }
+    },
+  };
+});
 
 const createRequest = (body: object) =>
   new Request('http://localhost/api/auth/oauth/link', {
@@ -23,7 +50,6 @@ const createRequest = (body: object) =>
 describe('POST /api/auth/oauth/link', () => {
   beforeEach(() => {
     vi.resetAllMocks();
-    (getServiceContainer as vi.Mock).mockReturnValue({ oauth: mockService });
   });
 
   it('returns error when service fails', async () => {

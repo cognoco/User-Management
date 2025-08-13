@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { OAuthProvider } from "@/types/oauth";
-import { withValidatedServices } from "@/src/lib/api/with-services";
+import { withValidatedServices } from "@/lib/api/with-services";
 import {
   createSuccessResponse,
   ApiError,

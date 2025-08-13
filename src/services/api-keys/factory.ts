@@ -29,8 +29,22 @@ export function getApiKeyService(options: ApiKeysServiceOptions = {}): ApiKeySer
   }
 
   if (!apiKeyServiceInstance) {
-    const provider = AdapterRegistry.getInstance().getAdapter<IApiKeyDataProvider>('apiKey');
-    apiKeyServiceInstance = new DefaultApiKeysService(provider);
+    // Check service container first (for tests and dynamic configuration)
+    try {
+      const { getServiceContainer } = require('@/lib/config/service-container');
+      const container = getServiceContainer();
+      if (container.apiKey) {
+        apiKeyServiceInstance = container.apiKey as ApiKeyService;
+      }
+    } catch {
+      // Service container not available or service not configured
+    }
+
+    // If not in service container, create default with adapter
+    if (!apiKeyServiceInstance) {
+      const provider = AdapterRegistry.getInstance().getAdapter<IApiKeyDataProvider>('apiKey');
+      apiKeyServiceInstance = new DefaultApiKeysService(provider);
+    }
   }
 
   return apiKeyServiceInstance;

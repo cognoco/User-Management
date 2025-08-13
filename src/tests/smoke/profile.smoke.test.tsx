@@ -135,12 +135,40 @@ vi.mock('@/lib/stores/profile.store', () => ({
   useProfileStore: useProfileStoreMock,
 }));
 
+// Mock useUserProfile hook directly
+vi.mock('@/hooks/user/useUserProfile', () => ({
+  useUserProfile: vi.fn(() => ({
+    profile: {
+      id: 'test-user',
+      first_name: 'Test',
+      last_name: 'User',
+      email: 'test@example.com',
+      userType: 'PRIVATE',
+    },
+    isLoading: false,
+    error: null,
+    updateProfile: vi.fn(),
+    uploadAvatar: vi.fn(),
+    removeAvatar: vi.fn(),
+  })),
+}));
+
+// Mock useAccountSettings hook
+vi.mock('@/hooks/user/useAccountSettings', () => ({
+  useAccountSettings: vi.fn(() => ({})),
+}));
+
+// Mock ConnectedAccounts component to avoid accounts.map error
+vi.mock('@/ui/styled/shared/ConnectedAccounts', () => ({
+  ConnectedAccounts: () => <div data-testid="connected-accounts-mock">Connected Accounts Mock</div>,
+}));
+
 describe('Smoke: Profile Page', () => {
   it('renders profile page for authenticated user', () => {
     logDebug('Test: render ProfilePage');
     render(<ProfilePage />);
     logDebug('After render');
-    // Check for the main page heading (h1)
+    // Check for the main page heading (h1) - actual text is "Profile Settings" from i18n
     expect(screen.getByRole('heading', { name: /profile settings/i, level: 1 })).toBeInTheDocument();
     logDebug('After expect');
     // Optionally check for user email or avatar if present

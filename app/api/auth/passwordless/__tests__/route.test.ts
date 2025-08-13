@@ -1,26 +1,52 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { POST } from '../route';
-import { getApiAuthService } from '@/services/auth/factory';
 
+const mockAuthService = { sendMagicLink: vi.fn() };
 
-vi.mock('@/middleware/with-auth-rate-limit', () => ({
-  withAuthRateLimit: vi.fn((_req, handler) => handler(_req))
-}));
-vi.mock('@/middleware/with-security', () => ({
-  withSecurity: (handler: any) => handler
-}));
+// Mock withValidatedServices pattern
+vi.mock('@/lib/api/with-services', async () => {
+  const actual = await vi.importActual('@/lib/api/with-services');
+  return {
+    ...actual,
+    withValidatedServices: ({ handler, schema }: any) => async (req: any) => {
+      try {
+        const body = await req.json();
+        const data = schema.parse(body);
+        return handler({
+          data,
+          request: req,
+          services: {
+            auth: mockAuthService,
+            audit: { logUserAction: vi.fn() },
+          },
+        });
+      } catch (error: any) {
+        if (error.name === 'ZodError') {
+          return new Response(JSON.stringify({ 
+            error: { 
+              code: 'VALIDATION_ERROR', 
+              message: error.issues?.[0]?.message || 'Validation failed' 
+            } 
+          }), { 
+            status: 400,
+            headers: { 'Content-Type': 'application/json' }
+          });
+        }
+        throw error;
+      }
+    },
+  };
+});
 
 describe('POST /api/auth/passwordless', () => {
-  const mockAuthService = { sendMagicLink: vi.fn() };
   const createRequest = (email?: string) => new Request('http://localhost/api/auth/passwordless', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: email ? JSON.stringify({ email }) : undefined
+    body: email ? JSON.stringify({ email }) : JSON.stringify({})
   });
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (getApiAuthService as unknown as vi.Mock).mockReturnValue(mockAuthService);
     mockAuthService.sendMagicLink.mockResolvedValue({ success: true });
   });
 

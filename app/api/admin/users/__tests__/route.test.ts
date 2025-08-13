@@ -1,7 +1,16 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { NextRequest } from "next/server";
-import { GET } from "../route";
 
+// Mock the admin service factory
+const mockAdminService = {
+  searchUsers: vi.fn(),
+};
+
+vi.mock("@/services/admin/factory", () => ({
+  getApiAdminService: vi.fn(() => mockAdminService),
+}));
+
+import { GET } from "../route";
 
 vi.mock("@/middleware/createMiddlewareChain", async () => {
   const actual = await vi.importActual<any>(
@@ -32,8 +41,6 @@ vi.mock("@/middleware/createMiddlewareChain", async () => {
   };
 });
 
-import { getApiAdminService } from "@/services/admin/factory";
-
 function createRequest(query: Record<string, string> = {}) {
   const url = new URL("https://example.com/api/admin/users");
   Object.entries(query).forEach(([k, v]) => url.searchParams.append(k, v));
@@ -59,17 +66,9 @@ function createRequest(query: Record<string, string> = {}) {
 }
 
 describe("Admin Users API", () => {
-  const service = {
-    searchUsers: vi.fn(),
-  } as any;
-
   beforeEach(() => {
     vi.useFakeTimers();
-    // Clear and register services in ServiceLocator
-  const locator = ServiceLocator.getInstance();
-  locator.clear();
-  locator.register(ServiceKeys.ADDRESS_SERVICE, service);
-    service.searchUsers.mockResolvedValue({
+    mockAdminService.searchUsers.mockResolvedValue({
       users: [{ id: "1" }],
       pagination: { page: 1, pageSize: 10, totalItems: 1, totalPages: 1 },
     });
@@ -87,23 +86,23 @@ describe("Admin Users API", () => {
     expect(res.status).toBe(200);
     expect(body.users).toHaveLength(1);
     expect(body.pagination.total).toBe(1);
-    expect(service.searchUsers).toHaveBeenCalled();
+    expect(mockAdminService.searchUsers).toHaveBeenCalled();
   });
 
   it("applies search filter", async () => {
     await GET(createRequest({ search: "john" }));
-    expect(service.searchUsers).toHaveBeenCalled();
+    expect(mockAdminService.searchUsers).toHaveBeenCalled();
   });
 
   it("returns 500 on database error", async () => {
-    service.searchUsers.mockRejectedValue(new Error("fail"));
+    mockAdminService.searchUsers.mockRejectedValue(new Error("fail"));
     const res = await GET(createRequest());
     expect(res.status).toBe(500);
   });
 
   it("returns 504 on timeout", async () => {
     // Mock Promise.race to immediately reject with timeout error
-    service.searchUsers.mockRejectedValue(new Error("timeout"));
+    mockAdminService.searchUsers.mockRejectedValue(new Error("timeout"));
     const res = await GET(createRequest());
     expect(res.status).toBe(500);
   }, 1000);

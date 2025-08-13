@@ -67,10 +67,10 @@ describe('useAuth integration', () => {
     const { result } = renderHook(() => useAuth());
 
     await act(async () => {
-      await result.current.login({ email: 'a@test.com', password: 'pass' });
+      await result.current.login('a@test.com', 'pass');
     });
 
-    expect(service.login).toHaveBeenCalledWith({ email: 'a@test.com', password: 'pass' });
+    expect(service.login).toHaveBeenCalledWith({ email: 'a@test.com', password: 'pass', rememberMe: false });
   });
 
   it('auth service uses the configured adapter', async () => {

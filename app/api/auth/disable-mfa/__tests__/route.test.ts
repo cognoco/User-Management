@@ -1,35 +1,16 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { NextRequest } from 'next/server';
+import { ServiceLocator, ServiceKeys } from '@/lib/config/service-locator';
+
+// Mock the auth service
+const mockAuthService = { 
+  disableMFA: vi.fn(),
+  getCurrentUser: vi.fn().mockResolvedValue({ id: 'user123', email: 'test@example.com' })
+};
+
 import { POST } from '../route';
 
-// Mock the service container to avoid circular dependencies
-vi.mock('@/lib/config/service-container', () => ({
-  getServiceContainer: vi.fn()
-}));
-
-vi.mock('@/middleware/with-auth-rate-limit', () => ({
-  withAuthRateLimit: vi.fn((_req, handler) => handler(_req))
-}));
-vi.mock('@/middleware/with-security', () => ({
-  withSecurity: (handler: any) => handler
-}));
-
 describe('POST /api/auth/disable-mfa', () => {
-  const mockAuthService = { 
-    disableMFA: vi.fn(),
-    getCurrentUser: vi.fn().mockResolvedValue({ id: 'user123', email: 'test@example.com' })
-  };
-  
-  const mockServices = {
-    auth: mockAuthService,
-    user: { getUserById: vi.fn() },
-    permission: { checkPermission: vi.fn() },
-    session: { createSession: vi.fn() },
-    team: { createTeam: vi.fn() },
-    subscription: { getSubscription: vi.fn() },
-    apiKey: { createApiKey: vi.fn() }
-  };
-  
   const createRequest = (code?: string) => new NextRequest('http://localhost/api/auth/disable-mfa', {
     method: 'POST',
     headers: { 
@@ -39,29 +20,41 @@ describe('POST /api/auth/disable-mfa', () => {
     body: code ? JSON.stringify({ code }) : JSON.stringify({}) // Always provide valid JSON
   });
 
-  beforeEach(async () => {
+  beforeEach(() => {
     vi.clearAllMocks();
     
-    // Set required environment variables for Supabase
-    process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-service-role-key';
-    process.env.NEXT_PUBLIC_SUPABASE_URL = 'http://localhost:54321';
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'test-anon-key';
-    
-    // Mock the service container to return our mock services
-    const { getServiceContainer } = await import('@/lib/config/service-container');
-    (getServiceContainer as any).mockReturnValue(mockServices);
+    // Register the mock service in ServiceLocator
+    const locator = ServiceLocator.getInstance();
+    locator.clear();
+    locator.register(ServiceKeys.AUTH_SERVICE, mockAuthService);
     
     mockAuthService.disableMFA.mockResolvedValue({ success: true });
   });
 
+  afterEach(() => {
+    ServiceLocator.getInstance().clear();
+  });
+
   it('returns 400 when code missing', async () => {
     const res = await POST(createRequest());
+    const data = await res.json();
     expect(res.status).toBe(400);
+    expect(data.error.message).toContain('Required');
   });
 
   it('returns success when MFA disabled', async () => {
     const res = await POST(createRequest('1234'));
+    const data = await res.json();
     expect(res.status).toBe(200);
+    expect(data.data.message).toBe('MFA has been disabled');
     expect(mockAuthService.disableMFA).toHaveBeenCalledWith('1234');
+  });
+
+  it('returns 400 when MFA disable fails', async () => {
+    mockAuthService.disableMFA.mockResolvedValue({ success: false, error: 'Invalid code' });
+    const res = await POST(createRequest('wrong'));
+    const data = await res.json();
+    expect(res.status).toBe(400);
+    expect(data.error.message).toBe('Invalid code');
   });
 });

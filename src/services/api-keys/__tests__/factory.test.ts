@@ -20,8 +20,8 @@ describe('getApiKeyService', () => {
     ({ DefaultApiKeysService } = await import('../default-api-keys.service'));
   });
 
-  it('returns configured service if registered', () => {
-    const { configureServices } = require('@/lib/config/service-container');
+  it('returns configured service if registered', async () => {
+    const { configureServices } = await import('@/lib/config/service-container');
     const svc = {} as any;
     configureServices({ apiKeyService: svc });
     expect(getApiKeyService()).toBe(svc);
@@ -31,6 +31,8 @@ describe('getApiKeyService', () => {
   it('creates default service with adapter when not configured', () => {
     const adapter = {} as any;
     AdapterRegistry.getInstance().registerAdapter('apiKey', adapter);
+    // Also register audit adapter which may be required
+    AdapterRegistry.getInstance().registerAdapter('audit', adapter);
     const service = getApiKeyService({ reset: true });
     expect(service).toBeInstanceOf(DefaultApiKeysService);
     // Services are now cached as singletons
@@ -40,6 +42,8 @@ describe('getApiKeyService', () => {
   it('allows resetting the cached instance', () => {
     const adapter = {} as any;
     AdapterRegistry.getInstance().registerAdapter('apiKey', adapter);
+    // Also register audit adapter which may be required
+    AdapterRegistry.getInstance().registerAdapter('audit', adapter);
     const first = getApiKeyService({ reset: true });
     const second = getApiKeyService();
     const third = getApiKeyService({ reset: true });

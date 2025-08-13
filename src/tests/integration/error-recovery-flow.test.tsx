@@ -1,13 +1,15 @@
 // __tests__/integration/error-recovery-flow.test.tsx
 
 import React from 'react';
-import { render, screen, waitFor, act } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { act } from 'react';
 import FormWithRecovery from '@/ui/styled/common/FormWithRecovery';
 import { describe, test, expect, beforeEach, vi } from 'vitest';
+import '@/tests/i18nTestSetup';
 
 // Import our standardized mock
-vi.mock('@/lib/database/supabase', () => require('@/tests/mocks/supabase'));
+vi.mock('@/lib/database/supabase', () => import('@/tests/mocks/supabase'));
 import { supabase } from '@/lib/database/supabase';
 
 describe('Error Recovery Flow', () => {
@@ -64,7 +66,7 @@ describe('Error Recovery Flow', () => {
 
     // Verify error message is displayed
     await waitFor(() => {
-      expect(screen.findByText(/Error: Network error/i)).toBeInTheDocument();
+      expect(screen.getByText(/Error: Network error/i)).toBeInTheDocument();
     });
 
     // Simulate page reload - clear mocks

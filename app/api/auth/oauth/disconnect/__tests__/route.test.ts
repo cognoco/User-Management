@@ -1,9 +1,6 @@
 import { POST } from '../route';
 import { OAuthProvider } from '@/types/oauth';
 import { describe, it, expect, vi, beforeEach, MockedFunction } from 'vitest';
-import { ServiceLocator, ServiceKeys } from '@/lib/config/service-locator';
-import type { PermissionService } from '@/core/permission/interfaces';
-import type { AuthService } from '@/core/auth/interfaces';
 import { createAuthenticatedRequest } from '@/tests/utils/request-helpers';
 import { logUserAction } from '@/lib/audit/auditLogger';
 
@@ -36,22 +33,45 @@ vi.mock('next/headers', () => ({
   }),
 }));
 
-// 2. Mock Service Container
-vi.mock('@/lib/config/service-container', () => ({
-  getServiceContainer: vi.fn(),
-  configureServices: vi.fn(),
-  resetServiceContainer: vi.fn()
-}));
-
 // Mock OAuth service
 const mockOAuthService = {
   disconnectProvider: vi.fn()
 };
 
-// 3. Mock Permission Service
-const mockPermissionService: Partial<PermissionService> = {
-  hasPermission: vi.fn(),
-};
+// Mock withValidatedServices pattern
+vi.mock('@/lib/api/with-services', async () => {
+  const actual = await vi.importActual('@/lib/api/with-services');
+  return {
+    ...actual,
+    withValidatedServices: ({ handler, schema }: any) => async (req: any) => {
+      try {
+        const body = await req.json();
+        const data = schema.parse(body);
+        return handler({
+          data,
+          request: req,
+          userId: 'logged-in-user-abc',
+          services: {
+            oauth: mockOAuthService,
+          },
+        });
+      } catch (error: any) {
+        if (error.name === 'ZodError') {
+          return new Response(JSON.stringify({ 
+            error: { 
+              code: 'VALIDATION_ERROR', 
+              message: error.issues?.[0]?.message || 'Validation failed' 
+            } 
+          }), { 
+            status: 400,
+            headers: { 'Content-Type': 'application/json' }
+          });
+        }
+        throw error;
+      }
+    },
+  };
+});
 
 // 4. Mock OAuth service factory
 
@@ -80,21 +100,8 @@ describe('POST /api/auth/oauth/disconnect', () => {
     vi.resetAllMocks();
     mockCookies.clear();
     
-  // Clear and register services in ServiceLocator
-  const locator = ServiceLocator.getInstance();
-  locator.clear();
-  locator.register(ServiceKeys.PERMISSION_SERVICE, permission || service);
-  locator.register(ServiceKeys.AUTH_SERVICE, auth || service);
-    
-    (getServiceContainer as vi.Mock).mockReturnValue({
-      oauth: mockOAuthService,
-      permissionService: mockPermissionService,
-      authService: { getCurrentUser: vi.fn().mockResolvedValue({ id: loggedInUserId }) }
-    });
-    
     // Default successful responses
     mockOAuthService.disconnectProvider.mockResolvedValue({ success: true });
-    mockPermissionService.hasPermission!.mockResolvedValue(true);
   });
 
   // Helper to create request

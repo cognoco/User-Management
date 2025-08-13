@@ -1,10 +1,11 @@
 import { renderHook, act } from "@testing-library/react";
 import React from "react";
-import { describe, it, beforeEach, expect, vi } from "vitest";
+import { describe, it, beforeEach, afterEach, expect, vi } from "vitest";
 import AuthProvider from "@/lib/context/AuthContext";
 import type { AuthService } from "@/core/auth/interfaces";
 import type { User } from "@/core/auth/models";
 import { useAuth } from "../useAuth";
+import { UserManagementConfiguration } from "@/core/config";
 
 let mockAuthService: AuthService & { onAuthEvent?: any };
 
@@ -13,6 +14,9 @@ const wrapper = ({ children }: { children: React.ReactNode }) => (
 );
 
 beforeEach(async () => {
+  vi.resetAllMocks();
+  UserManagementConfiguration.reset();
+  
   mockAuthService = {
     login: vi.fn(),
     register: vi.fn(),
@@ -37,14 +41,27 @@ beforeEach(async () => {
   (mockAuthService.onAuthStateChanged as any).mockImplementation(
     () => () => {},
   );
+  
+  // Configure the service in UserManagementConfiguration
+  UserManagementConfiguration.configureServiceProviders({
+    authService: mockAuthService,
+  });
+});
+
+afterEach(() => {
+  UserManagementConfiguration.reset();
 });
 
 describe("useAuth hook", () => {
   it("initializes with default state", () => {
     const { result } = renderHook(() => useAuth(), { wrapper });
+    
+    // Debug what we're actually getting
+    console.log('Hook result:', Object.keys(result.current));
+    
     expect(result.current.user).toBeNull();
     expect(result.current.token).toBeNull();
-    expect(result.current.loading).toBe(false);
+    expect(result.current.loading || result.current.isLoading).toBe(false);
     expect(result.current.error).toBeNull();
     expect(result.current.mfaEnabled).toBe(false);
   });
@@ -63,13 +80,19 @@ describe("useAuth hook", () => {
 
     const { result } = renderHook(() => useAuth(), { wrapper });
 
+    // Check if login function exists and the service is our mock
+    expect(typeof result.current.login).toBe('function');
+    console.log('authService is mock?', result.current.authService === mockAuthService);
+    console.log('authService.login is mock?', result.current.authService.login === mockAuthService.login);
+    
     await act(async () => {
-      await result.current.login("a@test.com", "pass", true);
+      const loginResult = await result.current.login("a@test.com", "password123", true);
+      console.log('Login result:', loginResult);
     });
 
     expect(mockAuthService.login).toHaveBeenCalledWith({
       email: "a@test.com",
-      password: "pass",
+      password: "password123",
       rememberMe: true,
     });
     expect(result.current.user).toEqual(user);

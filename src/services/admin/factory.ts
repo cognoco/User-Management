@@ -37,8 +37,22 @@ export function getApiAdminService(
   }
 
   if (!adminServiceInstance) {
-    const provider = AdapterRegistry.getInstance().getAdapter<IAdminDataProvider>('admin');
-    adminServiceInstance = new DefaultAdminService(provider);
+    // Check service container first (for tests and dynamic configuration)
+    try {
+      const { getServiceContainer } = require('@/lib/config/service-container');
+      const container = getServiceContainer();
+      if (container.admin) {
+        adminServiceInstance = container.admin as AdminService;
+      }
+    } catch {
+      // Service container not available or service not configured
+    }
+
+    // If not in service container, create default with adapter
+    if (!adminServiceInstance) {
+      const provider = AdapterRegistry.getInstance().getAdapter<IAdminDataProvider>('admin');
+      adminServiceInstance = new DefaultAdminService(provider);
+    }
   }
 
   return adminServiceInstance;

@@ -1,8 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-let AdapterRegistry: typeof import('@/adapters/registry').AdapterRegistry;
-let configureServices: typeof import('@/lib/config/service-container').configureServices;
-let resetServiceContainer: typeof import('@/lib/config/service-container').resetServiceContainer;
 
+// Use the global mock from vitest.setup.ts instead of creating new mock
+let AdapterRegistry: typeof import('@/adapters/registry').AdapterRegistry;
 let getApiGdprService: typeof import('../factory').getApiGdprService;
 let DefaultGdprService: typeof import('../default-gdpr.service').DefaultGdprService;
 
@@ -10,14 +9,20 @@ describe('getApiGdprService', () => {
   beforeEach(async () => {
     vi.resetModules();
     ({ AdapterRegistry } = await import('@/adapters/registry'));
-    ({ configureServices, resetServiceContainer } = await import('@/lib/config/service-container'));
     (AdapterRegistry as any).instance = null;
-    resetServiceContainer();
+    vi.clearAllMocks();
+    
+    // Set required environment variables
+    process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-service-role-key';
+    process.env.NEXT_PUBLIC_SUPABASE_URL = 'http://localhost:54321';
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'test-anon-key';
+    
     ({ getApiGdprService } = await import('../factory'));
     ({ DefaultGdprService } = await import('../default-gdpr.service'));
   });
 
-  it('returns configured service if registered', () => {
+  it('returns configured service if registered', async () => {
+    const { configureServices } = await import('@/lib/config/service-container');
     const service = {} as any;
     configureServices({ gdprService: service });
     expect(getApiGdprService()).toBe(service);
@@ -29,6 +34,7 @@ describe('getApiGdprService', () => {
     AdapterRegistry.getInstance().registerAdapter('gdpr', adapter);
     const service = getApiGdprService({ reset: true });
     expect(service).toBeInstanceOf(DefaultGdprService);
+    // Services are now cached as singletons
     expect(getApiGdprService()).toBe(service);
   });
 

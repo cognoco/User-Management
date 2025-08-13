@@ -1,4 +1,6 @@
 // __tests__/integration/export-import-flow.test.tsx
+import { vi, describe, beforeEach, test, expect } from 'vitest';
+import '@/tests/i18nTestSetup';
 
 vi.mock('@/lib/database/supabase', () => import('@/tests/mocks/supabase'));
 import { supabase } from '@/lib/database/supabase';
@@ -6,8 +8,8 @@ import { supabase } from '@/lib/database/supabase';
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { act } from 'react';
 import { UserPreferencesComponent } from '@/ui/styled/common/UserPreferences';
-import { vi } from 'vitest';
 
 describe('User Preferences Flow', () => {
   let user: ReturnType<typeof userEvent.setup>;
@@ -86,7 +88,7 @@ describe('User Preferences Flow', () => {
     
     // Verify save was successful
     await waitFor(() => {
-      expect(await screen.findByText(/preferences saved/i)).toBeInTheDocument();
+      expect(screen.getByText(/preferences saved/i)).toBeInTheDocument();
     });
     
     // Verify update was called with correct data

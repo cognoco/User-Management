@@ -23,6 +23,9 @@ describe('getApiAuditService', () => {
   });
 
   it('returns configured service if registered', () => {
+    const adapter = {} as any;
+    // Register the audit adapter first
+    AdapterRegistry.getInstance().registerAdapter('audit', adapter);
     const svc = {} as any;
     UserManagementConfiguration.configureServiceProviders({ auditService: svc });
     expect(getApiAuditService({ reset: true })).toBe(svc);
@@ -38,8 +41,11 @@ describe('getApiAuditService', () => {
     expect(getApiAuditService()).toBe(service);
   });
 
-  it('uses ServiceContainer override when configured', () => {
-    const { configureServices } = require('@/lib/config/service-container');
+  it('uses ServiceContainer override when configured', async () => {
+    const { configureServices } = await import('@/lib/config/service-container');
+    const adapter = {} as any;
+    // Register the audit adapter first
+    AdapterRegistry.getInstance().registerAdapter('audit', adapter);
     const svc = {} as any;
     configureServices({ auditService: svc });
     expect(getApiAuditService({ reset: true })).toBe(svc);

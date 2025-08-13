@@ -50,17 +50,32 @@ describe('File Upload and Management Flow', () => {
     });
     const input = screen.getByLabelText(/upload file/i);
     await user.upload(input, file);
+    
+    // Update the files array and set up the next list call to return updated data
     files.push({ name: 'test-doc.pdf', metadata: { size: 12345, mimetype: 'application/pdf' } });
+    mockList.mockResolvedValueOnce({
+      data: [...files],
+      error: null
+    });
+    
     await waitFor(() => expect(screen.getByText('test-doc.pdf')).toBeInTheDocument());
     const downloadLink = screen.getByRole('link', { name: /download/i });
     expect(downloadLink).toHaveAttribute('href', 'https://example.com/test-doc.pdf');
     await user.click(screen.getByRole('button', { name: /delete/i }));
     await user.click(screen.getByRole('button', { name: /confirm/i }));
+    
     mockRemove.mockResolvedValueOnce({
       data: { success: true },
       error: null
     });
+    
+    // Update files array and mock the next list call
     files = files.filter(f => f.name !== 'test-doc.pdf');
+    mockList.mockResolvedValueOnce({
+      data: [...files],
+      error: null
+    });
+    
     await waitFor(() => expect(screen.getByText(/no files/i)).toBeInTheDocument());
   });
   

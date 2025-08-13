@@ -1,29 +1,72 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { NextResponse } from 'next/server';
 import { POST, GET } from '../route';
-import { getApiCompanyService } from '@/services/company/factory';
-import { withRouteAuth } from '@/middleware/auth';
 import { createAuthenticatedRequest } from '@/tests/utils/request-helpers';
 
-// Mock the auth middleware to bypass authentication
-vi.mock('@/lib/api/auth-middleware', () => ({
-  createAuthMiddleware: () => vi.fn((req: any) => Promise.resolve({
-    userId: 'u1',
-    user: { id: 'u1', email: 'test@example.com' },
-    permissions: []
-  }))
+// Mock the withValidatedServices wrapper
+vi.mock('@/lib/api/with-services', () => ({
+  withValidatedServices: vi.fn((config: any) => {
+    return async (req: Request) => {
+      // Parse body if needed
+      let data = null;
+      if (config.schema && req.method === 'POST') {
+        try {
+          const body = await req.json();
+          if (config.schema.safeParse) {
+            const result = config.schema.safeParse(body);
+            if (!result.success) {
+              return NextResponse.json({ error: { code: 'VALIDATION_ERROR', message: 'Validation failed' } }, { status: 400 });
+            }
+            data = result.data;
+          } else {
+            data = body;
+          }
+        } catch {
+          data = null;
+        }
+      }
+      
+      // Execute handler with mocked context
+      const mockContext = {
+        request: req,
+        auth: { userId: 'test-user-id', user: { id: 'test-user-id', email: 'test@example.com' }, permissions: [] },
+        data,
+        services: {
+          company: mockCompanyService
+        }
+      };
+      
+      try {
+        return await config.handler(mockContext);
+      } catch (error: any) {
+        if (error.message === 'unauthorized') {
+          return new NextResponse('unauthorized', { status: 401 });
+        }
+        if (error.message?.includes('not found')) {
+          return NextResponse.json({ error: { message: error.message } }, { status: 404 });
+        }
+        throw error;
+      }
+    };
+  })
 }));
 
-
+// Mock the withSecurity wrapper
+vi.mock('@/middleware/with-security', () => ({
+  withSecurity: vi.fn((handler: any) => handler)
+}));
 
 // Mock rate limiter
 vi.mock('@/middleware/rate-limit', () => ({
   checkRateLimit: vi.fn(() => Promise.resolve(false))
 }));
 
-vi.mock('@/middleware/auth', () => ({
-  withRouteAuth: vi.fn((handler: any) => async (req: any) => handler(req, { userId: 'test-user-id', role: 'user' })),
+// Mock audit logger
+vi.mock('@/lib/audit/auditLogger', () => ({
+  logUserAction: vi.fn(() => Promise.resolve())
 }));
+
+let mockCompanyService: any;
 
 describe('Company Profile API', () => {
   const mockUser = {
@@ -47,15 +90,20 @@ describe('Company Profile API', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    
+    // Initialize mock company service
+    mockCompanyService = {
+      createProfile: vi.fn(),
+      getProfileByUserId: vi.fn(),
+      updateProfile: vi.fn(),
+      deleteProfile: vi.fn()
+    };
   });
 
   describe('POST /api/company/profile', () => {
     it('should create a new company profile', async () => {
-      const service = { createProfile: vi.fn().mockResolvedValue(mockProfile), getProfileByUserId: vi.fn().mockResolvedValue(null) } as any;
-      // Clear and register services in ServiceLocator
-  const locator = ServiceLocator.getInstance();
-  locator.clear();
-  locator.register(ServiceKeys.ADDRESS_SERVICE, service);
+      mockCompanyService.getProfileByUserId.mockResolvedValue(null);
+      mockCompanyService.createProfile.mockResolvedValue(mockProfile);
 
       const request = createAuthenticatedRequest('POST', 'http://localhost/api/company/profile', {
         name: mockProfile.name,
@@ -69,14 +117,16 @@ describe('Company Profile API', () => {
       const data = await response.json();
 
       expect(response.status).toBe(200);
-      expect(data).toEqual(mockProfile);
-      expect(service.createProfile).toHaveBeenCalled();
+      expect(data.data).toEqual(mockProfile);
+      expect(mockCompanyService.createProfile).toHaveBeenCalled();
     });
 
     it('should return 401 if not authenticated', async () => {
-      vi.mocked(withRouteAuth).mockResolvedValueOnce(
-        new NextResponse('unauthorized', { status: 401 })
-      );
+      // Mock withValidatedServices to simulate authentication failure
+      const { withValidatedServices } = await import('@/lib/api/with-services');
+      vi.mocked(withValidatedServices).mockImplementationOnce(() => {
+        return async () => new NextResponse('unauthorized', { status: 401 });
+      });
 
       const request = createAuthenticatedRequest('POST', 'http://localhost/api/company/profile', {});
 
@@ -87,11 +137,7 @@ describe('Company Profile API', () => {
 
   describe('GET /api/company/profile', () => {
     it('should return the company profile', async () => {
-      const service = { getProfileByUserId: vi.fn().mockResolvedValue(mockProfile) } as any;
-      // Clear and register services in ServiceLocator
-  const locator = ServiceLocator.getInstance();
-  locator.clear();
-  locator.register(ServiceKeys.ADDRESS_SERVICE, service);
+      mockCompanyService.getProfileByUserId.mockResolvedValue(mockProfile);
 
       const request = createAuthenticatedRequest('GET', 'http://localhost/api/company/profile');
 
@@ -99,16 +145,12 @@ describe('Company Profile API', () => {
       const data = await response.json();
 
       expect(response.status).toBe(200);
-      expect(data).toEqual(mockProfile);
-      expect(service.getProfileByUserId).toHaveBeenCalled();
+      expect(data.data).toEqual(mockProfile);
+      expect(mockCompanyService.getProfileByUserId).toHaveBeenCalled();
     });
 
     it('should return 404 if profile not found', async () => {
-      const service = { getProfileByUserId: vi.fn().mockResolvedValue(null) } as any;
-      // Clear and register services in ServiceLocator
-  const locator = ServiceLocator.getInstance();
-  locator.clear();
-  locator.register(ServiceKeys.ADDRESS_SERVICE, service);
+      mockCompanyService.getProfileByUserId.mockResolvedValue(null);
 
       const request = createAuthenticatedRequest('GET', 'http://localhost/api/company/profile');
 

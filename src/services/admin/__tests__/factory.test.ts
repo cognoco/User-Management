@@ -21,8 +21,8 @@ describe('getApiAdminService', () => {
     ({ DefaultAdminService } = await import('../default-admin.service'));
   });
 
-  it('returns configured service if registered in ServiceContainer', () => {
-    const { configureServices } = require('@/lib/config/service-container');
+  it('returns configured service if registered in ServiceContainer', async () => {
+    const { configureServices } = await import('@/lib/config/service-container');
     const svc = { searchUsers: vi.fn() } as any;
     configureServices({ adminService: svc });
     expect(getApiAdminService()).toBe(svc);
@@ -38,8 +38,8 @@ describe('getApiAdminService', () => {
     expect(getApiAdminService()).toBe(service);
   });
 
-  it('supports reset option to clear cache', () => {
-    const { configureServices } = require('@/lib/config/service-container');
+  it('supports reset option to clear cache', async () => {
+    const { configureServices } = await import('@/lib/config/service-container');
     const svc1 = { searchUsers: vi.fn() } as any;
     const svc2 = { searchUsers: vi.fn() } as any;
     configureServices({ adminService: svc1 });

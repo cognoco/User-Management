@@ -7,6 +7,7 @@ describe('Smoke: App Entry', () => {
   it('renders the main HomePage without crashing', () => {
     render(<HomePage />);
     expect(screen.getByText(/Welcome to User Management/i)).toBeInTheDocument();
-    expect(screen.getByText(/Key Features/i)).toBeInTheDocument();
+    expect(screen.getByText(/powerful and flexible user management system/i)).toBeInTheDocument();
+    expect(screen.getByText(/Go to Test Page/i)).toBeInTheDocument();
   });
 }); 

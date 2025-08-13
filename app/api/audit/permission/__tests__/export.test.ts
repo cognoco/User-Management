@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { GET } from '../export/route';
+import { GET } from '../export';
 import { withRouteAuth } from '@/middleware/auth';
 import { setTableMockData, resetSupabaseMock } from '@/tests/mocks/supabase';
 import { NextResponse } from 'next/server';

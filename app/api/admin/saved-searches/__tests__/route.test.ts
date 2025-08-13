@@ -42,30 +42,27 @@ function createRequest(method: string) {
 }
 
 describe("saved searches API", () => {
-  const service = {
+  const mockService = {
     listSavedSearches: vi.fn(),
     createSavedSearch: vi.fn(),
-  } as any;
+  };
 
   beforeEach(() => {
     vi.clearAllMocks();
-    // Clear and register services in ServiceLocator
-  const locator = ServiceLocator.getInstance();
-  locator.clear();
-  locator.register(ServiceKeys.ADDRESS_SERVICE, service);
-    service.listSavedSearches.mockResolvedValue([]);
-    service.createSavedSearch.mockResolvedValue({ id: "1" });
+    (getApiSavedSearchService as any).mockReturnValue(mockService);
+    mockService.listSavedSearches.mockResolvedValue([]);
+    mockService.createSavedSearch.mockResolvedValue({ id: "1" });
   });
 
   it("calls service on GET", async () => {
     const res = await GET(createRequest("GET"));
     expect(res.status).toBe(200);
-    expect(service.listSavedSearches).toHaveBeenCalledWith("u1");
+    expect(mockService.listSavedSearches).toHaveBeenCalledWith("u1");
   });
 
   it("calls service on POST", async () => {
     const res = await POST(createRequest("POST"));
     expect(res.status).toBe(201);
-    expect(service.createSavedSearch).toHaveBeenCalled();
+    expect(mockService.createSavedSearch).toHaveBeenCalled();
   });
 });

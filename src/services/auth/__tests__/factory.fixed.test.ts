@@ -4,7 +4,7 @@ import { DefaultAuthService } from '../default-auth.service';
 import type { AuthService } from '@/core/auth/interfaces';
 
 describe('getApiAuthService - Fixed', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     // Clear any module cache
     vi.resetModules();
     
@@ -14,6 +14,10 @@ describe('getApiAuthService - Fixed', () => {
     // Clear global auth service cache
     delete (globalThis as any).__UM_AUTH_SERVICE__;
     
+    // Clear ServiceLocator
+    const { ServiceLocator } = await import('@/lib/config/service-locator');
+    ServiceLocator.getInstance().clear();
+    
     // Set required environment variables
     process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-service-role-key';
     process.env.NEXT_PUBLIC_SUPABASE_URL = 'http://localhost:54321';
@@ -21,25 +25,42 @@ describe('getApiAuthService - Fixed', () => {
   });
 
   it('creates service with adapter and caches instance', async () => {
-    // Register a mock adapter
-    const mockAdapter = {
+    // Create a mock provider directly with all required methods
+    const mockProvider = {
       login: vi.fn(),
       register: vi.fn(),
       logout: vi.fn(),
-      // Add other required methods as needed
+      getCurrentUser: vi.fn(),
+      resetPassword: vi.fn(),
+      updatePassword: vi.fn(),
+      updatePasswordWithToken: vi.fn(),
+      verifyPasswordResetToken: vi.fn(),
+      sendVerificationEmail: vi.fn(),
+      sendMagicLink: vi.fn(),
+      verifyEmail: vi.fn(),
+      verifyMagicLink: vi.fn(),
+      deleteAccount: vi.fn(),
+      onAuthStateChanged: vi.fn(() => vi.fn()), // Returns unsubscribe function
+      onSessionExpiry: vi.fn(),
+      setupTwoFactor: vi.fn(),
+      verifyTwoFactor: vi.fn(),
+      disableTwoFactor: vi.fn(),
+      generateBackupCodes: vi.fn(),
+      verifyBackupCode: vi.fn(),
     } as any;
-    
-    AdapterRegistry.getInstance().registerAdapter('auth', mockAdapter);
     
     // Import factory dynamically to avoid circular dependencies
     const { getApiAuthService } = await import('../factory');
     
-    // Create service twice
-    const service1 = getApiAuthService({ reset: true });
+    // Create service twice with provider option
+    const service1 = getApiAuthService({ reset: true, provider: mockProvider });
     const service2 = getApiAuthService();
     
-    // Verify it's the same cached instance
-    expect(service1).toBeInstanceOf(DefaultAuthService);
+    // Verify it's the same cached instance and has the expected structure
+    expect(service1).toHaveProperty('login');
+    expect(service1).toHaveProperty('register');
+    expect(service1).toHaveProperty('logout');
+    expect(service1.constructor.name).toBe('DefaultAuthService');
     expect(service1).toBe(service2);
   });
 

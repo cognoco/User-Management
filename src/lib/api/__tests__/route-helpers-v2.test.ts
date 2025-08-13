@@ -5,7 +5,7 @@
  * dependency injection compared to the old service container approach.
  */
 
-import { describe, it, expect, jest, beforeEach } from '@jest/globals';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { 
@@ -19,24 +19,24 @@ import { ApiError, ERROR_CODES } from '../common';
 
 // Mock services for testing
 const mockAuthService = {
-  verifyToken: jest.fn(),
-  login: jest.fn(),
-  register: jest.fn(),
-  logout: jest.fn(),
-  refreshToken: jest.fn(),
-  resetPassword: jest.fn(),
-  updatePassword: jest.fn(),
-  verifyEmail: jest.fn(),
-  resendVerification: jest.fn(),
+  verifyToken: vi.fn(),
+  login: vi.fn(),
+  register: vi.fn(),
+  logout: vi.fn(),
+  refreshToken: vi.fn(),
+  resetPassword: vi.fn(),
+  updatePassword: vi.fn(),
+  verifyEmail: vi.fn(),
+  resendVerification: vi.fn(),
 };
 
 const mockUserService = {
-  getUserById: jest.fn(),
-  updateUser: jest.fn(),
-  deleteUser: jest.fn(),
-  getUserProfile: jest.fn(),
-  updateProfile: jest.fn(),
-  searchUsers: jest.fn(),
+  getUserById: vi.fn(),
+  updateUser: vi.fn(),
+  deleteUser: vi.fn(),
+  getUserProfile: vi.fn(),
+  updateProfile: vi.fn(),
+  searchUsers: vi.fn(),
 };
 
 const mockServices: ServiceContainer = {
@@ -66,8 +66,8 @@ const mockServices: ServiceContainer = {
 } as ServiceContainer;
 
 // Mock auth middleware
-jest.mock('../auth-middleware', () => ({
-  createAuthMiddleware: jest.fn(() => jest.fn().mockResolvedValue({
+vi.mock('../auth-middleware', () => ({
+  createAuthMiddleware: vi.fn(() => vi.fn().mockResolvedValue({
     isAuthenticated: true,
     user: { id: '123', email: 'test@example.com' },
     permissions: []
@@ -76,7 +76,7 @@ jest.mock('../auth-middleware', () => ({
 
 describe('createApiHandlerWithServices', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('Basic Handler Creation', () => {
@@ -86,7 +86,7 @@ describe('createApiHandlerWithServices', () => {
         name: z.string(),
       });
 
-      const handler = jest.fn().mockResolvedValue(
+      const handler = vi.fn().mockResolvedValue(
         new Response(JSON.stringify({ success: true }), {
           status: 200,
           headers: { 'content-type': 'application/json' }
@@ -126,7 +126,7 @@ describe('createApiHandlerWithServices', () => {
         age: z.number().min(18)
       });
 
-      const handler = jest.fn();
+      const handler = vi.fn();
       const apiHandler = createApiHandlerWithServices(schema, handler, mockServices);
 
       const request = new NextRequest('http://localhost:3000/api/test', {
@@ -152,7 +152,7 @@ describe('createApiHandlerWithServices', () => {
     it('should handle handler errors gracefully', async () => {
       // Arrange
       const schema = z.object({});
-      const handler = jest.fn().mockRejectedValue(
+      const handler = vi.fn().mockRejectedValue(
         new ApiError(ERROR_CODES.INVALID_REQUEST, 'Custom error', 400)
       );
 
@@ -177,7 +177,7 @@ describe('createApiHandlerWithServices', () => {
   describe('Service Injection', () => {
     it('should inject services into handler correctly', async () => {
       // Arrange
-      const handler = jest.fn().mockImplementation(async (req, auth, data, services) => {
+      const handler = vi.fn().mockImplementation(async (req, auth, data, services) => {
         // Test that services are properly injected
         expect(services.auth).toBe(mockAuthService);
         expect(services.user).toBe(mockUserService);
@@ -214,13 +214,13 @@ describe('RouteHandlerFactory', () => {
 
   beforeEach(() => {
     factory = new RouteHandlerFactory(mockServices);
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('Handler Creation Methods', () => {
     it('should create authenticated handlers', async () => {
       // Arrange
-      const handler = jest.fn().mockResolvedValue(
+      const handler = vi.fn().mockResolvedValue(
         new Response(JSON.stringify({ success: true }), {
           status: 200,
           headers: { 'content-type': 'application/json' }
@@ -243,7 +243,7 @@ describe('RouteHandlerFactory', () => {
 
     it('should create public handlers', async () => {
       // Arrange
-      const handler = jest.fn().mockResolvedValue(
+      const handler = vi.fn().mockResolvedValue(
         new Response(JSON.stringify({ success: true }), {
           status: 200,
           headers: { 'content-type': 'application/json' }
@@ -280,7 +280,7 @@ describe('Testing Utilities', () => {
       // Arrange
       const customAuthService = {
         ...mockAuthService,
-        login: jest.fn().mockResolvedValue({ success: true, token: 'test-token' })
+        login: vi.fn().mockResolvedValue({ success: true, token: 'test-token' })
       };
 
       // Act
@@ -321,7 +321,7 @@ describe('Integration - Complete Request Flow', () => {
       token: 'jwt-token-here'
     });
 
-    const registrationHandler = jest.fn().mockImplementation(
+    const registrationHandler = vi.fn().mockImplementation(
       async (request, authContext, regData, services) => {
         const result = await services.auth.register({
           email: regData.email,

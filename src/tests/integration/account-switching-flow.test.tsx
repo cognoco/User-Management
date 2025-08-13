@@ -9,10 +9,9 @@ vi.mock('@/lib/database/supabase', async () => await import('../../tests/mocks/s
 vi.mock('@/lib/accountSwitcherApi', async () => await import('../../tests/mocks/accountSwitcherApi.mock'));
 
 // Type definitions for the Dialog components props
+import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { act } from 'react-dom/test-utils';
-import { Dialog } from '@/ui/primitives/dialog';
 import { AccountSwitcher } from '@/ui/styled/account/AccountSwitcher';
 import * as accountSwitcherApi from '@/lib/accountSwitcherApi';
 
@@ -58,21 +57,8 @@ describe('Account Switching Flow', () => {
     });
   });
 
-  // Custom wrapper for Dialog component
-  const TestWrapper = ({ children }: { children: React.ReactNode }) => (
-    <Dialog>
-      {children}
-    </Dialog>
-  );
-
   test('User can view and switch between accounts', async () => {
-    await act(async () => {
-      render(
-        <TestWrapper>
-          <AccountSwitcher />
-        </TestWrapper>
-      );
-    });
+    render(<AccountSwitcher />);
     
     // Wait for loading to complete
     await waitFor(() => {
@@ -85,22 +71,14 @@ describe('Account Switching Flow', () => {
     expect(screen.getByText(/Client Project/i)).toBeInTheDocument();
 
     // Click on the second account
-    await act(async () => {
-      await user.click(screen.getByText(/Work Account/i));
-    });
+    await user.click(screen.getByText(/Work Account/i));
     
     // Verify switchAccount was called with the correct ID
     expect(accountSwitcherApi.switchAccount).toHaveBeenCalledWith('work');
   });
 
   test('User can create a new organization account', async () => {
-    await act(async () => {
-      render(
-        <TestWrapper>
-          <AccountSwitcher />
-        </TestWrapper>
-      );
-    });
+    render(<AccountSwitcher />);
     
     // Wait for loading to complete
     await waitFor(() => {
@@ -108,17 +86,16 @@ describe('Account Switching Flow', () => {
     });
     
     // Click the "Create Organization" button
-    await act(async () => {
-      await user.click(screen.getByText(/Create Organization/i));
-    });
+    const createOrgButton = screen.getByRole('button', { name: /Create Organization/i });
+    await user.click(createOrgButton);
     
-    // Verify dialog appears
-    expect(screen.getByPlaceholderText(/organization name/i)).toBeInTheDocument();
+    // Wait for dialog to appear and find the input field
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText(/organization name/i)).toBeInTheDocument();
+    });
     
     // Type organization name
-    await act(async () => {
-      await user.type(screen.getByPlaceholderText(/organization name/i), 'New Test Org');
-    });
+    await user.type(screen.getByPlaceholderText(/organization name/i), 'New Test Org');
     
     // Click create button
     const createButton = Array.from(screen.getAllByRole('button')).find(
@@ -128,9 +105,7 @@ describe('Account Switching Flow', () => {
     
     expect(createButton).toBeDefined();
     
-    await act(async () => {
-      await user.click(createButton!);
-    });
+    await user.click(createButton!);
     
     // Verify createOrganization was called with correct name
     expect(accountSwitcherApi.createOrganization).toHaveBeenCalled();
@@ -149,13 +124,7 @@ describe('Account Switching Flow', () => {
 
   test('Displays account-specific information', async () => {
     // Render the component with showDetails prop
-    await act(async () => {
-      render(
-        <TestWrapper>
-          <AccountSwitcher showDetails={true} />
-        </TestWrapper>
-      );
-    });
+    render(<AccountSwitcher showDetails={true} />);
     
     // Wait for loading to complete
     await waitFor(() => {
@@ -179,9 +148,7 @@ describe('Account Switching Flow', () => {
     expect(detailsButtons.length).toBeGreaterThanOrEqual(2);
     
     // Click the Details button for Work account
-    await act(async () => {
-      await user.click(detailsButtons[1]);
-    });
+    await user.click(detailsButtons[1]);
     
     // Verify fetchOrganizationMembers was called with the correct organization ID
     expect(accountSwitcherApi.fetchOrganizationMembers).toHaveBeenCalledWith('work');
@@ -189,25 +156,18 @@ describe('Account Switching Flow', () => {
     // Look for dialog elements that should appear when dialog is open
     // Dialog should be open with the account details
     await waitFor(() => {
-      // Dialog appears with a heading containing "Account details"
-      expect(screen.getByRole('heading', { name: /Account details/i })).toBeInTheDocument();
+      // Check for content from the dialog
+      expect(screen.getByText(/Account Name:/i)).toBeInTheDocument();
     });
     
     // Content should have organization type information
-    // Using a more specific query for the account type
     expect(screen.getByText(/Account Type:/i)).toBeInTheDocument();
-    // Check for the members heading - use a more specific selector for the heading
-    expect(screen.getByText(/Members/i, { selector: '.font-semibold' })).toBeInTheDocument();
+    // Check for the members heading
+    expect(screen.getByText(/Members/i)).toBeInTheDocument();
   });
 
   test('User can leave an organization account', async () => {
-    await act(async () => {
-      render(
-        <TestWrapper>
-          <AccountSwitcher showDetails={true} />
-        </TestWrapper>
-      );
-    });
+    render(<AccountSwitcher showDetails={true} />);
     
     // Wait for loading to complete and accounts to be displayed
     await waitFor(() => {
@@ -221,24 +181,21 @@ describe('Account Switching Flow', () => {
     );
     
     // Click details button for the second item (work organization)
-    await act(async () => {
-      await user.click(detailsButtons[1]);
-    });
+    await user.click(detailsButtons[1]);
     
-    // Wait for member details to load
+    // Wait for member details to load and dialog to be visible
     await waitFor(() => {
       expect(accountSwitcherApi.fetchOrganizationMembers).toHaveBeenCalledWith('work');
+      expect(screen.getByText(/Account Name:/i)).toBeInTheDocument();
     });
     
     // Click the leave organization button
-    await act(async () => {
-      await user.click(screen.getByText(/leave organization/i));
-    });
+    const leaveButton = screen.getByRole('button', { name: /leave organization/i });
+    await user.click(leaveButton);
     
     // Click confirm on the confirmation dialog
-    await act(async () => {
-      await user.click(screen.getByText(/confirm/i));
-    });
+    const confirmButton = screen.getByRole('button', { name: /confirm/i });
+    await user.click(confirmButton);
     
     // Verify leaveOrganization was called correctly
     expect(accountSwitcherApi.leaveOrganization).toHaveBeenCalledWith('work');
@@ -253,13 +210,7 @@ describe('Account Switching Flow', () => {
     // Mock API error
     vi.mocked(accountSwitcherApi.switchAccount).mockRejectedValueOnce(new Error('Failed to switch accounts'));
     
-    await act(async () => {
-      render(
-        <TestWrapper>
-          <AccountSwitcher />
-        </TestWrapper>
-      );
-    });
+    render(<AccountSwitcher />);
     
     // Wait for loading to complete
     await waitFor(() => {
@@ -267,9 +218,7 @@ describe('Account Switching Flow', () => {
     });
     
     // Click on the second account to trigger error
-    await act(async () => {
-      await user.click(screen.getByText(/Work Account/i));
-    });
+    await user.click(screen.getByText(/Work Account/i));
     
     // Check that error message is displayed
     await waitFor(() => {

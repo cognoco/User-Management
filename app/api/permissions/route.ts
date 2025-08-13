@@ -2,7 +2,7 @@
 // POST /api/permissions - Not supported (permissions are static)
 
 import { NextResponse } from 'next/server';
-import { withValidatedServices, schemas } from '@/src/lib/api/with-services';
+import { withValidatedServices, schemas } from '@/lib/api/with-services';
 import { createSuccessResponse } from '@/lib/api/common';
 import { PermissionValues } from '@/core/permission/models';
 

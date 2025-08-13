@@ -25,8 +25,8 @@ describe('getApiAddressService', () => {
     ({ DefaultAddressService } = await import('../default-address.service'));
   });
 
-  it('returns configured service if registered', () => {
-    const { configureServices } = require('@/lib/config/service-container');
+  it('returns configured service if registered', async () => {
+    const { configureServices } = await import('@/lib/config/service-container');
     const svc = {} as any;
     configureServices({ addressService: svc });
     expect(getApiAddressService()).toBe(svc);

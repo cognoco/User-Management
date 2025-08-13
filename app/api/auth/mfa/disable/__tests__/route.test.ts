@@ -1,17 +1,45 @@
-import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest } from 'next/server';
 import { POST } from '../route';
-import { ServiceLocator, ServiceKeys } from '@/lib/config/service-locator';
 
-vi.mock('@/lib/config/service-container', () => ({ 
-  getServiceContainer: vi.fn() 
-}));
-vi.mock('@/lib/api/auth-middleware', () => ({
-  createAuthMiddleware: vi.fn(() => vi.fn(() => Promise.resolve({ userId: 'test-user-id' })))
-}));
+const mockAuthService = { disableMFA: vi.fn() };
+
+// Mock withValidatedServices pattern
+vi.mock('@/lib/api/with-services', async () => {
+  const actual = await vi.importActual('@/lib/api/with-services');
+  return {
+    ...actual,
+    withValidatedServices: ({ handler, schema }: any) => async (req: any) => {
+      try {
+        const body = await req.json();
+        const data = schema.parse(body);
+        return handler({
+          data,
+          request: req,
+          userId: 'test-user-id',
+          services: {
+            auth: mockAuthService,
+          },
+        });
+      } catch (error: any) {
+        if (error.name === 'ZodError') {
+          return new Response(JSON.stringify({ 
+            error: { 
+              code: 'VALIDATION_ERROR', 
+              message: 'Validation failed' 
+            } 
+          }), { 
+            status: 400,
+            headers: { 'Content-Type': 'application/json' }
+          });
+        }
+        throw error;
+      }
+    },
+  };
+});
 
 describe('POST /api/auth/mfa/disable', () => {
-  const mockAuthService = { disableMFA: vi.fn() };
   const createRequest = (code?: string) => new NextRequest('http://localhost/api/auth/mfa/disable', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -20,9 +48,6 @@ describe('POST /api/auth/mfa/disable', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (getServiceContainer as Mock).mockReturnValue({
-      auth: mockAuthService
-    });
     mockAuthService.disableMFA.mockResolvedValue({ success: true });
   });
 

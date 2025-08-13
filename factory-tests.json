@@ -1,0 +1,5 @@
+
+> user-management@0.0.0 test
+> vitest src/services/**/*factory.test.ts --reporter=json 2
+
+JSON report written to C:/Dev/Projects/Products/Apps/ZDX-UM/user-management-reorganized/test-results.json

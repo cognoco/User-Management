@@ -67,16 +67,16 @@ describe('MFA Functions Exist - Smoke Test', () => {
     expect(typeof prototype.consumeBackupCode).toBe('function');
   });
 
-  it('should export required interfaces and types', () => {
+  it('should export required interfaces and types', async () => {
     // These imports should not throw
-    expect(() => {
+    expect(async () => {
       const {
         TwoFactorSetupResult,
         TwoFactorVerifyResult,
         TwoFactorDisableResult,
         BackupCodeResult,
         BackupCodeVerifyResult,
-      } = require('@/core/auth/interfaces');
+      } = await import('@/core/auth/interfaces');
     }).not.toThrow();
   });
 });

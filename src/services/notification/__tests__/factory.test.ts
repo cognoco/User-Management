@@ -1,9 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+
+// Use the global mock from vitest.setup.ts instead of creating new mock
 let AdapterRegistry: typeof import('@/adapters/registry').AdapterRegistry;
 let UserManagementConfiguration: typeof import('@/core/config').UserManagementConfiguration;
-let configureServices: typeof import('@/lib/config/service-container').configureServices;
-let resetServiceContainer: typeof import('@/lib/config/service-container').resetServiceContainer;
-
 let getApiNotificationService: typeof import('../factory').getApiNotificationService;
 let DefaultNotificationService: typeof import('../default-notification.service').DefaultNotificationService;
 
@@ -12,10 +11,15 @@ describe('getApiNotificationService', () => {
     vi.resetModules();
     ({ AdapterRegistry } = await import('@/adapters/registry'));
     ({ UserManagementConfiguration } = await import('@/core/config'));
-    ({ configureServices, resetServiceContainer } = await import('@/lib/config/service-container'));
     (AdapterRegistry as any).instance = null;
     UserManagementConfiguration.reset();
-    resetServiceContainer();
+    vi.clearAllMocks();
+    
+    // Set required environment variables
+    process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-service-role-key';
+    process.env.NEXT_PUBLIC_SUPABASE_URL = 'http://localhost:54321';
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'test-anon-key';
+    
     ({ getApiNotificationService } = await import('../factory'));
     ({ DefaultNotificationService } = await import('../default-notification.service'));
   });
@@ -32,10 +36,12 @@ describe('getApiNotificationService', () => {
     AdapterRegistry.getInstance().registerAdapter('notification', adapter);
     const service = getApiNotificationService({ reset: true });
     expect(service).toBeInstanceOf(DefaultNotificationService);
+    // Services are now cached as singletons
     expect(getApiNotificationService()).toBe(service);
   });
 
-  it('uses ServiceContainer override when configured', () => {
+  it('uses ServiceContainer override when configured', async () => {
+    const { configureServices } = await import('@/lib/config/service-container');
     const svc = {} as any;
     configureServices({ notificationService: svc });
     expect(getApiNotificationService({ reset: true })).toBe(svc);

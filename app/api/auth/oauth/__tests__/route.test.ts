@@ -2,8 +2,7 @@ let POST: (req: Request) => Promise<Response>;
 // import { cookies } from 'next/headers';
 // import { NextResponse } from 'next/server';
 import { OAuthProvider } from "@/types/oauth";
-import { describe, it, expect, vi, beforeEach, type Mock } from "vitest";
-import { ServiceLocator, ServiceKeys } from '@/lib/config/service-locator';
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // --- Mocks ---
 
@@ -46,17 +45,45 @@ vi.mock("next/headers", () => ({
 }));
 
 
-// Mock service container
-vi.mock('@/lib/config/service-container', () => ({
-  getServiceContainer: vi.fn(),
-  resetServiceContainer: vi.fn(),
-  configureServices: vi.fn()
-}));
+// Mock service
 const mockService = {
   configureOAuthProvider: vi.fn(),
   getOAuthAuthorizationUrl: vi.fn()
 };
-const mockServices = { auth: mockService };
+
+// Mock withValidatedServices pattern
+vi.mock('@/lib/api/with-services', async () => {
+  const actual = await vi.importActual('@/lib/api/with-services');
+  return {
+    ...actual,
+    withValidatedServices: ({ handler, schema }: any) => async (req: any) => {
+      try {
+        const body = await req.json();
+        const data = schema.parse(body);
+        return handler({
+          data,
+          request: req,
+          services: {
+            auth: mockService,
+          },
+        });
+      } catch (error: any) {
+        if (error.name === 'ZodError') {
+          return new Response(JSON.stringify({ 
+            error: { 
+              code: 'VALIDATION_ERROR', 
+              message: error.issues?.[0]?.message || 'Validation failed' 
+            } 
+          }), { 
+            status: 400,
+            headers: { 'Content-Type': 'application/json' }
+          });
+        }
+        throw error;
+      }
+    },
+  };
+});
 
 // Mock crypto for deterministic state generation
 const mockStateValue = "deterministic-state-value-1234567890";
@@ -105,7 +132,6 @@ describe("POST /api/auth/oauth", () => {
     process.env.NEXT_PUBLIC_APPLE_REDIRECT_URI =
       "http://localhost:3000/api/auth/oauth/callback";
 
-      (getServiceContainer as Mock).mockReturnValue(mockServices);
     mockService.getOAuthAuthorizationUrl.mockReturnValue(
       'https://example.com/auth'
     );

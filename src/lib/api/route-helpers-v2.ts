@@ -207,11 +207,41 @@ export type EmptyHandlerV2 = ApiHandlerV2<Record<string, never>>;
 export function createTestRouteHandlerFactory(
   serviceOverrides: Partial<ServiceContainer> = {}
 ): RouteHandlerFactory {
-  // Import the centralized configuration here to avoid circular dependencies
-  const { configureUserManagement, createMinimalServices } = require('@/lib/config/configure-user-management');
+  // For testing, create minimal services directly without require
+  // This avoids issues with module resolution in tests
+  const defaultServices: ServiceContainer = {
+    auth: {} as any,
+    user: {} as any,
+    profile: {} as any,
+    company: {} as any,
+    address: {} as any,
+    admin: {} as any,
+    permission: {} as any,
+    role: {} as any,
+    team: {} as any,
+    organization: {} as any,
+    subscription: {} as any,
+    payment: {} as any,
+    notification: {} as any,
+    twoFactor: {} as any,
+    sso: {} as any,
+    audit: {} as any,
+    consent: {} as any,
+    csrf: {} as any,
+    gdpr: {} as any,
+    session: {} as any,
+    webhook: {} as any,
+    health: {} as any,
+    apiKey: {} as any,
+    email: {} as any,
+    sms: {} as any,
+    push: {} as any,
+    rateLimit: {} as any,
+    logging: {} as any
+  };
   
-  // Create minimal services for testing with overrides
-  const services = createMinimalServices(serviceOverrides);
+  // Merge with overrides
+  const services = { ...defaultServices, ...serviceOverrides } as ServiceContainer;
   
   return new RouteHandlerFactory(services);
 }

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { withValidatedServices, schemas, WithServicesContext } from '@/src/lib/api/with-services';
+import { withValidatedServices, schemas, WithServicesContext } from '@/lib/api/with-services';
 import { createSuccessResponse, ApiError, ERROR_CODES } from '@/lib/api/common';
 
 const UpdateOrgSchema = z.object({

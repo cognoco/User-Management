@@ -1,37 +1,53 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { GET } from '../route';
-import { withRouteAuth } from '@/middleware/auth';
-import { hasPermission } from '@/lib/auth/hasPermission';
-import { getApiAuditService } from '@/services/audit/factory';
-import { createAuthenticatedRequest } from '@/tests/utils/request-helpers';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { NextRequest } from 'next/server';
+import { ServiceLocator, ServiceKeys } from '@/lib/config/service-locator';
 
-// Mock the auth middleware to bypass authentication
-vi.mock('@/lib/api/auth-middleware', () => ({
-  createAuthMiddleware: () => vi.fn((req: any) => Promise.resolve({
-    userId: 'u1',
-    user: { id: 'u1', email: 'test@example.com' },
-    permissions: []
-  }))
+// Mock auth utilities
+vi.mock('@/lib/auth/utils', () => ({
+  getUserFromRequest: vi.fn().mockResolvedValue({ id: 'u1', email: 'test@example.com' })
 }));
 
-vi.mock('@/middleware/auth', () => ({ withRouteAuth: vi.fn((h: any) => h) }));
-vi.mock('@/lib/auth/hasPermission', () => ({ hasPermission: vi.fn().mockResolvedValue(true) }));
+vi.mock('@/lib/auth/hasPermission', () => ({ 
+  hasPermission: vi.fn().mockResolvedValue(true) 
+}));
+
+// Mock the audit service factory
+const mockAuditService = { 
+  getLogs: vi.fn() 
+};
+
+vi.mock('@/services/audit/factory', () => ({
+  getApiAuditService: vi.fn(() => mockAuditService)
+}));
+
+import { GET } from '../route';
 
 
-describe('audit route', () => {
-  const service = { getLogs: vi.fn() } as any;
+describe('GET /api/audit', () => {
+  const createRequest = (searchParams = '') => 
+    new NextRequest(`http://localhost/api/audit${searchParams}`, {
+      method: 'GET',
+      headers: { 
+        'Authorization': 'Bearer test-token'
+      }
+    });
+
   beforeEach(() => {
-    // Clear and register services in ServiceLocator
-  const locator = ServiceLocator.getInstance();
-  locator.clear();
-  locator.register(ServiceKeys.ADDRESS_SERVICE, service);
     vi.clearAllMocks();
+    mockAuditService.getLogs.mockResolvedValue({ logs: [], count: 0 });
   });
 
   it('returns logs', async () => {
-    service.getLogs.mockResolvedValue({ logs: [], count: 0 });
-    const res = await GET(createAuthenticatedRequest('GET', 'http://t?page=1&limit=10'));
+    const res = await GET(createRequest('?page=1&limit=10'));
+    const data = await res.json();
     expect(res.status).toBe(200);
-    expect(service.getLogs).toHaveBeenCalled();
+    expect(data.logs).toEqual([]);
+    expect(data.pagination).toBeDefined();
+    expect(mockAuditService.getLogs).toHaveBeenCalled();
+  });
+  
+  it('validates query parameters', async () => {
+    const res = await GET(createRequest('?page=invalid'));
+    expect(res.status).toBe(400);
   });
 });

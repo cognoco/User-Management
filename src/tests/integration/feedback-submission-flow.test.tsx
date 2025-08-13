@@ -23,52 +23,19 @@ afterEach(() => {
   console.error = originalError;
 });
 
-// Create spy functions for Supabase operations
-const insertSpy = vi.fn().mockResolvedValue({ data: null, error: null });
-const uploadSpy = vi.fn().mockResolvedValue({ data: { path: 'feedback/screenshot.png' }, error: null });
-const getPublicUrlSpy = vi.fn().mockReturnValue({ data: { publicUrl: 'https://example.com/screenshot.png' } });
-
-// Mock supabase modules
-vi.mock('@/lib/database/supabase', () => {
-  return {
-    supabase: {
-      from: vi.fn().mockImplementation((table) => {
-        if (table === 'feedback') {
-          return {
-            insert: insertSpy,
-          };
-        }
-        return {
-          select: vi.fn().mockReturnThis(),
-          insert: vi.fn().mockReturnThis(),
-          update: vi.fn().mockReturnThis(),
-          delete: vi.fn().mockReturnThis(),
-          eq: vi.fn().mockReturnThis(),
-        };
-      }),
-      storage: {
-        from: vi.fn().mockImplementation((bucket) => {
-          // Check bucket name to match component implementation
-          if (bucket === 'screenshots') {
-            return {
-              upload: uploadSpy,
-              getPublicUrl: getPublicUrlSpy
-            };
-          }
-          // Default behavior for other buckets
-          return {
-            upload: vi.fn().mockRejectedValue({ error: 'Invalid bucket' }),
-            getPublicUrl: vi.fn().mockReturnValue({ data: null })
-          };
-        })
-      }
-    }
-  };
-});
+// Mock fetch for API calls
+const fetchSpy = vi.fn();
+global.fetch = fetchSpy;
 
 describe('Feedback Submission Flow', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    
+    // Mock successful API response
+    fetchSpy.mockResolvedValue({
+      ok: true,
+      json: async () => ({ success: true })
+    });
   });
 
   test('User can submit feedback with category and description', async () => {
@@ -90,13 +57,17 @@ describe('Feedback Submission Flow', () => {
 
     // Verify that the feedback was submitted correctly
     await waitFor(() => {
-      expect(insertSpy).toHaveBeenCalledWith([
+      expect(fetchSpy).toHaveBeenCalledWith('/api/feedback', 
         expect.objectContaining({
-          category: 'feature',
-          message: 'I would like to see a dark mode option in the application.',
-          screenshotUrl: null,
-        }),
-      ]);
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            category: 'feature',
+            message: 'I would like to see a dark mode option in the application.',
+            screenshotUrl: null,
+          }),
+        })
+      );
       expect(onSuccessMock).toHaveBeenCalled();
     });
 

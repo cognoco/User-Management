@@ -3,7 +3,7 @@ import {
   createSuccessResponse,
   createCreatedResponse,
 } from '@/lib/api/common';
-import { withValidatedServices } from '@/src/lib/api/with-services';
+import { withValidatedServices } from '@/lib/api/with-services';
 import { mapPermissionServiceError } from '@/lib/api/permission/error-handler';
 import { PermissionValues } from '@/core/permission/models';
 

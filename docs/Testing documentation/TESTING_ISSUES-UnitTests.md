@@ -1857,3 +1857,87 @@ These patterns should be applied to future API route tests to maintain test reli
   ```
 - **Applied To:** `app/api/auth/login/__tests__/route.test.ts` and should be pattern for all API route tests using `createApiHandler`.
 - **Prevention:** Always mock the service container rather than trying to mock individual adapters or service factories in API route tests.
+
+---
+
+## XVIII. Smoke Test Hook Mocking Patterns (January 2025)
+
+### A. Direct Hook Mocking for Smoke Tests
+- **Issue:** Smoke tests need to render complex components that use multiple hooks, but full service initialization creates dependency issues and complexity. Components fail with "UserService is not registered" or similar errors.
+- **Solution Pattern:** Mock hooks directly rather than trying to initialize full service architecture:
+  ```typescript
+  // Mock useUserProfile hook directly
+  vi.mock('@/hooks/user/useUserProfile', () => ({
+    useUserProfile: vi.fn(() => ({
+      profile: {
+        id: 'test-user',
+        first_name: 'Test',
+        last_name: 'User', 
+        email: 'test@example.com',
+        userType: 'PRIVATE',
+      },
+      isLoading: false,
+      error: null,
+      updateProfile: vi.fn(),
+      uploadAvatar: vi.fn(),
+      removeAvatar: vi.fn(),
+    })),
+  }));
+  
+  // Mock useAccountSettings hook
+  vi.mock('@/hooks/user/useAccountSettings', () => ({
+    useAccountSettings: vi.fn(() => ({})),
+  }));
+  
+  // Mock problematic components that cause data issues
+  vi.mock('@/ui/styled/shared/ConnectedAccounts', () => ({
+    ConnectedAccounts: () => <div data-testid="connected-accounts-mock">Connected Accounts Mock</div>,
+  }));
+  ```
+- **Benefits:**
+  - Avoids complex service initialization requirements
+  - Isolates component rendering from business logic
+  - Faster test execution
+  - More predictable test results
+  - Easier debugging when components fail
+
+### B. Component-Level Mocking for Complex UI Components
+- **Issue:** Complex UI components often have sub-components that expect specific data structures or cause unrelated test failures.
+- **Solution Pattern:** Mock problematic sub-components at the component level:
+  ```typescript
+  // Mock components that have complex data requirements
+  vi.mock('@/ui/styled/shared/ConnectedAccounts', () => ({
+    ConnectedAccounts: () => <div data-testid="connected-accounts-mock">Connected Accounts Mock</div>,
+  }));
+  
+  // Mock file upload components that use FileReader
+  vi.mock('@/ui/styled/common/FileUpload', () => ({
+    FileUpload: ({ onFileSelect }: any) => (
+      <button onClick={() => onFileSelect(new File(['test'], 'test.png'))}>
+        Mock Upload
+      </button>
+    ),
+  }));
+  ```
+- **Applied To:** Profile smoke test successfully renders with component and hook mocks
+- **When To Use:** When smoke tests need to verify basic rendering without testing full functionality
+
+### C. Testing Documentation for Smoke Test Patterns
+- **Key Insights from Profile Smoke Test Fix:**
+  1. **Check actual rendered content:** Use the test failure output to see what text is actually rendered vs. what you expect
+     ```typescript
+     // Test expected "Manage Your Profile" but component rendered "Profile Settings"
+     // Fix: Update assertion to match actual i18n text
+     expect(screen.getByRole('heading', { name: /profile settings/i, level: 1 })).toBeInTheDocument();
+     ```
+  2. **Mock at the right level:** Mock hooks and components that cause service dependency issues, not the entire app initialization
+  3. **Progressive fixing:** Start with getting the component to render, then verify key elements are present
+  4. **Document patterns:** These mocking patterns can be reused across similar smoke tests
+
+### D. Smoke Test Mocking Checklist
+When fixing smoke tests, verify:
+1. **Hook mocks:** Are all required hooks mocked with reasonable default data?
+2. **Component mocks:** Are complex sub-components mocked to avoid unrelated failures?
+3. **Assertion accuracy:** Do assertions match what the component actually renders?
+4. **Mock cleanup:** Are mocks properly isolated to avoid affecting other tests?
+5. **Test speed:** Does the test run quickly without heavy service initialization?

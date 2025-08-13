@@ -1,31 +1,74 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { NextRequest, NextResponse } from 'next/server';
-import { POST } from '../route';
+import { NextRequest } from 'next/server';
 import { ERROR_CODES } from '@/lib/api/common';
 
-// Mock the service container to avoid circular dependencies
-vi.mock('@/lib/config/service-container', () => ({
-  getServiceContainer: vi.fn()
+// Mock the auth service
+const mockAuthService = { 
+  login: vi.fn(),
+  getCurrentUser: vi.fn().mockResolvedValue(null) // Return null for public endpoints
+};
+
+// Mock error handlers
+vi.mock('@/lib/api/auth/error-handler', () => ({
+  createInvalidCredentialsError: () => ({ 
+    statusCode: 401, 
+    error: { code: ERROR_CODES.INVALID_CREDENTIALS, message: 'Invalid credentials' } 
+  }),
+  createEmailNotVerifiedError: () => ({ 
+    statusCode: 403, 
+    error: { code: ERROR_CODES.EMAIL_NOT_VERIFIED, message: 'Email not verified' } 
+  })
 }));
 
-vi.mock('@/middleware/with-security', () => ({ withSecurity: (h: any) => h }));
+// Mock withValidatedServices to inject our mock service
+vi.mock('@/lib/api/with-services', () => ({
+  withValidatedServices: vi.fn((config: any) => {
+    return async (req: NextRequest) => {
+      const data = await req.json().catch(() => ({}));
+      
+      // Basic validation like the real implementation would do
+      if (!data.email || !data.password) {
+        return new Response(JSON.stringify({ 
+          error: { 
+            code: ERROR_CODES.INVALID_REQUEST, 
+            message: 'Email and password are required' 
+          } 
+        }), { status: 400 });
+      }
+      
+      try {
+        const mockServices = { auth: mockAuthService };
+        return await config.handler({
+          request: req,
+          data,
+          services: mockServices,
+          userId: null,
+          params: {}
+        });
+      } catch (error: any) {
+        // Handle thrown errors from the handler
+        if (error.statusCode) {
+          return new Response(JSON.stringify(error), { status: error.statusCode });
+        }
+        return new Response(JSON.stringify({ 
+          error: { 
+            code: ERROR_CODES.INTERNAL_ERROR, 
+            message: error.message 
+          } 
+        }), { status: 500 });
+      }
+    };
+  })
+}));
+
+// Mock audit logger
+vi.mock('@/lib/audit/auditLogger', () => ({
+  logUserAction: vi.fn().mockResolvedValue(undefined)
+}));
+
+import { POST } from '../route';
 
 describe('POST /api/auth/login', () => {
-  const mockAuthService = { 
-    login: vi.fn(),
-    getCurrentUser: vi.fn().mockResolvedValue(null) // Return null for public endpoints
-  };
-  
-  const mockServices = {
-    auth: mockAuthService,
-    user: { getUserById: vi.fn() },
-    permission: { checkPermission: vi.fn() },
-    session: { createSession: vi.fn() },
-    team: { createTeam: vi.fn() },
-    subscription: { getSubscription: vi.fn() },
-    apiKey: { createApiKey: vi.fn() }
-  };
-  
   const createRequest = (body?: any) =>
     new NextRequest('http://localhost/api/auth/login', {
       method: 'POST',
@@ -33,17 +76,8 @@ describe('POST /api/auth/login', () => {
       body: body ? JSON.stringify(body) : undefined
     });
 
-  beforeEach(async () => {
+  beforeEach(() => {
     vi.clearAllMocks();
-    
-    // Set required environment variables for Supabase
-    process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-service-role-key';
-    process.env.NEXT_PUBLIC_SUPABASE_URL = 'http://localhost:54321';
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'test-anon-key';
-    
-    // Mock the service container to return our mock services
-    const { getServiceContainer } = await import('@/lib/config/service-container');
-    (getServiceContainer as any).mockReturnValue(mockServices);
     
     // Set up default successful login response
     mockAuthService.login.mockResolvedValue({

@@ -13,6 +13,7 @@ import { BrowserAuthStorage } from './auth-storage';
 import { AdapterRegistry } from '@/adapters/registry';
 import { createSupabaseAuthProvider } from '@/adapters/auth/factory';
 import { getServiceSupabase } from '@/lib/database/supabase';
+import { ServiceLocator, ServiceKeys } from '@/lib/config/service-locator';
 // Service container import removed - using new pure factory pattern
 
 /**
@@ -83,7 +84,11 @@ export function getApiAuthService(options: ApiAuthServiceOptions = {}): AuthServ
   }
 
   if (!cachedService) {
-    if (options.provider) {
+    // Check ServiceLocator first
+    const serviceLocator = ServiceLocator.getInstance();
+    if (serviceLocator.has(ServiceKeys.AUTH_SERVICE)) {
+      cachedService = serviceLocator.get<AuthService>(ServiceKeys.AUTH_SERVICE);
+    } else if (options.provider) {
       const storage = options.storage ?? new BrowserAuthStorage();
       cachedService = new DefaultAuthService(options.provider, storage);
     } else {

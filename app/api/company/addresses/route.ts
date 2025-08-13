@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { addressCreateSchema } from "@/core/address/models";
-import { withValidatedServices, schemas } from "@/src/lib/api/with-services";
+import { withValidatedServices, schemas } from "@/lib/api/with-services";
 import { createSuccessResponse } from "@/lib/api/common";
 import { getApiAddressService } from "@/services/address/factory";
 import { getApiCompanyService } from "@/services/company/factory";

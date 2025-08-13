@@ -1,51 +1,56 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
+
+// Mock the auth service
+const mockAuthService = { 
+  resetPassword: vi.fn(),
+  getCurrentUser: vi.fn().mockResolvedValue(null) // Public route
+};
+
+// Mock withValidatedServices to inject our mock service
+vi.mock('@/lib/api/with-services', () => ({
+  withValidatedServices: vi.fn((config: any) => {
+    return async (req: NextRequest) => {
+      const data = await req.json().catch(() => ({}));
+      
+      // Validate the email field like the real implementation would
+      if (!data.email || typeof data.email !== 'string' || !data.email.includes('@')) {
+        return new Response(JSON.stringify({ 
+          error: { 
+            code: 'VALIDATION_ERROR', 
+            message: 'Invalid email address' 
+          } 
+        }), { status: 400 });
+      }
+      
+      const mockServices = { auth: mockAuthService };
+      return await config.handler({
+        request: req,
+        data,
+        services: mockServices,
+        userId: null,
+        params: {}
+      });
+    };
+  })
+}));
+
+// Mock audit logger
+vi.mock('@/lib/audit/auditLogger', () => ({
+  logUserAction: vi.fn().mockResolvedValue(undefined)
+}));
+
 import { POST } from '../route';
 
-// Mock the service container to avoid circular dependencies
-vi.mock('@/lib/config/service-container', () => ({
-  getServiceContainer: vi.fn()
-}));
-
-vi.mock('@/middleware/with-auth-rate-limit', () => ({
-  withAuthRateLimit: vi.fn((_req, handler) => handler(_req))
-}));
-vi.mock('@/middleware/with-security', () => ({ withSecurity: (h: any) => h }));
-
 describe('POST /api/auth/reset-password', () => {
-  const mockAuthService = { 
-    resetPassword: vi.fn(),
-    getCurrentUser: vi.fn().mockResolvedValue(null) // Public route
-  };
-  
-  const mockServices = {
-    auth: mockAuthService,
-    user: { getUserById: vi.fn() },
-    permission: { checkPermission: vi.fn() },
-    session: { createSession: vi.fn() },
-    team: { createTeam: vi.fn() },
-    subscription: { getSubscription: vi.fn() },
-    apiKey: { createApiKey: vi.fn() }
-  };
-  
   const createRequest = (email?: string) => new NextRequest('http://localhost/api/auth/reset-password', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: email ? JSON.stringify({ email }) : JSON.stringify({})
   });
 
-  beforeEach(async () => {
+  beforeEach(() => {
     vi.clearAllMocks();
-    
-    // Set required environment variables for Supabase
-    process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-service-role-key';
-    process.env.NEXT_PUBLIC_SUPABASE_URL = 'http://localhost:54321';
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'test-anon-key';
-    
-    // Mock the service container to return our mock services
-    const { getServiceContainer } = await import('@/lib/config/service-container');
-    (getServiceContainer as any).mockReturnValue(mockServices);
-    
     mockAuthService.resetPassword.mockResolvedValue({ success: true });
   });
 

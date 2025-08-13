@@ -44,11 +44,27 @@ export function getApiAddressService(
   }
 
   if (!addressServiceInstance) {
-    const override = UserManagementConfiguration.getServiceProvider('addressService');
+    // Check service container first (for tests and dynamic configuration)
+    try {
+      const { getServiceContainer } = require('@/lib/config/service-container');
+      const container = getServiceContainer();
+      if (container.address) {
+        addressServiceInstance = container.address as CompanyAddressService;
+      }
+    } catch {
+      // Service container not available or service not configured
+    }
 
-    if (override) {
-      addressServiceInstance = override as CompanyAddressService;
-    } else {
+    // If not in service container, check UserManagementConfiguration
+    if (!addressServiceInstance) {
+      const override = UserManagementConfiguration.getServiceProvider('addressService');
+      if (override) {
+        addressServiceInstance = override as CompanyAddressService;
+      }
+    }
+
+    // If still not configured, create default with adapter
+    if (!addressServiceInstance) {
       const provider = AdapterRegistry.getInstance().getAdapter<IAddressDataProvider>('address');
       addressServiceInstance = new DefaultAddressService(provider) as unknown as CompanyAddressService;
     }

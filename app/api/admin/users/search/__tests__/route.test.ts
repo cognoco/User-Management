@@ -12,25 +12,49 @@ const mockServices = {
   admin: mockAdminService
 };
 
-vi.mock('@/lib/api/route-helpers', () => ({
-  createApiHandler: vi.fn((schema, handler, options) => {
-    return async (req: NextRequest) => {
-      // Extract query parameters from URL
-      const url = new URL(req.url);
-      const params = {
-        query: url.searchParams.get('query') || undefined,
-        page: parseInt(url.searchParams.get('page') || '1'),
-        limit: parseInt(url.searchParams.get('limit') || '10'),
-        status: url.searchParams.get('status') || 'all',
-        sortBy: url.searchParams.get('sortBy') || 'createdAt',
-        sortOrder: url.searchParams.get('sortOrder') || 'desc',
-      };
-      
-      const authContext = { userId: 'test-user', role: 'ADMIN' };
-      return handler(req, authContext, params, mockServices);
-    };
-  })
-}));
+// Mock withValidatedServices pattern
+vi.mock('@/lib/api/with-services', async () => {
+  const actual = await vi.importActual('@/lib/api/with-services');
+  return {
+    ...actual,
+    withValidatedServices: ({ handler, schema }: any) => async (req: any) => {
+      try {
+        // Extract query parameters from URL
+        const url = new URL(req.url);
+        const queryData = {
+          query: url.searchParams.get('query') || undefined,
+          page: parseInt(url.searchParams.get('page') || '1'),
+          limit: parseInt(url.searchParams.get('limit') || '10'),
+          status: url.searchParams.get('status') || 'all',
+          sortBy: url.searchParams.get('sortBy') || 'createdAt',
+          sortOrder: url.searchParams.get('sortOrder') || 'desc',
+        };
+        
+        // Validate with schema
+        const data = schema.parse(queryData);
+        return handler({
+          data,
+          request: req,
+          userId: 'test-user',
+          services: mockServices,
+        });
+      } catch (error: any) {
+        if (error.name === 'ZodError') {
+          return new Response(JSON.stringify({ 
+            error: { 
+              code: 'VALIDATION_ERROR', 
+              message: 'Validation failed' 
+            } 
+          }), { 
+            status: 400,
+            headers: { 'Content-Type': 'application/json' }
+          });
+        }
+        throw error;
+      }
+    },
+  };
+});
 
 function createRequest(query: Record<string, string> = {}) {
   const url = new URL('http://localhost/api/admin/users/search');

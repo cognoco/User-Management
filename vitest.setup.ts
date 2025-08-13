@@ -196,14 +196,26 @@ vi.mock('@/lib/config/service-container', () => {
     updateUserPreferences: vi.fn(),
   };
 
+  // Store configured services for the tests
+  let configuredServices: any = {};
+
   return {
     getServiceContainer: vi.fn(() => ({
-      auth: mockAuthService,
-      user: mockUserService,
-      permission: mockPermissionService,
-      team: mockTeamService,
-      notification: mockNotificationService,
+      auth: configuredServices.authService || mockAuthService,
+      user: configuredServices.userService || mockUserService,
+      permission: configuredServices.permissionService || mockPermissionService,
+      team: configuredServices.teamService || mockTeamService,
+      notification: configuredServices.notificationService || mockNotificationService,
+      admin: configuredServices.adminService,
+      address: configuredServices.addressService,
+      apiKey: configuredServices.apiKeyService,
     })),
+    configureServices: vi.fn((services: any) => {
+      configuredServices = { ...configuredServices, ...services };
+    }),
+    resetServiceContainer: vi.fn(() => {
+      configuredServices = {};
+    }),
     // Export mock services for test access
     mockAuthService,
     mockUserService,

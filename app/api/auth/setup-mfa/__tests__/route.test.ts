@@ -1,20 +1,38 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { POST } from '../route';
-import { ServiceLocator, ServiceKeys } from '@/lib/config/service-locator';
+import { NextRequest } from 'next/server';
 
-vi.mock('@/lib/config/service-container', () => ({ 
-  getServiceContainer: vi.fn() 
+// Mock the auth service
+const mockAuthService = { 
+  setupMFA: vi.fn()
+};
+
+// Mock withValidatedServices to inject our mock service
+vi.mock('@/lib/api/with-services', () => ({
+  withValidatedServices: vi.fn((config: any) => {
+    return async (req: NextRequest) => {
+      const data = await req.json().catch(() => ({}));
+      
+      const mockServices = { auth: mockAuthService };
+      return await config.handler({
+        request: req,
+        data,
+        services: mockServices,
+        userId: 'test-user-id', // Authenticated endpoint
+        params: {}
+      });
+    };
+  })
 }));
-vi.mock('@/lib/api/auth-middleware', () => ({
-  createAuthMiddleware: vi.fn(() => vi.fn(() => Promise.resolve({ userId: 'test-user-id' })))
-}));
+
+// Mock audit logger
 vi.mock('@/lib/audit/auditLogger', () => ({
-  logUserAction: vi.fn()
+  logUserAction: vi.fn().mockResolvedValue(undefined)
 }));
+
+import { POST } from '../route';
 
 describe('POST /api/auth/setup-mfa', () => {
-  const mockAuthService = { setupMFA: vi.fn() };
-  const createRequest = () => new Request('http://localhost/api/auth/setup-mfa', { 
+  const createRequest = () => new NextRequest('http://localhost/api/auth/setup-mfa', { 
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({})
@@ -22,9 +40,6 @@ describe('POST /api/auth/setup-mfa', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (getServiceContainer as vi.Mock).mockReturnValue({
-      auth: mockAuthService
-    });
     mockAuthService.setupMFA.mockResolvedValue({ success: true, secret: 'secret123', qrCode: 'qr123' });
   });
 

@@ -8,7 +8,7 @@ describe('Smoke: Registration Form', () => {
   it('renders and accepts user input', async () => {
     render(<RegistrationForm />);
     const email = screen.getByLabelText(/email/i);
-    const password = screen.getByLabelText('Password *');
+    const password = screen.getByLabelText(/^password$/i);
     const confirmPassword = screen.getByLabelText(/confirm password/i);
     const firstName = screen.getByLabelText(/first name/i);
     const lastName = screen.getByLabelText(/last name/i);

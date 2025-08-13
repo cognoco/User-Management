@@ -18,7 +18,12 @@
       "Bash(rg:*)",
       "Bash(git stash:*)",
       "Bash(npm test:*)",
-      "Bash(powershell:*)"
+      "Bash(powershell:*)",
+      "Bash(for file in app/api/organizations/route.ts app/api/organizations/[orgId]/route.ts \"app/api/organizations/[orgId]/sso/[idpType]/config/route.ts\")",
+      "Bash(do sed -i 's|@/src/lib/api/with-services|@/lib/api/with-services|g' \"$file\")",
+      "Bash(done)",
+      "Bash(for file in app/api/permissions/categories/route.ts app/api/permissions/check/route.ts app/api/permissions/route.ts app/api/permissions/validate/route.ts)",
+      "Bash(sed:*)"
     ],
     "deny": []
   }

@@ -1,40 +1,29 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { GET } from '../route';
 import type { PermissionService } from '@/core/permission/interfaces';
-import type { AuthService } from '@/core/auth/interfaces';
-
-vi.mock('@/services/permission/factory', () => ({}));
-vi.mock('@/services/auth/factory', () => ({}));
-vi.mock('@/lib/config/service-container', () => ({
-  configureServices: vi.fn(),
-  resetServiceContainer: vi.fn(),
-  getServiceContainer: vi.fn(),
-}));
-
-// Mock auth middleware to return authenticated context
-vi.mock('@/lib/api/auth-middleware', () => ({
-  createAuthMiddleware: () => () => Promise.resolve({
-    isAuthenticated: true,
-    userId: 'u1',
-    user: { id: 'u1', email: 'test@example.com' },
-    permissions: ['P1'],
-    token: 'test-token',
-  }),
-}));
 
 const mockPermissionService: Partial<PermissionService> = {
   getUserRoles: vi.fn(),
   getRoleById: vi.fn(),
 };
-const mockAuth: Partial<AuthService> = {
-  getCurrentUser: vi.fn().mockResolvedValue({ id: 'u1', email: 'test@example.com' }),
-};
 
-import { ServiceLocator, ServiceKeys } from '@/lib/config/service-locator';
-vi.mocked(getServiceContainer).mockReturnValue({
-  permissionService: mockPermissionService as PermissionService,
-  auth: mockAuth as AuthService,
-} as any);
+// Mock withValidatedServices pattern
+vi.mock('@/lib/api/with-services', async () => {
+  const actual = await vi.importActual('@/lib/api/with-services');
+  return {
+    ...actual,
+    withValidatedServices: ({ handler }: any) => async (req: any) => {
+      return handler({
+        data: {},
+        request: req,
+        userId: 'u1',
+        services: {
+          permissionService: mockPermissionService,
+        },
+      });
+    },
+  };
+});
 
 beforeEach(() => {
   vi.clearAllMocks();

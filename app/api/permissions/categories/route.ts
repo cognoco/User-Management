@@ -1,4 +1,4 @@
-import { withValidatedServices, schemas } from '@/src/lib/api/with-services';
+import { withValidatedServices, schemas } from '@/lib/api/with-services';
 import { createSuccessResponse } from '@/lib/api/common';
 import { PermissionValues } from '@/core/permission/models';
 import { listPermissionCategories } from '@/lib/rbac/permission-categories';

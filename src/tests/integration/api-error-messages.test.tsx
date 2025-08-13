@@ -1,12 +1,14 @@
-// __tests__/integration/api-error-messages.test.js
+// __tests__/integration/api-error-messages.test.tsx
+import { vi, describe, beforeEach, test, expect } from 'vitest';
+import '@/tests/i18nTestSetup';
 
-vi.mock('@/lib/database/supabase');
+vi.mock('@/lib/database/supabase', async () => await import('@/tests/mocks/supabase'));
 import { supabase } from '@/lib/database/supabase';
 
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { LoginForm } from '@/ui/styled/auth/LoginForm';
+import LoginForm from '@/ui/styled/auth/LoginForm';
 
 describe('API Error Messages', () => {
   let user;
@@ -22,7 +24,8 @@ describe('API Error Messages', () => {
     
     // Enter login credentials
     await user.type(screen.getByLabelText(/email/i), 'test@example.com');
-    await user.type(screen.getByLabelText(/password/i), 'password123');
+    const passwordInput = document.getElementById('password') as HTMLInputElement;
+    await user.type(passwordInput, 'password123');
     
     // Test different API error scenarios
     const errorScenarios = [
@@ -55,19 +58,20 @@ describe('API Error Messages', () => {
         error: scenario.apiError
       });
       
-      // Submit form
-      await user.click(screen.getByRole('button', { name: /sign in/i }));
+      // Submit form - use type=submit to get the correct button
+      await user.click(screen.getByRole('button', { name: /^Login$/i }));
       
       // Verify user-friendly error message is displayed
-      await waitFor(() => {
-        expect(await screen.findByText(scenario.expectedMessage)).toBeInTheDocument();
+      await waitFor(async () => {
+        const element = await screen.findByText(scenario.expectedMessage);
+        expect(element).toBeInTheDocument();
       });
       
       // Clear the form for next scenario
       await user.clear(screen.getByLabelText(/email/i));
-      await user.clear(screen.getByLabelText(/password/i));
+      await user.clear(screen.getByPlaceholderText(/password/i));
       await user.type(screen.getByLabelText(/email/i), 'test@example.com');
-      await user.type(screen.getByLabelText(/password/i), 'password123');
+      await user.type(screen.getByPlaceholderText(/password/i), 'password123');
     }
   });
   
@@ -92,14 +96,14 @@ describe('API Error Messages', () => {
     for (const scenario of validationScenarios) {
       // Clear form
       await user.clear(screen.getByLabelText(/email/i));
-      await user.clear(screen.getByLabelText(/password/i));
+      await user.clear(screen.getByPlaceholderText(/password/i));
       
       // Enter invalid data
       await user.type(screen.getByLabelText(/email/i), scenario.input.email);
-      await user.type(screen.getByLabelText(/password/i), scenario.input.password);
+      await user.type(screen.getByPlaceholderText(/password/i), scenario.input.password);
       
-      // Submit form
-      await user.click(screen.getByRole('button', { name: /sign in/i }));
+      // Submit form - use type=submit to get the correct button
+      await user.click(screen.getByRole('button', { name: /^Login$/i }));
       
       // Verify error message and suggestion are displayed
       expect(await screen.findByText(scenario.expectedError)).toBeInTheDocument();
@@ -115,7 +119,7 @@ describe('API Error Messages', () => {
     await user.type(screen.getByLabelText(/email/i), 'not-an-email');
     
     // Submit form
-    await user.click(screen.getByRole('button', { name: /sign in/i }));
+    await user.click(screen.getByRole('button', { name: /^Login$/i }));
     
     // Verify error message has correct aria attributes
     const errorMessage = await screen.findByText(/please enter a valid email address/i);
@@ -136,10 +140,10 @@ describe('API Error Messages', () => {
     await user.click(await screen.findByText(/create account/i));
     
     // Submit empty form
-    await user.click(screen.getByRole('button', { name: /sign up/i }));
+    await user.click(screen.getByRole('button', { name: /^Register$/i }));
     
     // Verify consolidated error message is displayed
-    await waitFor(() => {
+    await waitFor(async () => {
       const errorSummary = screen.getByRole('alert', { name: /form errors/i });
       expect(errorSummary).toBeInTheDocument();
       expect(errorSummary).toHaveTextContent(/please fix the following issues/i);
@@ -156,7 +160,7 @@ describe('API Error Messages', () => {
     
     // Enter credentials
     await user.type(screen.getByLabelText(/email/i), 'test@example.com');
-    await user.type(screen.getByLabelText(/password/i), 'wrong-password');
+    await user.type(screen.getByPlaceholderText(/password/i), 'wrong-password');
     
     // Mock login error
     supabase.auth.signInWithPassword = vi.fn().mockResolvedValueOnce({
@@ -165,19 +169,19 @@ describe('API Error Messages', () => {
     });
     
     // Submit form
-    await user.click(screen.getByRole('button', { name: /sign in/i }));
+    await user.click(screen.getByRole('button', { name: /^Login$/i }));
     
     // Check for recovery options
-    await waitFor(() => {
+    await waitFor(async () => {
       expect(await screen.findByText(/forgot your password/i)).toBeInTheDocument();
       expect(screen.getByRole('link', { name: /reset password/i })).toBeInTheDocument();
     });
     
     // Try another error scenario
     await user.clear(screen.getByLabelText(/email/i));
-    await user.clear(screen.getByLabelText(/password/i));
+    await user.clear(screen.getByPlaceholderText(/password/i));
     await user.type(screen.getByLabelText(/email/i), 'unverified@example.com');
-    await user.type(screen.getByLabelText(/password/i), 'password123');
+    await user.type(screen.getByPlaceholderText(/password/i), 'password123');
     
     // Mock verification error
     supabase.auth.signInWithPassword = vi.fn().mockResolvedValueOnce({
@@ -186,10 +190,10 @@ describe('API Error Messages', () => {
     });
     
     // Submit form
-    await user.click(screen.getByRole('button', { name: /sign in/i }));
+    await user.click(screen.getByRole('button', { name: /^Login$/i }));
     
     // Check for resend verification option
-    await waitFor(() => {
+    await waitFor(async () => {
       expect(await screen.findByText(/resend verification email/i)).toBeInTheDocument();
     });
   });
@@ -200,7 +204,7 @@ describe('API Error Messages', () => {
     
     // Enter credentials
     await user.type(screen.getByLabelText(/email/i), 'test@example.com');
-    await user.type(screen.getByLabelText(/password/i), 'password123');
+    await user.type(screen.getByPlaceholderText(/password/i), 'password123');
     
     // Mock unexpected error with no code
     supabase.auth.signInWithPassword = vi.fn().mockResolvedValueOnce({
@@ -209,10 +213,10 @@ describe('API Error Messages', () => {
     });
     
     // Submit form
-    await user.click(screen.getByRole('button', { name: /sign in/i }));
+    await user.click(screen.getByRole('button', { name: /^Login$/i }));
     
     // Check for generic error message
-    await waitFor(() => {
+    await waitFor(async () => {
       expect(await screen.findByText(/something went wrong/i)).toBeInTheDocument();
     });
     

@@ -40,7 +40,7 @@ vi.mock('@/hooks/auth/useAuth', () => ({
 
 // Now import other modules
 import React from 'react';
-import { render, screen, waitFor, fireEvent, act } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { RegistrationForm } from '@/ui/styled/auth/RegistrationForm';
 import { describe, test, expect, beforeEach } from 'vitest';
@@ -89,71 +89,45 @@ describe('Form Validation Errors (Isolated Test)', () => {
       </ThemeProvider>
     );
     
-    const emailInput = screen.getByLabelText(/email \*/i);
-    const passwordInput = screen.getByLabelText(/^Password \*$/i);
+    const emailInput = screen.getByLabelText(/email/i);
+    const passwordInput = screen.getByLabelText(/^password$/i);
     const firstNameInput = screen.getByLabelText(/first name/i);
     const lastNameInput = screen.getByLabelText(/last name/i);
-    const termsCheckbox = screen.getByRole('checkbox', { name: /accept terms and conditions/i });
+    const termsCheckbox = screen.getByRole('checkbox');
     const submitButton = screen.getByRole('button', { name: /create account/i });
 
     // Interact with required fields using the more elaborate pattern
     // Email
-    await act(async () => {
-      await user.type(emailInput, 'a');
-    });
-    await act(async () => {
-      await user.clear(emailInput);
-    });
-    fireEvent.change(emailInput, { target: { value: '' } });
+    await user.type(emailInput, 'a');
+    await user.clear(emailInput);
     fireEvent.blur(emailInput);
     await user.tab();
 
     // Password
-    await act(async () => {
-      await user.type(passwordInput, 'a');
-    });
-    await act(async () => {
-      await user.clear(passwordInput);
-    });
-    fireEvent.change(passwordInput, { target: { value: '' } });
+    await user.type(passwordInput, 'a');
+    await user.clear(passwordInput);
     fireEvent.blur(passwordInput);
     await user.tab();
     
     // First Name
-    await act(async () => {
-      await user.type(firstNameInput, 'a');
-    });
-    await act(async () => {
-      await user.clear(firstNameInput);
-    });
-    fireEvent.change(firstNameInput, { target: { value: '' } });
+    await user.type(firstNameInput, 'a');
+    await user.clear(firstNameInput);
     fireEvent.blur(firstNameInput);
     await user.tab();
 
     // Last Name
-    await act(async () => {
-      await user.type(lastNameInput, 'a');
-    });
-    await act(async () => {
-      await user.clear(lastNameInput);
-    });
-    fireEvent.change(lastNameInput, { target: { value: '' } });
+    await user.type(lastNameInput, 'a');
+    await user.clear(lastNameInput);
     fireEvent.blur(lastNameInput);
     await user.tab();
 
     // Terms Checkbox
-    await act(async () => {
-      await user.click(termsCheckbox); // Check
-    });
-    await act(async () => {
-      await user.click(termsCheckbox); // Uncheck
-    });
+    await user.click(termsCheckbox); // Check
+    await user.click(termsCheckbox); // Uncheck
     await user.tab(); // Tab away from checkbox
 
-    // Submit empty/invalid form (wrapped in act)
-    await act(async () => {
-      await user.click(submitButton);
-    });
+    // Submit empty/invalid form
+    await user.click(submitButton);
 
     // Ensure the registration function wasn't called (validation should prevent this)
     expect(mockRegisterUserAction).not.toHaveBeenCalled(); 
@@ -175,10 +149,11 @@ describe('Form Validation Errors (Isolated Test)', () => {
       // }
 
       // Assert directly based on the visible error text from debug output
-      expect(screen.getByText(/Please enter a valid email address/i)).toBeInTheDocument();
-      expect(screen.getByText(/First name is required/i)).toBeInTheDocument();
-      expect(screen.getByText(/Last name is required/i)).toBeInTheDocument();
-      expect(screen.getByText(/Password must be at least 8 characters/i)).toBeInTheDocument();
+      // Using data-testid for specific error messages
+      expect(screen.getByTestId('email-error')).toHaveTextContent(/Please enter a valid email address/i);
+      expect(screen.getByTestId('first-name-error')).toHaveTextContent(/First name is required/i);
+      expect(screen.getByTestId('last-name-error')).toHaveTextContent(/Last name is required/i);
+      expect(screen.getByTestId('password-error')).toHaveTextContent(/Password must be at least 8 characters/i);
       expect(screen.getByText(/You must accept the terms and conditions/i)).toBeInTheDocument();
     });
   });

@@ -1,27 +1,13 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { POST } from '../route';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { NextRequest } from 'next/server';
+import { ServiceLocator, ServiceKeys } from '@/lib/config/service-locator';
+import { createAuthMiddleware } from '@/lib/api/auth-middleware';
 import type { PermissionService } from '@/core/permission/interfaces';
-import type { AuthService } from '@/core/auth/interfaces';
-import { createAuthenticatedRequest } from '@/tests/utils/request-helpers';
 
-vi.mock('@/services/permission/factory', () => ({}));
-vi.mock('@/services/auth/factory', () => ({}));
-vi.mock('@/lib/config/service-container', () => ({
-  configureServices: vi.fn(),
-  resetServiceContainer: vi.fn(),
-  getServiceContainer: vi.fn(),
-}));
-
-// Mock auth middleware to return authenticated context
-vi.mock('@/lib/api/auth-middleware', () => ({
-  createAuthMiddleware: () => () => Promise.resolve({
-    isAuthenticated: true,
-    userId: 'user-1',
-    user: { id: 'user-1', email: 'test@example.com' },
-    permissions: ['ADMIN_ACCESS'],
-    token: 'test-token',
-  }),
-}));
+// Mock the permission service
+const mockPermissionService: Partial<PermissionService> = {
+  hasPermission: vi.fn(),
+};
 
 // Mock permission cache
 vi.mock('@/lib/auth/permission-cache', () => ({
@@ -31,25 +17,40 @@ vi.mock('@/lib/auth/permission-cache', () => ({
   },
 }));
 
-const mockService: Partial<PermissionService> = {
-  hasPermission: vi.fn(),
-};
-const mockAuth: Partial<AuthService> = {
-  getCurrentUser: vi.fn().mockResolvedValue({ id: 'user-1', email: 'test@example.com' }),
-};
-
-import { ServiceLocator, ServiceKeys } from '@/lib/config/service-locator';
-vi.mocked(getServiceContainer).mockReturnValue({
-  permission: mockService as PermissionService,
-  auth: mockAuth as AuthService,
-} as any);
-
+import { POST } from '../route';
 import { permissionCheckCache } from '@/lib/auth/permission-cache';
 const mockCache = vi.mocked(permissionCheckCache);
 
+function createRequest(body: any) {
+  return new NextRequest('http://localhost/api/auth/check-permission', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer test-token'
+    },
+    body: JSON.stringify(body)
+  });
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
-  vi.mocked(mockService.hasPermission!).mockResolvedValue(true);
+  
+  // Register the mock service in ServiceLocator
+  const locator = ServiceLocator.getInstance();
+  locator.clear();
+  locator.register(ServiceKeys.PERMISSION_SERVICE, mockPermissionService as PermissionService);
+  
+  vi.mocked(mockPermissionService.hasPermission!).mockResolvedValue(true);
+  
+  // Mock the auth middleware to return authenticated context
+  vi.mocked(createAuthMiddleware).mockReturnValue(
+    vi.fn().mockResolvedValue({
+      userId: 'user-1',
+      isAuthenticated: true,
+      user: { id: 'user-1', email: 'test@example.com' },
+      permissions: ['ADMIN_ACCESS']
+    })
+  );
   
   // Set up cache mock to simulate caching behavior
   let hasBeenCalled = false;
@@ -62,13 +63,9 @@ beforeEach(() => {
   });
 });
 
-function createRequest(body: any) {
-  return createAuthenticatedRequest(
-    'POST',
-    'http://localhost/api/auth/check-permission',
-    body,
-  );
-}
+afterEach(() => {
+  ServiceLocator.getInstance().clear();
+});
 
 describe('POST /api/auth/check-permission', () => {
   it('returns permission result', async () => {
@@ -77,23 +74,21 @@ describe('POST /api/auth/check-permission', () => {
       return await fn();
     });
     
-    const res = await POST(
-      createRequest({ permission: 'ADMIN_ACCESS' }) as any
-    );
+    const res = await POST(createRequest({ permission: 'ADMIN_ACCESS' }));
     const data = await res.json();
     expect(res.status).toBe(200);
     expect(data.data.hasPermission).toBe(true);
-    expect(mockService.hasPermission).toHaveBeenCalledWith('user-1', 'ADMIN_ACCESS');
+    expect(mockPermissionService.hasPermission).toHaveBeenCalledWith('user-1', 'ADMIN_ACCESS');
   });
 
   it('caches permission checks', async () => {
-    await POST(createRequest({ permission: 'ADMIN_ACCESS' }) as any);
-    await POST(createRequest({ permission: 'ADMIN_ACCESS' }) as any);
-    expect(mockService.hasPermission).toHaveBeenCalledTimes(1);
+    await POST(createRequest({ permission: 'ADMIN_ACCESS' }));
+    await POST(createRequest({ permission: 'ADMIN_ACCESS' }));
+    expect(mockPermissionService.hasPermission).toHaveBeenCalledTimes(1);
   });
 
   it('validates request body', async () => {
-    const res = await POST(createRequest({}) as any);
+    const res = await POST(createRequest({}));
     expect(res.status).toBe(400);
   });
 });

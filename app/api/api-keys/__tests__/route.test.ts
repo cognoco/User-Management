@@ -1,52 +1,91 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { GET, POST } from '../route'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { NextRequest } from 'next/server'
 import { ServiceLocator, ServiceKeys } from '@/lib/config/service-locator'
+import { createAuthMiddleware } from '@/lib/api/auth-middleware'
 import type { ApiKeyService } from '@/core/api-keys/interfaces'
-import type { AuthService } from '@/core/auth/interfaces'
-import { createAuthenticatedRequest } from '@/tests/utils/request-helpers'
 
-// Mock the auth middleware to bypass authentication
+// Mock the auth middleware to return authenticated context
 vi.mock('@/lib/api/auth-middleware', () => ({
-  createAuthMiddleware: () => vi.fn((req: any) => Promise.resolve({
+  createAuthMiddleware: vi.fn(() => vi.fn().mockResolvedValue({
     userId: 'u1',
+    isAuthenticated: true,
     user: { id: 'u1', email: 'test@example.com' },
     permissions: []
   }))
 }));
 
-vi.mock('@/services/api-keys/factory', () => ({}))
-vi.mock('@/services/auth/factory', () => ({}))
-vi.mock('@/middleware/rate-limit', () => ({ checkRateLimit: vi.fn().mockResolvedValue(false) }))
-vi.mock('@/lib/audit/auditLogger', () => ({ logUserAction: vi.fn().mockResolvedValue(undefined) }))
+vi.mock('@/middleware/rate-limit', () => ({ 
+  checkRateLimit: vi.fn().mockResolvedValue(false) 
+}))
+vi.mock('@/lib/audit/auditLogger', () => ({ 
+  logUserAction: vi.fn().mockResolvedValue(undefined) 
+}))
 
-const service: Partial<ApiKeyService> = {
+// Mock the API key service
+const mockApiKeyService: Partial<ApiKeyService> = {
   listApiKeys: vi.fn(),
   createApiKey: vi.fn(),
 }
-const authService: Partial<AuthService> = {
-  getCurrentUser: vi.fn().mockResolvedValue({ id: 'u1' }),
-}
+
+import { GET, POST } from '../route'
 
 beforeEach(() => {
   vi.clearAllMocks()
-  resetServiceContainer()
-  configureServices({ apiKeyService: service as ApiKeyService, authService: authService as AuthService })
+  
+  // Register the mock service in ServiceLocator
+  const locator = ServiceLocator.getInstance()
+  locator.clear()
+  locator.register(ServiceKeys.API_KEY_SERVICE, mockApiKeyService as ApiKeyService)
+  
+  // Mock auth middleware to return authenticated context
+  vi.mocked(createAuthMiddleware).mockReturnValue(
+    vi.fn().mockResolvedValue({
+      userId: 'u1',
+      isAuthenticated: true,
+      user: { id: 'u1', email: 'test@example.com' },
+      permissions: []
+    })
+  )
+})
+
+afterEach(() => {
+  ServiceLocator.getInstance().clear()
 })
 
 describe('api keys route', () => {
+  const createGetRequest = () => new NextRequest('http://localhost/api/api-keys', {
+    method: 'GET',
+    headers: { 'Authorization': 'Bearer test-token' }
+  })
+  
+  const createPostRequest = (body: any) => new NextRequest('http://localhost/api/api-keys', {
+    method: 'POST',
+    headers: { 
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer test-token'
+    },
+    body: JSON.stringify(body)
+  })
+
   it('lists keys', async () => {
-    (service.listApiKeys as vi.Mock).mockResolvedValue([])
-    const res = await GET(createAuthenticatedRequest('GET', 'http://test/api/api-keys'))
+    vi.mocked(mockApiKeyService.listApiKeys!).mockResolvedValue([])
+    const res = await GET(createGetRequest())
+    const body = await res.json()
     expect(res.status).toBe(200)
-    expect(service.listApiKeys).toHaveBeenCalledWith('u1')
+    expect(body.data.keys).toEqual([])
+    expect(mockApiKeyService.listApiKeys).toHaveBeenCalledWith('u1')
   })
 
   it('creates key', async () => {
-    (service.createApiKey as vi.Mock).mockResolvedValue({ success: true, key: { id: 'k1', name: 'n', prefix: 'p', scopes: [], createdAt: '', isRevoked: false }, plaintext: 'pk' })
-    const req = createAuthenticatedRequest('POST', 'http://test/api/api-keys', { name: 'n', scopes: [] })
-    const res = await POST(req)
+    vi.mocked(mockApiKeyService.createApiKey!).mockResolvedValue({ 
+      success: true, 
+      key: { id: 'k1', name: 'n', prefix: 'p', scopes: [], createdAt: '', isRevoked: false }, 
+      plaintext: 'pk' 
+    })
+    const res = await POST(createPostRequest({ name: 'n', scopes: [] }))
     const body = await res.json()
     expect(res.status).toBe(201)
     expect(body.data.id).toBe('k1')
+    expect(body.data.key).toBe('pk')
   })
 })

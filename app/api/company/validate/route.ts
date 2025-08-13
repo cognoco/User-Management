@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { withValidatedServices } from '@/src/lib/api/with-services';
+import { withValidatedServices } from '@/lib/api/with-services';
 import { createSuccessResponse } from '@/lib/api/common';
 
 const CompanySchema = z.object({ companyName: z.string() });

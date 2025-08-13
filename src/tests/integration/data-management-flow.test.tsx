@@ -1,10 +1,12 @@
 // __tests__/integration/data-management-flow.test.tsx
 
 import React from 'react';
-import { render, screen, act, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { act } from 'react';
 import { Dashboard } from '@/ui/styled/dashboard/Dashboard';
-import { describe, test, expect, beforeEach, vi } from 'vitest'; 
+import { describe, test, expect, beforeEach, vi } from 'vitest';
+import '@/tests/i18nTestSetup'; 
 
 // Create spy functions that we can control
 const selectSpy = vi.fn();

@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { NextRequest } from 'next/server';
 
 // Create mock services that can be controlled in tests
 const mockTwoFactorService = {
@@ -6,26 +7,35 @@ const mockTwoFactorService = {
   verifyWebAuthnRegistration: vi.fn()
 };
 
-// Mock the service locator to avoid initialization issues
-vi.mock('@/lib/config/service-locator', () => ({
-  ServiceLocator: {
-    getInstance: vi.fn(() => ({
-      has: vi.fn(() => true),
-      get: vi.fn((key) => {
-        if (key.includes('TWO_FACTOR')) return mockTwoFactorService;
-        return {};
-      })
-    }))
-  },
-  ServiceKeys: {
-    TWO_FACTOR_SERVICE: 'twoFactor'
-  }
+// Mock withValidatedServices to bypass ServiceLocator entirely
+vi.mock('@/lib/api/with-services', () => ({
+  withValidatedServices: vi.fn((config: any) => {
+    return async (req: NextRequest) => {
+      try {
+        // Parse body
+        const data = await req.json();
+        
+        // Get mock services
+        const mockServices = {
+          twoFactor: mockTwoFactorService
+        };
+        
+        // Call the actual handler with mocked context
+        return await config.handler({
+          request: req,
+          data,
+          services: mockServices,
+          userId: 'u1',
+          params: {}
+        });
+      } catch (error: any) {
+        return Response.json({ error: error.message }, { status: error.status || 500 });
+      }
+    };
+  })
 }));
 
 // Mock dependencies before importing the route
-vi.mock('@/lib/api/auth-middleware', () => ({
-  createAuthMiddleware: vi.fn(() => vi.fn(() => Promise.resolve({ userId: 'u1' })))
-}));
 vi.mock('@/middleware/with-security', () => ({ withSecurity: (h: any) => h }));
 vi.mock('@/lib/audit/auditLogger', () => ({ logUserAction: vi.fn() }));
 vi.mock('@/lib/api/common', () => ({
@@ -41,12 +51,10 @@ vi.mock('@/lib/api/common', () => ({
   }
 }));
 
-// Don't mock withValidatedServices - let it run with mocked ServiceLocator
-
 import { POST } from '../route';
 
 const createRequest = (body: any) =>
-  new Request('http://localhost/api/2fa/webauthn/register', {
+  new NextRequest('http://localhost/api/2fa/webauthn/register', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'User-Agent': 'test' },
     body: JSON.stringify(body)
@@ -63,7 +71,7 @@ describe('WebAuthn register API', () => {
       challenge: 'c' 
     });
     
-    const res = await POST(createRequest({ phase: 'options' }) as any);
+    const res = await POST(createRequest({ phase: 'options' }));
     const data = await res.json();
     
     expect(res.status).toBe(200);
@@ -78,7 +86,7 @@ describe('WebAuthn register API', () => {
     });
     
     const res = await POST(
-      createRequest({ phase: 'verification', credential: 'cred' }) as any
+      createRequest({ phase: 'verification', credential: 'cred' })
     );
     const data = await res.json();
     

@@ -38,6 +38,14 @@ function resolveKey(key: string, obj: any): string {
   if (key === 'auth.mfa.title') return 'Multi-Factor Authentication';
   if (key === 'auth.mfa.rememberDevice') return 'Remember this device';
   if (key === 'auth.mfa.rememberDeviceHelp') return 'Do not require MFA on this device for 30 days.';
+  // Patch: map error.* keys
+  if (key === 'error.loadingAccounts') return 'Failed to load accounts';
+  if (key === 'error.switchingAccount') return 'Failed to switch accounts';
+  if (key === 'error.creatingOrganization') return 'Failed to create organization';
+  if (key === 'error.leavingOrganization') return 'Failed to leave organization';
+  // Patch: map accountSwitcher.* keys
+  if (key === 'accountSwitcher.noAccounts') return 'No accounts found.';
+  if (key === 'accountSwitcher.noMembers') return 'No members found';
   // Try to resolve as a nested key in the translation object
   const parts = key.split('.');
   let value: any = obj;

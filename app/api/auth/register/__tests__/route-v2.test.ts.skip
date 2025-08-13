@@ -5,26 +5,26 @@
  * dependency injection pattern. Compare this to testing the old route!
  */
 
-import { describe, it, expect, jest, beforeEach } from '@jest/globals';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest } from 'next/server';
 import { createTestRouteHandlerFactory } from '@/lib/api/route-helpers-v2';
 
 // We can easily mock just the services we need for this route
 const mockAuthService = {
-  register: jest.fn(),
-  login: jest.fn(),
-  logout: jest.fn(),
-  refreshToken: jest.fn(),
-  verifyToken: jest.fn(),
-  resetPassword: jest.fn(),
-  updatePassword: jest.fn(),
-  verifyEmail: jest.fn(),
-  resendVerification: jest.fn(),
+  register: vi.fn(),
+  login: vi.fn(),
+  logout: vi.fn(),
+  refreshToken: vi.fn(),
+  verifyToken: vi.fn(),
+  resetPassword: vi.fn(),
+  updatePassword: vi.fn(),
+  verifyEmail: vi.fn(),
+  resendVerification: vi.fn(),
 };
 
 describe('Registration Route V2', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('Successful Registration', () => {
@@ -377,13 +377,13 @@ describe('Registration Route V2 - Integration', () => {
     const mockAuthService1 = { ...mockAuthService };
     const mockAuthService2 = { ...mockAuthService };
     
-    mockAuthService1.register = jest.fn().mockResolvedValue({
+    mockAuthService1.register = vi.fn().mockResolvedValue({
       success: true,
       user: { id: '1', email: 'user1@example.com' },
       token: 'token1'
     });
     
-    mockAuthService2.register = jest.fn().mockResolvedValue({
+    mockAuthService2.register = vi.fn().mockResolvedValue({
       success: true,
       user: { id: '2', email: 'user2@example.com' },
       token: 'token2'

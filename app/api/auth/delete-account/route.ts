@@ -16,7 +16,7 @@ export const DELETE = withValidatedServices({
   schema: DeleteAccountSchema,
   requiredServices: ['auth'],
   requireAuth: true,
-  handler: async ({ request, auth, data, services }) => {
+  handler: async ({ request, userId, data, services }) => {
     const ipAddress = request.headers.get('x-forwarded-for') || 'unknown';
     const userAgent = request.headers.get('user-agent') || 'unknown';
     
@@ -24,25 +24,25 @@ export const DELETE = withValidatedServices({
       await services.auth.deleteAccount(data.password);
       
       await logUserAction({
-        userId: auth.userId,
+        userId: userId!,
         action: 'ACCOUNT_DELETED',
         status: 'SUCCESS',
         ipAddress,
         userAgent,
         targetResourceType: 'auth',
-        targetResourceId: auth.userId
+        targetResourceId: userId!
       });
       
       return createSuccessResponse({ message: 'Account successfully deleted' });
     } catch (error) {
       await logUserAction({
-        userId: auth.userId,
+        userId: userId!,
         action: 'ACCOUNT_DELETE_FAILED',
         status: 'FAILURE',
         ipAddress,
         userAgent,
         targetResourceType: 'auth',
-        targetResourceId: auth.userId,
+        targetResourceId: userId!,
         details: { error: (error as Error)?.message }
       });
       

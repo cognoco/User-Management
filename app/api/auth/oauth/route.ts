@@ -1,7 +1,7 @@
 import { cookies } from 'next/headers';
 import { z } from 'zod';
 import { OAuthProvider, oauthProviderConfigSchema } from '@/types/oauth';
-import { withValidatedServices } from '@/src/lib/api/with-services';
+import { withValidatedServices } from '@/lib/api/with-services';
 import {
   createSuccessResponse,
   ApiError,
