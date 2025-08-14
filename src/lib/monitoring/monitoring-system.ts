@@ -46,3 +46,12 @@ export function initializeMonitoringSystem(config: MonitoringConfig = {}): void 
 }
 
 export { getAlertManager as alertManager };
+
+/**
+ * Test utility to reset initialization state
+ * @internal
+ */
+export function __resetInitialization() {
+  initialized = false;
+  alertManager = null;
+}

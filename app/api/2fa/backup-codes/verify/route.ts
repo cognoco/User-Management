@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { withValidatedServices } from '@/src/lib/api/with-services';
+import { withValidatedServices } from '@/lib/api/with-services';
 import { createSuccessResponse, ApiError, ERROR_CODES } from '@/lib/api/common';
 
 const VerifySchema = z.object({ code: z.string().min(8).max(10) });

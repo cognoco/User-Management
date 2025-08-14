@@ -5,7 +5,7 @@
  * This module provides consistent success response formatting and pagination.
  */
 
-import { NextResponse } from 'next/server';
+import { NextResponse } from 'next/server.js';
 import { ApiError } from './api-error';
 
 /**

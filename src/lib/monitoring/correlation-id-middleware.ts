@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { v4 as uuidv4 } from 'uuid';
+import { setCorrelationId, getCorrelationId } from './correlation-id';
 
 export function correlationIdMiddleware() {
   return async function (
@@ -13,9 +14,18 @@ export function correlationIdMiddleware() {
 
     (req as any).correlationId = id;
     res.setHeader('X-Correlation-Id', id);
+    
+    // Also set it in the correlation ID context for consistency
+    setCorrelationId(id);
 
     try {
       await next();
+    } catch (error: any) {
+      // Attach correlation ID to errors
+      if (error && typeof error === 'object') {
+        error.correlationId = id;
+      }
+      throw error;
     } finally {
       // no-op; request-scoped only
     }

@@ -4,13 +4,13 @@ import OrganizationSSO from '@/ui/styled/auth/OrganizationSSO';
 import { Card, CardContent, CardHeader, CardTitle } from '@/ui/primitives/card';
 
 interface SSOSettingsPageProps {
-  params: {
+  params: Promise<{
     orgId: string;
-  };
+  }>;
 }
 
-export default function SSOSettingsPage({ params }: SSOSettingsPageProps): JSX.Element {
-  const { orgId } = params;
+export default async function SSOSettingsPage({ params }: SSOSettingsPageProps): Promise<JSX.Element> {
+  const { orgId } = await params;
 
   if (!orgId) {
     return notFound();

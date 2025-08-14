@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { TwoFactorMethod } from '@/types/2fa';
-import { withValidatedServices } from '@/src/lib/api/with-services';
+import { withValidatedServices } from '@/lib/api/with-services';
 import { createSuccessResponse } from '@/lib/api/common';
 
 // Request schema

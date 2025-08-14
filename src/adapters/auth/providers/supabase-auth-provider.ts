@@ -5,7 +5,7 @@
  * It adapts Supabase's authentication API to the interface required by our core business logic.
  */
 
-import { createBrowserClient, type SupabaseClient } from '@supabase/ssr';
+import { getSupabaseBrowserClient, type SupabaseClient } from '@/lib/supabase/client';
 import type { Session } from '@supabase/supabase-js';
 import {
   AuthResult,
@@ -58,12 +58,8 @@ export class SupabaseAuthProvider implements AuthDataProvider {
    * @param supabaseKey Supabase API key
    */
   constructor(supabaseUrl: string, supabaseKey: string) {
-    // Use the browser-friendly helper to ensure the correct client bundle and avoid server-only shims.
-    this.supabase = createBrowserClient(supabaseUrl, supabaseKey, {
-      realtime: {
-        enabled: false,
-      },
-    });
+    // Use the singleton browser client to prevent multiple instances
+    this.supabase = getSupabaseBrowserClient();
     this.log('Initialized client with url:', supabaseUrl);
 
     // Initialize MFA service with Supabase adapter

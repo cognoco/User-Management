@@ -62,7 +62,7 @@ import { defineConfig, devices } from '@playwright/test';
 const useRealSupabase = process.env.E2E_USE_SUPABASE !== 'false'; // Default to true
 
 // Configure base URL with environment variable support
-const baseURL = process.env.E2E_BASE_URL || 'http://localhost:3000';
+const baseURL = process.env.E2E_BASE_URL || 'http://localhost:3001';
 
 console.log(`Playwright E2E Config: Using baseURL=${baseURL}`);
 console.log(`Set E2E_BASE_URL environment variable to override (e.g., E2E_BASE_URL=http://localhost:3003)`);

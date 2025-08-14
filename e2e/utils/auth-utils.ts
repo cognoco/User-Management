@@ -34,4 +34,36 @@ export async function loginUser(page: Page, email = TEST_USER.email, password = 
   } catch (e) {
     console.log('Navigation after login failed, but continuing test');
   }
+}
+
+/**
+ * Login as a specific user type (alias for loginUser for compatibility)
+ */
+export async function loginAs(page: Page, userType: 'admin' | 'user' | string, customCredentials?: { email: string; password: string }): Promise<void> {
+  let email: string;
+  let password: string;
+
+  if (customCredentials) {
+    email = customCredentials.email;
+    password = customCredentials.password;
+  } else {
+    // Use predefined test user credentials based on type
+    switch (userType) {
+      case 'admin':
+        email = process.env.TEST_ADMIN_EMAIL || 'admin@example.com';
+        password = process.env.TEST_ADMIN_PASSWORD || 'Password123!';
+        break;
+      case 'user':
+        email = process.env.TEST_USER_EMAIL || 'user@example.com';
+        password = process.env.TEST_USER_PASSWORD || 'Password123!';
+        break;
+      default:
+        // Treat as custom email
+        email = userType;
+        password = process.env.TEST_USER_PASSWORD || 'Password123!';
+        break;
+    }
+  }
+
+  await loginUser(page, email, password);
 } 

@@ -1,5 +1,5 @@
 import { createError, ApplicationError } from '@/core/common/errors';
-import { enhanceError, createValidationError } from '@/lib/utils/error-factory';
+import { enhanceError, createValidationError } from '@/lib/utils/error-factory.server';
 import { ERROR_CODES } from '@/core/common/error-codes';
 import { sanitizePII } from '@/lib/utils/pii';
 import compliance from '../../../config/compliance.config';

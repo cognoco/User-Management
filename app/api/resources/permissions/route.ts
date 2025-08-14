@@ -15,7 +15,7 @@ import {
 } from '@/core/permission/models';
 
 import { checkPermission } from '@/lib/auth/permissionCheck';
-import { mapPermissionServiceError } from '@/src/lib/api/permission/error-handler';
+import { mapPermissionServiceError } from '@/lib/api/permission/error-handler';
 
 const assignSchema = z.object({
   userId: z.string(),

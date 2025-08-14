@@ -5,13 +5,13 @@ import { ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 
 interface SettingsPageProps {
-  params: {
+  params: Promise<{
     orgId: string;
-  };
+  }>;
 }
 
-export default function SettingsPage({ params }: SettingsPageProps): JSX.Element {
-  const { orgId } = params;
+export default async function SettingsPage({ params }: SettingsPageProps): Promise<JSX.Element> {
+  const { orgId } = await params;
 
   return (
     <div>

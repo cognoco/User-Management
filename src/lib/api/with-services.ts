@@ -19,6 +19,7 @@ import {
   ApiError, 
   ERROR_CODES 
 } from './common';
+import { initializeApiServices } from '@/lib/initialization/api-init';
 
 /**
  * Handler context with validated services
@@ -93,6 +94,9 @@ const SERVICE_KEY_MAP: Record<string, string> = {
  * Create a service container from required services
  */
 function createValidatedServiceContainer(requiredServices: (keyof ServiceContainer)[]): ServiceContainer {
+  // Ensure API services are initialized before accessing them
+  initializeApiServices();
+  
   const locator = ServiceLocator.getInstance();
   const container: Partial<ServiceContainer> = {};
   
@@ -140,11 +144,11 @@ function extractParams(request: NextRequest): Record<string, string> {
  */
 export function withValidatedServices<T = any>(
   options: WithServicesOptions<T>
-): (request: NextRequest, params?: { params: Record<string, string> }) => Promise<NextResponse> {
+): (request: NextRequest, context?: { params: Promise<Record<string, string>> }) => Promise<NextResponse> {
   
   return async (
     request: NextRequest, 
-    context?: { params: Record<string, string> }
+    context?: { params: Promise<Record<string, string>> }
   ): Promise<NextResponse> => {
     try {
       // 1. Validate required services are available
@@ -193,7 +197,7 @@ export function withValidatedServices<T = any>(
       }
       
       // 4. Extract route parameters
-      const params = context?.params || extractParams(request);
+      const params = context?.params ? await context.params : extractParams(request);
       
       // 5. Create handler context
       const handlerContext: WithServicesContext<T> = {

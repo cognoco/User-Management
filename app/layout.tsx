@@ -3,6 +3,7 @@ import RootLayoutClient from './RootLayoutClient';
 import './globals.css';
 import { initializeErrorSystem, initializeMonitoringSystem } from '@/lib/monitoring';
 
+// Initialize error and monitoring systems
 initializeErrorSystem();
 initializeMonitoringSystem();
 
@@ -37,7 +38,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className="antialiased">
       <head />
-      <body className="font-sans">
+      <body className="bg-background text-foreground antialiased">
         <RootLayoutClient>{children}</RootLayoutClient>
       </body>
     </html>

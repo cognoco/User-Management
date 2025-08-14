@@ -1,4 +1,4 @@
-import { withValidatedServices, schemas } from '@/src/lib/api/with-services';
+import { withValidatedServices, schemas } from '@/lib/api/with-services';
 import { createSuccessResponse, ApiError, ERROR_CODES } from '@/lib/api/common';
 
 const postHandler = async ({ userId, services }: { userId?: string, services: any }) => {

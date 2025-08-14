@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 import { createSuccessResponse } from '@/lib/api/common';
-import { withValidatedServices, schemas } from '@/src/lib/api/with-services';
+import { withValidatedServices, schemas } from '@/lib/api/with-services';
 import type { UserService } from '@/core/user/interfaces';
 import { userPreferencesSchema } from '@/types/database';
 import { mapUserServiceError } from '@/lib/api/user/error-handler';

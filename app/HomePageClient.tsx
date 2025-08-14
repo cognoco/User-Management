@@ -1,17 +1,16 @@
-'use client'; // Required for hooks
+'use client';
 import '@/lib/i18n';
 
 import { useTranslation } from 'react-i18next';
-import Link from 'next/link'; // Use next/link
+import Link from 'next/link';
 import { Button } from '@/ui/primitives/button';
 import { useAuth } from '@/hooks/auth/useAuth';
 import { Hero } from '@/ui/styled/layout/Hero';
 import { Features, FeatureItem } from '@/ui/styled/layout/Features';
 import { Shield, UserCircle, KeyRound } from 'lucide-react';
 
-// Replaces the previous placeholder HomePage
-export default function HomePage() { 
-  const { t } = useTranslation(); // Assuming i18n setup works
+export default function HomePageClient() { 
+  const { t } = useTranslation();
   
   // React 19 compatibility - Use a primitive selector
   const isAuthenticated = useAuth().isAuthenticated;
@@ -72,4 +71,4 @@ export default function HomePage() {
       />
     </div>
   );
-} 
+}

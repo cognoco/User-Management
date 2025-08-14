@@ -29,8 +29,16 @@
       "Bash(npm run dev:*)",
       "Bash(node:*)",
       "Bash(npm:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(npx playwright test:*)",
+      "Bash(kill:*)",
+      "Bash(for:*)",
+      "Bash(do sed -i 's|@/lib/api/with-services|@/lib/api/with-services|g' \"$file\")",
+      "Bash(E2E_BASE_URL=http://localhost:3002 npx playwright test e2e/auth/personal/login.e2e.test.ts --reporter=list --max-failures=2 --timeout=30000)",
+      "Bash(E2E_BASE_URL=http://localhost:3002 npx playwright test e2e/auth/personal/login.e2e.test.ts --reporter=list --max-failures=1)",
+      "Bash(npx madge:*)"
     ],
-    "deny": []
+    "deny": [],
+    "defaultMode": "acceptEdits"
   }
 }

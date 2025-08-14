@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { withValidatedServices } from '@/src/lib/api/with-services';
+import { withValidatedServices } from '@/lib/api/with-services';
 import { createSuccessResponse } from '@/lib/api/common';
 import { triggerWebhook } from '@/lib/webhooks/triggerWebhook';
 import { ssoProviderSchema } from '@/core/sso/models';

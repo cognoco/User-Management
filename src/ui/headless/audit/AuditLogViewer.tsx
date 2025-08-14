@@ -3,7 +3,6 @@
 import { useState, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useToast } from '@/lib/hooks/use-toast';
-import * as XLSX from 'xlsx';
 
 export interface AuditLog {
   id: string;
@@ -161,31 +160,25 @@ export function useAuditLogViewer({ isAdmin = true }: UseAuditLogViewerProps): U
       }
       
       if (format === 'xlsx') {
-        // Fetch all filtered logs (not just current page)
-        params.set('page', '1');
-        params.set('limit', '1000'); // Adjust as needed for max export size
-        const response = await fetch(`/api/audit/user-actions?${params.toString()}`);
+        // For Excel format, we'll get an Excel-compatible CSV from the server
+        params.append('format', 'xlsx');
+        const response = await fetch(`/api/audit/user-actions/export?${params.toString()}`);
         if (!response.ok) {
           const error = await response.json();
           throw new Error(error.message || 'Failed to export audit logs');
         }
-        const { logs } = await response.json();
-        const worksheet = XLSX.utils.json_to_sheet(logs);
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, 'Audit Logs');
-        const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-        const blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
+        const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'audit-logs.xlsx';
+        a.download = 'audit-logs.csv'; // Excel can open CSV files
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         window.URL.revokeObjectURL(url);
         toast({
           title: 'Export Successful',
-          description: 'Audit logs have been exported as Excel (.xlsx)',
+          description: 'Audit logs have been exported for Excel',
         });
       } else {
         params.append('format', format);

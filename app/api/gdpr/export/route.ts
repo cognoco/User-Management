@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { withValidatedServices, schemas } from '@/src/lib/api/with-services';
+import { withValidatedServices, schemas } from '@/lib/api/with-services';
 
 const getHandler = async ({ userId, services }: { userId?: string, services: any }) => {
   try {

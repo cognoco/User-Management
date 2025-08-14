@@ -5,14 +5,14 @@
  * It handles TOTP secrets, backup codes, and MFA state management.
  */
 
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { getSupabaseServerClient, type SupabaseClient } from '@/lib/supabase/client';
 import type { MfaDataProvider } from '@/services/auth/mfa-service';
 
 export class SupabaseMfaAdapter implements MfaDataProvider {
   private supabase: SupabaseClient;
 
   constructor(supabaseUrl: string, supabaseKey: string) {
-    this.supabase = createClient(supabaseUrl, supabaseKey);
+    this.supabase = getSupabaseServerClient();
   }
 
   async getUser(userId: string): Promise<any> {
