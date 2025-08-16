@@ -1,5 +1,6 @@
 import type { AuthDataProvider } from '@/adapters/auth/interfaces';
-import type { AuthResult, MFASetupResponse, MFAVerifyResponse } from '@/core/auth/models';
+import type { MFASetupResponse, MFAVerifyResponse } from '@/core/auth/models';
+import type { AuthResult } from '@/core/common/user-types';
 import { authenticator, hotp } from 'otplib';
 
 export interface MFAHandler {

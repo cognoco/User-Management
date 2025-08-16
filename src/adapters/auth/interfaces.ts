@@ -5,13 +5,15 @@
  * This abstraction allows the service layer to work with any data source.
  */
 import type {
+  MFASetupResponse,
+  MFAVerifyResponse,
+} from '@/core/auth/models';
+import type {
   AuthResult,
   LoginPayload,
   RegistrationPayload,
   User,
-  MFASetupResponse,
-  MFAVerifyResponse,
-} from '@/core/auth/models';
+} from '@/core/common/user-types';
 import type {
   TwoFactorSetupResult,
   TwoFactorVerifyResult,

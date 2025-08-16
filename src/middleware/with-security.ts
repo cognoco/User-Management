@@ -44,15 +44,7 @@ export function withSecurity(
     request: NextRequest
   ): Promise<NextResponse> {
     try {
-      // Get the response from the handler
-      const response = await handler(request);
-
-      // Add security headers
-      Object.entries(securityHeaders).forEach(([key, value]) => {
-        response.headers.set(key, value);
-      });
-
-      // Add CSRF protection for mutating methods
+      // Check CSRF protection BEFORE processing the request for mutating methods
       if (!options.skipCSRF && ['POST', 'PUT', 'DELETE', 'PATCH'].includes(request.method)) {
         const csrfToken = request.headers.get('X-CSRF-Token');
         const storedToken = request.cookies.get('csrf-token')?.value;
@@ -64,6 +56,14 @@ export function withSecurity(
           );
         }
       }
+
+      // Get the response from the handler
+      const response = await handler(request);
+
+      // Add security headers
+      Object.entries(securityHeaders).forEach(([key, value]) => {
+        response.headers.set(key, value);
+      });
 
       return response;
     } catch (error) {

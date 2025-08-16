@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { withValidatedServices } from '@/lib/api/with-services';
-import { LoginPayload } from '@/core/auth/models';
+import { LoginPayload } from '@/core/common/user-types';
 import { createSuccessResponse, ApiError, ERROR_CODES } from '@/lib/api/common';
 import { createInvalidCredentialsError, createEmailNotVerifiedError } from '@/lib/api/auth/error-handler';
 

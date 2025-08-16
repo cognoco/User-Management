@@ -8,6 +8,7 @@ import type { Session } from '@supabase/supabase-js';
 import { getApiAuthService } from '@/services/auth/factory';
 import { authConfig, isProduction } from './config';
 import { extractAuthToken, validateAuthToken } from './utils';
+import { debug, info, warn, error as logError } from '@/lib/utils/logger';
 
 /**
  * Shape of the session object returned by helpers in this module.
@@ -63,7 +64,7 @@ export async function getCurrentSession(): Promise<CurrentSession | null> {
       expiresAt: session.expires_at * 1000,
     };
   } catch (error) {
-    console.error('[session] Failed to get current session:', error);
+    logError('session', 'Failed to get current session', error as Error);
     return null;
   }
 }
@@ -86,14 +87,14 @@ export async function refreshSession(): Promise<CurrentSession | null> {
     const authService = getApiAuthService();
     const ok = await authService.refreshToken();
     if (!ok) {
-      console.warn('[session] Token refresh failed');
+      warn('session', 'Token refresh failed');
       return null;
     }
 
-    console.log('[session] Token refreshed');
+    info('session', 'Token refreshed successfully');
     return getCurrentSession();
   } catch (error) {
-    console.error('[session] Error refreshing session:', error);
+    logError('session', 'Error refreshing session', error as Error);
     return null;
   }
 }
@@ -104,9 +105,9 @@ export async function refreshSession(): Promise<CurrentSession | null> {
 export function handleSessionTimeout(): void {
   try {
     getApiAuthService().handleSessionTimeout();
-    console.log('[session] Session timeout handled');
+    debug('session', 'Session timeout handled');
   } catch (error) {
-    console.error('[session] Failed to handle session timeout:', error);
+    logError('session', 'Failed to handle session timeout', error as Error);
   }
 }
 
@@ -124,16 +125,17 @@ export function persistSession(session: Session | null): void {
         value: session.access_token,
         httpOnly: true,
         secure: isProduction,
+        sameSite: 'strict',
         path: '/',
         maxAge: session.expires_in,
       });
-      console.log('[session] Session persisted');
+      debug('session', 'Session persisted to cookie');
     } else {
       cookieStore.delete(name);
-      console.log('[session] Session cleared');
+      debug('session', 'Session cookie cleared');
     }
   } catch (error) {
-    console.error('[session] Failed to persist session:', error);
+    logError('session', 'Failed to persist session', error as Error);
   }
 }
 

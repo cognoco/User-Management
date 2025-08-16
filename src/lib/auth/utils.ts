@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server';
 import { getServiceSupabase } from '@/lib/database/supabase';
+import { debug, info, warn, error as logError } from '@/lib/utils/logger';
 
 /**
  * Object representing an authenticated user returned by utilities in this file.
@@ -53,7 +54,7 @@ export function extractAuthToken(req: NextRequest): string | null {
   }
 
   const finalToken = token || null;
-  console.log('[auth] extracted token', finalToken ? 'present' : 'missing');
+  debug('auth', 'Token extraction result', { tokenPresent: !!finalToken });
   return finalToken;
 }
 
@@ -68,19 +69,19 @@ export async function getUserFromRequest(
   try {
     const token = extractAuthToken(req);
     if (!token) {
-      console.log('[getUserFromRequest] no token provided');
+      debug('auth', 'No token provided in request');
       return null;
     }
 
     const user = await validateAuthToken(token);
     if (user) {
-      console.log('[getUserFromRequest] authenticated', user.id);
+      info('auth', 'User authenticated successfully', { userId: user.id });
     } else {
-      console.warn('[getUserFromRequest] invalid token');
+      warn('auth', 'Invalid authentication token provided');
     }
     return user;
   } catch (error) {
-    console.error('Error getting user from request:', error);
+    logError('auth', 'Failed to get user from request', error as Error);
     return null;
   }
 }
@@ -100,20 +101,20 @@ export async function verifyEmailToken(token: string): Promise<string | null> {
       .single();
 
     if (error || !data) {
-      console.error('[verifyEmailToken] lookup failed', error);
+      logError('auth', 'Email token lookup failed', error as Error);
       return null;
     }
 
     const expiresAt = new Date(data.expires_at);
     if (Date.now() > expiresAt.getTime()) {
-      console.log('[verifyEmailToken] token expired');
+      info('auth', 'Email verification token expired');
       return null;
     }
 
-    console.log('[verifyEmailToken] valid for user', data.user_id);
+    info('auth', 'Email verification token valid', { userId: data.user_id });
     return data.user_id;
   } catch (error) {
-    console.error('Error verifying email token:', error);
+    logError('auth', 'Error verifying email token', error as Error);
     return null;
   }
 }

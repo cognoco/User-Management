@@ -7,6 +7,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+import { timingSafeEqual } from 'crypto';
 import type { 
   ServiceContainer,
   AuthContext
@@ -20,6 +21,18 @@ import {
   ERROR_CODES 
 } from './common';
 import { initializeApiServices } from '@/lib/initialization/api-init';
+
+/**
+ * Safe token comparison to prevent timing attacks
+ */
+function safeCompareTokens(a: string, b: string): boolean {
+  const aBuf = Buffer.from(a);
+  const bBuf = Buffer.from(b);
+  if (aBuf.length !== bBuf.length) {
+    return false;
+  }
+  return timingSafeEqual(aBuf, bBuf);
+}
 
 /**
  * Handler context with validated services
@@ -57,6 +70,10 @@ export interface WithServicesOptions<T = any> {
   includeUser?: boolean;
   /** Whether to include user permissions in context */
   includePermissions?: boolean;
+  /** Whether to enable CSRF protection (defaults to true for state-changing methods) */
+  enableCSRF?: boolean;
+  /** Rate limiting configuration */
+  rateLimit?: { windowMs: number; max: number };
   /** Handler function */
   handler: (context: WithServicesContext<T>) => Promise<NextResponse>;
 }
@@ -151,10 +168,29 @@ export function withValidatedServices<T = any>(
     context?: { params: Promise<Record<string, string>> }
   ): Promise<NextResponse> => {
     try {
-      // 1. Validate required services are available
+      // 1. Check CSRF protection for state-changing methods
+      const shouldCheckCSRF = options.enableCSRF !== false && 
+        ['POST', 'PUT', 'DELETE', 'PATCH'].includes(request.method);
+      
+      if (shouldCheckCSRF) {
+        const csrfToken = request.headers.get('X-CSRF-Token');
+        const storedToken = request.cookies.get('csrf-token')?.value;
+        
+        if (!csrfToken || !storedToken || !safeCompareTokens(csrfToken, storedToken)) {
+          return createErrorResponse(
+            new ApiError(
+              ERROR_CODES.FORBIDDEN,
+              'Invalid or missing CSRF token',
+              403
+            )
+          );
+        }
+      }
+      
+      // 2. Validate required services are available
       const services = createValidatedServiceContainer(options.requiredServices);
       
-      // 2. Create authentication middleware if needed
+      // 3. Create authentication middleware if needed
       let authContext: AuthContext = { isAuthenticated: false };
       
       if (options.requireAuth || options.requiredPermissions?.length) {
@@ -170,7 +206,7 @@ export function withValidatedServices<T = any>(
         authContext = await authMiddleware(request);
       }
       
-      // 3. Validate request data
+      // 4. Validate request data
       let validatedData: T;
       try {
         const body = request.method === 'GET' 
@@ -196,10 +232,10 @@ export function withValidatedServices<T = any>(
         throw error;
       }
       
-      // 4. Extract route parameters
+      // 5. Extract route parameters
       const params = context?.params ? await context.params : extractParams(request);
       
-      // 5. Create handler context
+      // 6. Create handler context
       const handlerContext: WithServicesContext<T> = {
         data: validatedData,
         request,
@@ -210,7 +246,7 @@ export function withValidatedServices<T = any>(
         params,
       };
       
-      // 6. Call the handler
+      // 7. Call the handler
       return await options.handler(handlerContext);
       
     } catch (error) {

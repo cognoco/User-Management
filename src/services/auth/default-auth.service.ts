@@ -15,15 +15,17 @@ import {
 } from '@/core/auth/interfaces';
 import type { AuthDataProvider } from '@/adapters/auth/interfaces';
 import {
+  MFASetupResponse,
+  MFAVerifyResponse
+} from '@/core/auth/models';
+import {
   AuthResult,
   LoginPayload,
   RegistrationPayload,
-  MFASetupResponse,
-  MFAVerifyResponse,
   User,
   loginSchema,
-  registerSchema
-} from '@/core/auth/models';
+  registrationSchema as registerSchema
+} from '@/core/common/user-types';
 import { AuthEventType } from '@/core/auth/events';
 import { translateError } from '@/lib/utils/error';
 import { handleServiceError } from '@/services/common/service-error-handler';
