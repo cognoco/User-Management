@@ -1,9 +1,9 @@
-export type ErrorMetricDimensions = {
+export interface ErrorMetricDimensions {
   errorCode: string;
   serviceName: string;
   environment: string;
   severity: string;
-};
+}
 
 interface TimingData {
   firstSeen: number;

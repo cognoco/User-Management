@@ -1,7 +1,7 @@
 // Browser-safe Supabase client stub to prevent bundling server/node deps
 // Returns harmless defaults suitable for builds; real data should be fetched via API routes
 
-type QueryResult<T = any> = { data?: T; error?: { message: string } | null };
+interface QueryResult<T = any> { data?: T; error?: { message: string } | null }
 
 function notAvailable<T = any>(): Promise<QueryResult<T>> {
   return Promise.resolve({ data: undefined as any, error: { message: 'Supabase client is not available in browser. Use API routes.' } });

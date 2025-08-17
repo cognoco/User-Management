@@ -91,7 +91,7 @@ export function WebAuthnRegistration({ onSuccess, onError }: WebAuthnRegistratio
 
           <div className="text-xs text-muted-foreground text-center">
             <p>
-              You'll be prompted to interact with your security key during registration.
+              You&apos;ll be prompted to interact with your security key during registration.
               Make sure your security key is connected and ready.
             </p>
           </div>

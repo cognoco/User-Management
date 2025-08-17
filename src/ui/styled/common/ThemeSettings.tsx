@@ -10,7 +10,7 @@ const paletteKeys: PaletteKey[] = ['earthTones', 'modernTech', 'oceanBreeze'];
  * ThemeSettings Component
  * Placeholder for managing theme settings.
  */
-export const ThemeSettings: React.FC = () => {
+export const ThemeSettings: React.FC = (): JSX.Element => {
   const { preferences, fetchPreferences, updatePreferences, isLoading, error } = usePreferencesStore();
   const { theme, setTheme } = useTheme();
   const { paletteKey, setPaletteByKey } = usePalette();
@@ -47,15 +47,15 @@ export const ThemeSettings: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pendingTheme, pendingPalette]);
 
-  const handleThemeChange = (newTheme: 'light' | 'dark' | 'system') => {
+  const handleThemeChange = (newTheme: 'light' | 'dark' | 'system'): void => {
     setPendingTheme(newTheme);
   };
 
-  const handlePaletteChange = (key: PaletteKey) => {
+  const handlePaletteChange = (key: PaletteKey): void => {
     setPendingPalette(key);
   };
 
-  const handleSave = async () => {
+  const handleSave = async (): Promise<void> => {
     setSaving(true);
     setSuccess('');
     const ok = await updatePreferences({ theme: pendingTheme, color_scheme: pendingPalette });
@@ -66,7 +66,7 @@ export const ThemeSettings: React.FC = () => {
     }
   };
 
-  const handleCancel = () => {
+  const handleCancel = (): void => {
     // Restore from preferences
     if (preferences) {
       setPendingTheme(preferences.theme as 'light' | 'dark' | 'system');

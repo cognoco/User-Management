@@ -10,7 +10,7 @@ interface AddressCardProps {
   onDelete: (address: CompanyAddress) => void;
 }
 
-export function AddressCard({ address, onEdit, onDelete }: AddressCardProps) {
+export function AddressCard({ address, onEdit, onDelete }: AddressCardProps): JSX.Element {
   return (
     <AddressCardHeadless
       address={address}

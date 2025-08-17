@@ -17,16 +17,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Avatar, AvatarFallback, AvatarImage } from '@/ui/primitives/avatar';
 import { ExclamationTriangleIcon, CheckCircledIcon } from '@radix-ui/react-icons';
 
-interface TeamMember {
-  id: string;
-  name: string;
-  email: string;
-  avatarUrl?: string;
-  isCurrentUser: boolean;
-  canRemove: boolean;
-  canUpdateRole: boolean;
-}
-
 export interface StyledTeamMemberManagerProps extends Omit<TeamMemberManagerProps, 'render'> {
   /**
    * Optional title for the team member manager

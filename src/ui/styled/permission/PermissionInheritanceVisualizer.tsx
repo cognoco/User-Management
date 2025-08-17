@@ -5,7 +5,6 @@ import { useRoleHierarchy } from '@/hooks/admin/useRoleHierarchy';
 import { useApi } from '@/hooks/core/useApi';
 
 interface Permission { id: string; name: string; }
-interface Role { id: string; name: string; parentRoleId?: string | null; }
 
 interface Props {
   roleId: string;

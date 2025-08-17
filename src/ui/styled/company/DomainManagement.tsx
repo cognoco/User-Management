@@ -50,7 +50,7 @@ export function DomainManagement({ companyId, onVerificationChange }: DomainMana
     }
   });
 
-  const fetchDomains = async () => {
+  const fetchDomains = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
@@ -63,11 +63,11 @@ export function DomainManagement({ companyId, onVerificationChange }: DomainMana
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [toast]);
 
   useEffect(() => {
     fetchDomains();
-  }, []);
+  }, [fetchDomains]);
 
   const handleAddDomain = async (values: FormValues) => {
     setIsLoading(true);

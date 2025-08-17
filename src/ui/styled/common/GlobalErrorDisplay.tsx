@@ -7,13 +7,13 @@ import { useGlobalError, useErrorStore } from "@/lib/state/errorStore";
 
 const ApiErrorAlert = React.lazy(() => import("./ApiErrorAlert"));
 
-export function GlobalErrorDisplay() {
+export function GlobalErrorDisplay(): JSX.Element | null {
   const error = useGlobalError();
   const removeError = useErrorStore((state) => state.removeError);
   
   if (!error) return null;
   
-  const handleRetry = async () => {
+  const handleRetry = async (): Promise<void> => {
     if (error.onRetry) {
       await error.onRetry();
     }

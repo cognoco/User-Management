@@ -1,4 +1,3 @@
-import { useTranslation } from 'react-i18next';
 import { useState, useRef, useEffect } from 'react';
 import { z } from 'zod';
 
@@ -10,14 +9,6 @@ import { Checkbox } from '@/ui/primitives/checkbox';
 import { Progress } from '@/ui/primitives/progress';
 import { HeadlessMultiStepRegistration } from '@/ui/headless/registration/MultiStepRegistration';
 
-const registrationSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(8),
-  name: z.string().min(2),
-  phone: z.string().optional(),
-  verificationCode: z.string().optional(),
-  acceptTerms: z.boolean()
-});
 
 const steps = ['Account', 'Profile', 'Verification', 'Terms'];
 

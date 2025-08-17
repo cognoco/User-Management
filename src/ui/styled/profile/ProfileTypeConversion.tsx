@@ -41,8 +41,7 @@ export function ProfileTypeConversion() {
   // Combine error states (prioritize component-specific error)
   const error = conversionError || profileError; 
 
-  const onSubmit = async (data: ConversionFormData) => {
-    console.log('[ProfileTypeConversion] onSubmit data:', data); // DEBUG
+  const onSubmit = async (data: ConversionFormData): Promise<void> => {
     setIsConverting(true);
     setConversionError(null);
     
@@ -52,7 +51,7 @@ export function ProfileTypeConversion() {
         '/api/business/validate-domain', 
         { domain: data.businessDomain }
       );
-      console.log('[ProfileTypeConversion] validationResponse:', validationResponse); // DEBUG
+      // Validation response received
 
       // Defensive: treat missing isValid as valid (for test compatibility)
       if (typeof validationResponse.data.isValid !== 'undefined' && validationResponse.data.isValid === false) {
@@ -93,10 +92,10 @@ export function ProfileTypeConversion() {
       // Optionally reset form or redirect user
       // form.reset(); 
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       if (process.env.NODE_ENV === 'development') { console.error("Profile conversion error:", err); }
-      const isDomainValidationError = err.response?.status === 400 && err.response?.data?.isValid === false;
-      const errorMsg = err.response?.data?.error || err.response?.data?.message || err.message || 'An unexpected error occurred during conversion.';
+      const isDomainValidationError = (err as any).response?.status === 400 && (err as any).response?.data?.isValid === false;
+      const errorMsg = (err as any).response?.data?.error || (err as any).response?.data?.message || (err as any).message || 'An unexpected error occurred during conversion.';
       setConversionError(errorMsg);
       toast({
         title: isDomainValidationError ? 'Validation Failed' : 'Conversion Failed',

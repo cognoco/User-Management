@@ -1,8 +1,6 @@
 import { render, screen } from '@/tests/utils/test-utils';
 import { DataTable } from '../DataTable';
 
-interface Row { id: number; name: string; }
-
 const data = [{ id: 1, name: 'A' }];
 const columns = [{ key: 'id', header: 'ID', sortable: true }, { key: 'name', header: 'Name' }];
 

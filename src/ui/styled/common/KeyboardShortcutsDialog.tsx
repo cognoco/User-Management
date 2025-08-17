@@ -14,7 +14,7 @@ interface Props {
   onOpenChange?: (open: boolean) => void;
 }
 
-export function KeyboardShortcutsDialog({ shortcuts, open: controlledOpen, onOpenChange }: Props) {
+export function KeyboardShortcutsDialog({ shortcuts, open: controlledOpen, onOpenChange }: Props): JSX.Element {
   const [internalOpen, setInternalOpen] = useState(false);
   const open = controlledOpen ?? internalOpen;
   const setOpen = onOpenChange ?? setInternalOpen;

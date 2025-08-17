@@ -20,7 +20,6 @@ vi.mock('@/lib/stores/user.store', async () => {
 
 import React from 'react';
 import { render, screen, waitFor, act } from '@testing-library/react';
-import { useAuth } from '@/hooks/auth/useAuth';
 import ActivityLog from '../ActivityLog';
 import { useUserStore } from '@/lib/stores/user.store';
 

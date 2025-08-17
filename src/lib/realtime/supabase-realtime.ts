@@ -3,7 +3,7 @@ type RealtimeChannel = any;
 export type RealtimePresenceState = Record<string, unknown>;
 
 export type PresenceState = RealtimePresenceState;
-export type RealtimeSubscription = { unsubscribe: () => void };
+export interface RealtimeSubscription { unsubscribe: () => void }
 
 interface ChannelSubscription {
   channel: RealtimeChannel;

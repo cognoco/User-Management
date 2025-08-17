@@ -14,10 +14,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ExclamationTriangleIcon, CheckCircledIcon, PlusIcon, TrashIcon } from '@radix-ui/react-icons';
+import { ExclamationTriangleIcon, CheckCircledIcon, TrashIcon } from '@radix-ui/react-icons';
 
 export interface StyledRoleManagerProps extends Omit<RoleManagerProps, 'render'> {
   /**
@@ -73,7 +72,6 @@ export function RoleManager({
         setDescriptionValue,
         isSystemRoleValue,
         setIsSystemRoleValue,
-        isSubmitting,
         isValid,
         formErrors,
         touched,
@@ -83,7 +81,6 @@ export function RoleManager({
         roles,
         currentRole,
         setCurrentRole,
-        refreshRoles,
         // Permission management
         permissions,
         assignPermissionToRole,
@@ -93,7 +90,6 @@ export function RoleManager({
         error,
         successMessage,
         isEditMode,
-        setIsEditMode
       }) => (
         <Card className={className}>
           <CardHeader>
@@ -173,7 +169,7 @@ export function RoleManager({
                                     <DialogHeader>
                                       <DialogTitle>Delete Role</DialogTitle>
                                       <DialogDescription>
-                                        Are you sure you want to delete the "{confirmationState.roleName}" role? 
+                                        Are you sure you want to delete the \"{confirmationState.roleName}\" role? 
                                         This action cannot be undone and may affect users with this role.
                                       </DialogDescription>
                                     </DialogHeader>

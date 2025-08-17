@@ -9,13 +9,12 @@ interface HeroProps {
   children?: ReactNode;
 }
 
-export function Hero({ title, description, className, children }: HeroProps) {
+export function Hero({ title, description, className, children }: HeroProps): JSX.Element {
   return (
     <HeadlessHero
       title={title}
       description={description}
-      children={children}
-      render={({ title, description, children }) => (
+      render={({ children }) => (
         <div className={cn("relative overflow-hidden", className)}>
           <div className="container relative z-10 mx-auto px-4 py-32 sm:px-6 lg:px-8">
             <div className="mx-auto max-w-2xl text-center">

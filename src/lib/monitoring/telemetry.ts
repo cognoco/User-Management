@@ -40,7 +40,7 @@ interface ErrorMetrics {
   feedbackTotal: number;
 }
 
-export type TelemetryEvent = { type: 'alert'; alert: TelemetryAlert };
+export interface TelemetryEvent { type: 'alert'; alert: TelemetryAlert }
 
 export class Telemetry extends TypedEventEmitter<TelemetryEvent> {
   private metrics = new Map<string, ErrorMetrics>();

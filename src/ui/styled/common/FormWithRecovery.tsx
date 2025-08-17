@@ -7,30 +7,33 @@ import { ErrorBoundary, DefaultErrorFallback } from './ErrorBoundary';
  * FormWithRecovery Component - Enhanced for React 19
  * A form component that gracefully handles submission errors with automatic recovery
  */
-export const FormWithRecovery: React.FC<{ 
-  onSubmit: (data: any) => Promise<void>,
-  children?: React.ReactNode,
-  title?: string
-}> = ({ onSubmit, children, title = 'Form With Error Recovery' }) => {
+interface FormWithRecoveryProps {
+  onSubmit: (data: { name: string }) => Promise<void>;
+  children?: React.ReactNode;
+  title?: string;
+}
+
+export const FormWithRecovery: React.FC<FormWithRecoveryProps> = ({ onSubmit, children, title = 'Form With Error Recovery' }): JSX.Element => {
   const [formData, setFormData] = useState({ name: '' });
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   // Use useId for stable identifiers - new in React
   const nameInputId = useId();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
     setError(null);
     setIsSubmitting(true);
     try {
       await onSubmit(formData);
       // Handle success (e.g., clear form, show message)
-    } catch (err: any) {
-      setError(err.message || 'An unexpected error occurred.');
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred.';
+      setError(errorMessage);
     } finally {
       setIsSubmitting(false);
     }

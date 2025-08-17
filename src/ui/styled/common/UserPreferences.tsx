@@ -106,13 +106,13 @@ export const UserPreferencesComponent: React.FC<UserPreferencesProps> = ({ onSav
   ];
 
   // Handlers
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>): void => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: name === 'itemsPerPage' ? Number(value) : value }));
     setValidationError('');
   };
 
-  const handleSave = async () => {
+  const handleSave = async (): Promise<void> => {
     if (form.itemsPerPage > 100) {
       setValidationError(t('maximum allowed is 100'));
       return;
@@ -135,7 +135,7 @@ export const UserPreferencesComponent: React.FC<UserPreferencesProps> = ({ onSav
     }
   };
 
-  const handleReset = async () => {
+  const handleReset = async (): Promise<void> => {
     setShowResetModal(false);
     const localeDefaults = getLocaleDefaults();
     const resetDefaults = { ...DEFAULT_PREFERENCES, ...localeDefaults };
@@ -148,7 +148,7 @@ export const UserPreferencesComponent: React.FC<UserPreferencesProps> = ({ onSav
   const handleNotificationChange = (
     catKey: keyof UserPreferences['notifications'],
     checked: boolean
-  ) => {
+  ): void => {
     setForm(prev => ({
       ...prev,
       notifications: {
@@ -159,7 +159,7 @@ export const UserPreferencesComponent: React.FC<UserPreferencesProps> = ({ onSav
   };
 
   // --- Export Preferences as JSON File ---
-  const handleExportData = async () => {
+  const handleExportData = async (): Promise<void> => {
     setExportStatus('');
     try {
       // Only export relevant fields
@@ -190,7 +190,7 @@ export const UserPreferencesComponent: React.FC<UserPreferencesProps> = ({ onSav
   };
 
   // --- Import Preferences from JSON File ---
-  const handleImportData = async () => {
+  const handleImportData = async (): Promise<void> => {
     setImportStatus('');
     try {
       const input = document.createElement('input');

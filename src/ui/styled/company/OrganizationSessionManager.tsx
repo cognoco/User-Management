@@ -7,8 +7,7 @@ interface OrganizationSessionManagerProps {
   orgId: string;
 }
 
-export const OrganizationSessionManager: React.FC<OrganizationSessionManagerProps> = ({ orgId }) => {
-  console.log('[DEBUG] OrganizationSessionManager mounted');
+export const OrganizationSessionManager: React.FC<OrganizationSessionManagerProps> = ({ orgId }): JSX.Element => {
   const { organization } = useOrganization();
   const orgName = organization?.name || 'Organization';
 
@@ -26,7 +25,7 @@ export const OrganizationSessionManager: React.FC<OrganizationSessionManagerProp
 
   React.useEffect(() => {
     return () => {
-      console.log('[DEBUG] OrganizationSessionManager unmounted');
+      // Cleanup on unmount
     };
   }, []);
 
@@ -42,10 +41,10 @@ export const OrganizationSessionManager: React.FC<OrganizationSessionManagerProp
   }, [fetchPolicies, refetchMembers]);
 
   React.useEffect(() => {
-    console.log('[DEBUG] activeTab changed:', activeTab);
+    // Handle activeTab changes
   }, [activeTab]);
 
-  const handleSavePolicies = async () => {
+  const handleSavePolicies = async (): Promise<void> => {
     if (!editPolicies) return;
     await updatePolicies(editPolicies);
     setSuccessMessage('Settings updated');
@@ -53,7 +52,7 @@ export const OrganizationSessionManager: React.FC<OrganizationSessionManagerProp
     fetchPolicies();
   };
 
-  const handleTerminateSessions = async (userId: string) => {
+  const handleTerminateSessions = async (userId: string): Promise<void> => {
     await terminateUserSessions(userId);
     setSuccessMessage(`${count || 0} sessions terminated`);
     setPendingUserId(null);

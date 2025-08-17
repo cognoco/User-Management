@@ -10,7 +10,7 @@ interface FormErrorSummaryProps {
 /**
  * Accessible summary of form validation errors.
  */
-export function FormErrorSummary({ errors }: FormErrorSummaryProps) {
+export function FormErrorSummary({ errors }: FormErrorSummaryProps): JSX.Element | null {
   const errorRef = useRef<HTMLDivElement>(null);
   const errorList = Object.entries(errors).filter(([, msg]) => !!msg);
 

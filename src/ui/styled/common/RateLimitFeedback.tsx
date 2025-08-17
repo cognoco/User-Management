@@ -16,7 +16,7 @@ export function RateLimitFeedback({
   maxAttempts = 100,
   remainingAttempts,
   onCountdownComplete
-}: RateLimitFeedbackProps) {
+}: RateLimitFeedbackProps): JSX.Element {
   const [timeLeft, setTimeLeft] = useState(retryAfter || windowMs);
   const [progress, setProgress] = useState(100);
 

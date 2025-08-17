@@ -60,7 +60,7 @@ export function ResourcePermissionAssignerStyled(props: Omit<ResourcePermissionA
   return (
     <ResourcePermissionAssigner
       {...props}
-      render={({ tree, assign, revoke, getEffective, isLoading, error }) => (
+      render={({ tree, assign, revoke, getEffective, error }) => (
         <Card>
           <CardHeader>
             <CardTitle>{props.title || 'Resource Permissions'}</CardTitle>

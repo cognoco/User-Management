@@ -19,7 +19,7 @@ import { loginViaApi } from '@/lib/api/auth/login';
 // Helpers to prevent Zustand SSR snapshot warnings when running entirely in the browser
 const isBrowser = typeof window !== 'undefined';
 
-type SectionError = { message: string };
+interface SectionError { message: string }
 
 const safeUseSectionErrors = (_section: string): SectionError[] => [];
 

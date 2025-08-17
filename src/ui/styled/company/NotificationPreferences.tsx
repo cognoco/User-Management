@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/ui/primitives/card';
 import { Alert, AlertDescription, AlertTitle } from '@/ui/primitives/alert';
 import { Switch } from '@/ui/primitives/switch';
@@ -53,9 +53,9 @@ export function CompanyNotificationPreferences({ companyId }: NotificationPrefer
 
   useEffect(() => {
     fetchNotificationPreferences();
-  }, [companyId]);
+  }, [companyId, fetchNotificationPreferences]);
 
-  const fetchNotificationPreferences = async () => {
+  const fetchNotificationPreferences = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
@@ -79,7 +79,7 @@ export function CompanyNotificationPreferences({ companyId }: NotificationPrefer
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [toast]);
 
   const updatePreference = async (
     preferenceId: string | undefined, 

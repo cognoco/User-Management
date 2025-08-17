@@ -27,7 +27,7 @@ const mockUsers: User[] = [
   { id: 4, name: 'Dave Brown', email: 'dave@example.com', role: 'User', status: 'Active' },
 ];
 
-export function ResponsiveExample() {
+export function ResponsiveExample(): JSX.Element {
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -37,17 +37,17 @@ export function ResponsiveExample() {
   
   const isMobile = useIsMobile();
   
-  const handleInputChange = (field: string, value: string) => {
+  const handleInputChange = (field: string, value: string): void => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
   
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent): void => {
     e.preventDefault();
     alert('Form submitted: ' + JSON.stringify(formData, null, 2));
   };
   
   // Example of rendering an action for the DataTable
-  const renderRowActions = (user: User) => {
+  const renderRowActions = (user: User): JSX.Element => {
     return (
       <>
         <button onClick={() => alert(`Edit ${user.name}`)}>Edit</button>
