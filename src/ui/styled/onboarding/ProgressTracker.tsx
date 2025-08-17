@@ -3,7 +3,7 @@ import { Progress } from '../../../components/ui/progress';
 import { CheckCircle2, Circle } from 'lucide-react';
 import ProgressTrackerHeadless from '@/ui/headless/onboarding/ProgressTracker';
 
-export function ProgressTracker() {
+export function ProgressTracker(): React.ReactElement {
   return (
     <ProgressTrackerHeadless
       render={({ steps, progress }) => (

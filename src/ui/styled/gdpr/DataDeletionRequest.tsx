@@ -4,7 +4,7 @@ import { Button } from "@/ui/primitives/button";
 import { Alert, AlertDescription } from "@/ui/primitives/alert";
 import { DataDeletionRequest as HeadlessDataDeletionRequest } from "../../headless/gdpr/DataDeletionRequest";
 
-export function DataDeletionRequest() {
+export function DataDeletionRequest(): React.ReactElement {
   return (
     <HeadlessDataDeletionRequest
       render={({ requestDeletion, isLoading, error }) => (

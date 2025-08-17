@@ -326,7 +326,7 @@ model users {
   organization_members          organization_members[]
   profile_verification_requests profile_verification_requests?
   profiles                      profiles?
-  subscriptions                 subscriptions?
+  subscriptions                 subscriptions[]
   team_members                  team_members[]
   user_actions_log              user_actions_log[]
   user_activity_logs            user_activity_logs[]

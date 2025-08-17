@@ -2,7 +2,7 @@
 
 import { Alert, AlertTitle, AlertDescription } from '@/ui/primitives/alert';
 
-export function AccountLockout() {
+export function AccountLockout(): React.ReactElement {
   return (
     <Alert variant="destructive" role="alert">
       <AlertTitle>Account Locked</AlertTitle>

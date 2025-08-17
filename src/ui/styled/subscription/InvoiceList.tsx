@@ -2,7 +2,7 @@ import { useBilling } from '@/hooks/subscription/useBilling';
 import { Card, CardContent, CardHeader, CardTitle } from '@/ui/primitives/card';
 import { Alert } from '@/ui/primitives/alert';
 
-export function InvoiceList() {
+export function InvoiceList(): React.ReactElement {
   const { paymentHistory, isLoading, error } = useBilling();
 
   if (isLoading) return <div>Loading invoices...</div>;

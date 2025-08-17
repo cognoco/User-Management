@@ -8,7 +8,7 @@ import QRCodeDisplay from './QRCodeDisplay';
 import BackupCodesList from './BackupCodesList';
 import { WebAuthnRegistration } from './WebAuthnRegistration';
 
-export function TwoFactorSetup() {
+export function TwoFactorSetup(): React.ReactElement {
   const [code, setCode] = useState('');
   return (
     <HeadlessTwoFactorSetup

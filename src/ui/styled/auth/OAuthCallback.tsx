@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/ui/
 import { Alert, AlertDescription } from '@/ui/primitives/alert';
 import { Spinner } from '@/ui/primitives/spinner';
 
-export function OAuthCallback() {
+export function OAuthCallback(): React.ReactElement {
   const { t } = useTranslation();
   const { handleCallback, error } = useOAuthStore();
   const { user } = useAuth();

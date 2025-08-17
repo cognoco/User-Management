@@ -25,7 +25,7 @@ const ProfileDisplayField = ({ label, value }: { label: string; value: string | 
  * Styled ProfileForm component that uses the headless ProfileForm component
  * This component only contains UI elements and styling, with all business logic in the headless component
  */
-export function ProfileForm() {
+export function ProfileForm(): React.ReactElement {
   const { toast } = useToast();
 
   return (

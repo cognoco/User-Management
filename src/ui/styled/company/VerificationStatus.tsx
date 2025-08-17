@@ -72,7 +72,7 @@ const StatusIcon = ({ status }: { status: VerificationStepStatus }) => {
   }
 };
 
-export function VerificationStatus() {
+export function VerificationStatus(): React.ReactElement {
   const { t } = useTranslation();
   // TODO: Replace mock data with actual state/props from a store or API call
   const { overallStatus, progress, steps } = mockVerificationData;

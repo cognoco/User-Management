@@ -66,7 +66,7 @@ interface TeamMembersResponse {
   seatUsage: SeatUsage;
 }
 
-export function TeamMembersList() {
+export function TeamMembersList(): React.ReactElement {
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
   const [searchInput, setSearchInput] = useState('');

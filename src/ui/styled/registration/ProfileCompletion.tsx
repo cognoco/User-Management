@@ -38,7 +38,7 @@ const profileSchema = z.object({
 
 type ProfileFormData = z.infer<typeof profileSchema>;
 
-export function ProfileCompletion() {
+export function ProfileCompletion(): React.ReactElement {
   const { t } = useTranslation();
   const [avatarFile, setAvatarFile] = React.useState<File | null>(null);
   const { updateProfile, updateSettings, uploadAvatar } = useUserStore();

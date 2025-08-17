@@ -7,7 +7,7 @@ import { Label } from '@/ui/primitives/label';
 import { Alert, AlertDescription } from '@/ui/primitives/alert';
 import { api } from '@/lib/api/axios';
 
-export function PasswordlessLogin() {
+export function PasswordlessLogin(): React.ReactElement {
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [error, setError] = useState<string | null>(null);

@@ -5,7 +5,7 @@ import { Label } from '../../../components/ui/label';
 import { Checkbox } from '../../../components/ui/checkbox';
 import SetupWizardHeadless, { SetupStep } from '@/ui/headless/onboarding/SetupWizard';
 
-export function SetupWizard() {
+export function SetupWizard(): React.ReactElement {
   const steps: SetupStep[] = [
     {
       id: 'preferences',

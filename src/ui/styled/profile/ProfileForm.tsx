@@ -21,7 +21,7 @@ const ProfileDisplayField = ({ label, value }: { label: string; value: string | 
   );
 };
 
-export function ProfileForm() {
+export function ProfileForm(): React.ReactElement {
   const { toast } = useToast();
 
   return (

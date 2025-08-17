@@ -7,7 +7,7 @@ import { Alert, AlertDescription } from "@/ui/primitives/alert";
 // This component already follows the headless pattern, so no refactoring needed.
 import { ConsentManagement as HeadlessConsentManagement } from "../../headless/gdpr/ConsentManagement";
 
-export function ConsentManagement() {
+export function ConsentManagement(): React.ReactElement {
   return (
     <HeadlessConsentManagement
       render={({

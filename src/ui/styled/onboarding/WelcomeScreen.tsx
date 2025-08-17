@@ -4,7 +4,7 @@ import { Progress } from '../../../components/ui/progress';
 import { ArrowRight, Rocket } from 'lucide-react';
 import WelcomeScreenHeadless from '@/ui/headless/onboarding/WelcomeScreen';
 
-export function WelcomeScreen() {
+export function WelcomeScreen(): React.ReactElement {
   return (
     <WelcomeScreenHeadless
       render={({ steps, currentStep, progress, handleNext }) => (

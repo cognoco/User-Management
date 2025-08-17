@@ -23,7 +23,7 @@ import {
 } from "@/ui/primitives/alert-dialog";
 import { AccountDeletion as HeadlessAccountDeletion } from "../../headless/account/AccountDeletion";
 
-export function AccountDeletion() {
+export function AccountDeletion(): React.ReactElement {
   const { t } = useTranslation();
 
   return (

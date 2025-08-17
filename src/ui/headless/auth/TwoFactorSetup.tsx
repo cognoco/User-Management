@@ -75,7 +75,8 @@ export function TwoFactorSetup({
   const { 
     setupTwoFactor, 
     verifyTwoFactor, 
-    getUserProfile,
+    user,
+    getCurrentUser,
     isLoading: authIsLoading, 
     error: authError 
   } = useAuth();
@@ -100,18 +101,18 @@ export function TwoFactorSetup({
   // Load user profile on mount
   useEffect(() => {
     const loadUserProfile = async () => {
-      const profile = await getUserProfile();
-      if (profile) {
+      const currentUser = await getCurrentUser();
+      if (currentUser) {
         setSetupData({
           ...setupData,
-          phoneNumber: profile.phoneNumber,
-          email: profile.email
+          phoneNumber: (currentUser as any).phoneNumber,
+          email: currentUser.email
         });
       }
     };
     
     loadUserProfile();
-  }, []);
+  }, [getCurrentUser]);
   
   // Handle method change
   const handleMethodChange = (method: TwoFactorMethod) => {
@@ -124,7 +125,7 @@ export function TwoFactorSetup({
     setIsSubmitting(true);
     
     try {
-      const result = await setupTwoFactor(currentMethod);
+      const result = await setupTwoFactor();
       
       if (result.success) {
         setSetupData({

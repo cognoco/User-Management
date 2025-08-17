@@ -25,7 +25,7 @@ const ALL_PROVIDERS: OAuthProvider[] = [
   OAuthProvider.TWITTER,
 ];
 
-export function ProviderManagementPanel() {
+export function ProviderManagementPanel(): React.ReactElement {
   const { linkedProviders, loading: loadingLinked, error: errorLinked, fetchLinkedProviders } = useLinkedProviders();
   const { loading: linking, error: errorLink } = useLinkProvider();
   const { unlinkProvider, loading: unlinking, error: errorUnlink } = useUnlinkProvider();

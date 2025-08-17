@@ -9,7 +9,7 @@ import {
   RetentionDashboard as HeadlessRetentionDashboard,
 } from '@/ui/headless/admin/RetentionDashboard';
 
-export function RetentionDashboard() {
+export function RetentionDashboard(): React.ReactElement {
   return (
     <HeadlessRetentionDashboard>
       {({

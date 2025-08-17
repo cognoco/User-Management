@@ -21,7 +21,7 @@ import {
   AdminDashboard as HeadlessAdminDashboard,
 } from '@/ui/headless/admin/AdminDashboard';
 
-export function AdminDashboard() {
+export function AdminDashboard(): React.ReactElement {
   return (
     <HeadlessAdminDashboard>
       {({ data, isLoading, isError }) => {

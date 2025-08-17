@@ -20,7 +20,7 @@ const tourSteps: TourStep[] = [
   },
 ];
 
-export function FeatureTour() {
+export function FeatureTour(): React.ReactElement {
   return (
     <FeatureTourHeadless
       steps={tourSteps}

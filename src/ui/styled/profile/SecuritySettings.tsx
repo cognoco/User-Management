@@ -13,7 +13,7 @@ import {
   DialogTitle,
 } from '../../../components/ui/dialog';
 
-export function SecuritySettings() {
+export function SecuritySettings(): React.ReactElement {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   return (

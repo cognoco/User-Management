@@ -10,7 +10,7 @@ import {
   SelectValue,
 } from '../../../components/ui/select';
 
-export function PrivacySettings() {
+export function PrivacySettings(): React.ReactElement {
   return (
     <HeadlessPrivacySettings
       render={({

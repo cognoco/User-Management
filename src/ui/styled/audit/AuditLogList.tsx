@@ -2,7 +2,7 @@ import { AuditLogList as HeadlessList } from '@/ui/headless/audit/AuditLogList';
 import { AuditLogFilter as HeadlessFilter } from '@/ui/headless/audit/AuditLogFilter';
 import { useAuditLogs } from '@/hooks/audit/useAuditLogs';
 
-export function AuditLogList() {
+export function AuditLogList(): React.ReactElement {
   const { logs, isLoading, error, filters, setFilter, page, total, setPage, exportLogs } = useAuditLogs();
 
   return (

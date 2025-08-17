@@ -25,7 +25,7 @@ const conversionSchema = z.object({
 
 type ConversionFormData = z.infer<typeof conversionSchema>;
 
-export function ProfileTypeConversion() {
+export function ProfileTypeConversion(): React.ReactElement {
   const { toast } = useToast();
   const { profile, updateProfile, isLoading: profileLoading, error: profileError } = useProfileStore();
   // Add specific loading/error state for this component

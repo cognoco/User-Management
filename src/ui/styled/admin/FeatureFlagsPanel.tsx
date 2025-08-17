@@ -2,7 +2,7 @@ import { Label } from '@/ui/primitives/label';
 import { Switch } from '@/ui/primitives/switch';
 import { FeatureFlagsPanel as HeadlessFeatureFlagsPanel } from '@/ui/headless/admin/FeatureFlagsPanel';
 
-export function FeatureFlagsPanel() {
+export function FeatureFlagsPanel(): React.ReactElement {
   return (
     <HeadlessFeatureFlagsPanel
       render={({ featureFlags, toggleFeature }) => (

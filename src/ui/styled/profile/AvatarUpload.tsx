@@ -14,7 +14,7 @@ import { Upload, User, Trash, Camera, Image } from 'lucide-react';
 import { getPlatformClasses } from '@/hooks/utils/usePlatformStyles';
 import HeadlessAvatarUpload from '@/ui/headless/user/AvatarUpload';
 
-export function AvatarUpload() {
+export function AvatarUpload(): React.ReactElement {
   const { t } = useTranslation();
 
   return (

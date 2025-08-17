@@ -23,7 +23,7 @@ import {
   ExportFormat,
 } from "../../headless/settings/DataExport";
 
-export function DataExport() {
+export function DataExport(): React.ReactElement {
   const { t } = useTranslation();
   const { toast } = useToast();
   const isMobile = useIsMobile();

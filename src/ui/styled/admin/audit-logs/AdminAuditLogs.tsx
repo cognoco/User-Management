@@ -5,7 +5,7 @@ import {
   AdminAuditLogs as HeadlessAdminAuditLogs,
 } from '@/ui/headless/admin/audit-logs/AdminAuditLogs';
 
-export function AdminAuditLogs() {
+export function AdminAuditLogs(): React.ReactElement {
   return (
     <HeadlessAdminAuditLogs>
       {({ isError }) =>

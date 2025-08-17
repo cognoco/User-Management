@@ -3,7 +3,7 @@ import React from 'react';
 /**
  * SkipLink component to allow keyboard users to jump directly to the main content.
  */
-export function SkipLink() {
+export function SkipLink(): React.ReactElement {
   return (
     <a
       href="#main-content"

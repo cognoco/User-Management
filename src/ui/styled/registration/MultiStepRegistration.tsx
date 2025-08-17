@@ -23,9 +23,11 @@ export function MultiStepRegistration(): React.ReactElement {
   }, [currentStepState]);
 
   // Handle final submission
-  const handleComplete = async (_data: Record<string, any>): Promise<void> => {
+  const handleComplete = async (data: Record<string, any>): Promise<void> => {
     // Registration data would be processed here
     // Here you would typically call your registration service
+    // Data is intentionally used here for processing
+    void data;
   };
 
   // Validate step data

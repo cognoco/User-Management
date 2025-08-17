@@ -1,7 +1,7 @@
 import { Outlet } from "react-router-dom";
 import { Layout as HeadlessLayout } from "../../headless/layout/Layout";
 
-export function Layout() {
+export function Layout(): React.ReactElement {
   return (
     <HeadlessLayout>
       {({ ThemeProvider, Toaster }) => (

@@ -23,7 +23,7 @@ import {
 import { Checkbox } from '@/ui/primitives/checkbox';
 import { AccountDeletion as HeadlessAccountDeletion } from '@/ui/headless/account/AccountDeletion';
 
-export function AccountDeletion() {
+export function AccountDeletion(): React.ReactElement {
   const { t } = useTranslation();
 
   return (

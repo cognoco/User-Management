@@ -15,7 +15,7 @@ import { PasswordRequirements } from './PasswordRequirements';
 import { RegistrationForm as HeadlessRegistrationForm } from '@/ui/headless/auth/RegistrationForm';
 import { registerUserViaApi } from '@/lib/api/auth/register';
 
-export function RegistrationForm() {
+export function RegistrationForm(): React.ReactElement {
   const userManagement = useUserManagement();
   const router = useRouter();
   // We will call the server API directly instead of client-side Supabase registration

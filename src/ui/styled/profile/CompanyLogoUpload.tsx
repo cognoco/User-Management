@@ -13,7 +13,7 @@ import { Upload, Building, Trash, Camera } from 'lucide-react';
 import { useProfileStore } from '@/lib/stores/profile.store';
 import { CompanyLogoUpload as HeadlessCompanyLogoUpload } from '@/ui/headless/profile/CompanyLogoUpload';
 
-export function CompanyLogoUpload() {
+export function CompanyLogoUpload(): React.ReactElement {
   const { t } = useTranslation();
   const { profile } = useProfileStore();
   const hasLogo = Boolean(profile?.companyLogoUrl);

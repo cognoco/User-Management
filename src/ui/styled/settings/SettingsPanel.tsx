@@ -12,7 +12,7 @@ import { useUserManagement } from '@/lib/auth/UserManagementProvider';
 import { Platform } from '@/types/platform';
 import { ProviderManagementPanel } from '@/ui/styled/auth/ProviderManagementPanel';
 
-export function SettingsPanel() {
+export function SettingsPanel(): React.ReactElement {
   const { t } = useTranslation();
   const { settings, isLoading, error, fetchSettings, updateSettings } = useSettingsStore();
   const { platform, isNative } = useUserManagement();

@@ -5,7 +5,7 @@ import { Label } from "@/ui/primitives/label";
 import { Button } from "@/ui/primitives/button";
 import { usePreferencesStore } from "@/lib/stores/preferences.store";
 
-export function PrivacyPreferences() {
+export function PrivacyPreferences(): React.ReactElement {
   const { preferences, updatePreferences } = usePreferencesStore();
   const marketing = !!preferences?.notifications?.marketing;
 

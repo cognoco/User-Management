@@ -2,7 +2,7 @@ import React from 'react';
 import { SessionManager as HeadlessSessionManager } from '@/ui/headless/session/SessionManager';
 import SessionList from './SessionList';
 
-export function SessionManager() {
+export function SessionManager(): React.ReactElement {
   return (
     <HeadlessSessionManager
       render={({ sessions, currentSession, loading, error, terminate, terminateOthers }) => (

@@ -7,7 +7,7 @@ import { useGlobalError, useErrorStore } from "@/lib/state/errorStore";
 
 const ApiErrorAlert = React.lazy(() => import("./ApiErrorAlert"));
 
-export function GlobalErrorDisplay(): JSX.Element | null {
+export function GlobalErrorDisplay(): React.ReactElement: JSX.Element | null {
   const error = useGlobalError();
   const removeError = useErrorStore((state) => state.removeError);
   

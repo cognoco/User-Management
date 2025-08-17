@@ -16,7 +16,7 @@ import {
   type LoginPayload
 } from '@/ui/headless/auth/LoginFormReact19';
 
-export function LoginFormReact19() {
+export function LoginFormReact19(): React.ReactElement {
   const [apiError, setApiError] = useState<string | null>(null);
   const login = useAuth().login;
   const sendVerificationEmail = useAuth().sendVerificationEmail;

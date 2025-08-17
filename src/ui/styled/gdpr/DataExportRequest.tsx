@@ -4,7 +4,7 @@ import { Button } from "@/ui/primitives/button";
 import { Alert, AlertDescription } from "@/ui/primitives/alert";
 import { DataExportRequest as HeadlessDataExportRequest } from "../../headless/gdpr/DataExportRequest";
 
-export function DataExportRequest() {
+export function DataExportRequest(): React.ReactElement {
   return (
     <HeadlessDataExportRequest
       render={({ requestExport, isLoading, error }) => (

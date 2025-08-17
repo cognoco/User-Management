@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Checkbox } from '@/components/ui/checkbox';
 import { AccountDeletion as HeadlessAccountDeletion } from '@/ui/headless/account/AccountDeletion';
 
-export function AccountDeletion() {
+export function AccountDeletion(): React.ReactElement {
   const { t } = useTranslation();
 
   return (

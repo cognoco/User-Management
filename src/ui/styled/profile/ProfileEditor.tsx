@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/ui/primitive
 import { useProfileStore } from '@/lib/stores/profile.store';
 import { ConnectedAccounts } from '@/ui/styled/shared/ConnectedAccounts';
 
-export function ProfileEditor() {
+export function ProfileEditor(): React.ReactElement {
   const { profile, updateProfile, uploadAvatar, error } = useProfileStore();
   const [form, setForm] = useState({ name: '', bio: '', location: '', website: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);

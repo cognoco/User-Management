@@ -10,7 +10,7 @@ import { Spinner } from '@/ui/primitives/spinner';
 import { ExportFormat, ExportCategory } from '@/lib/utils/data-export';
 import HeadlessDataExport from '@/ui/headless/settings/DataExport';
 
-export function DataExport() {
+export function DataExport(): React.ReactElement {
   const { t } = useTranslation();
   const [selectedCategories, setSelectedCategories] = useState<ExportCategory[]>([ExportCategory.ALL]);
   const [includeTimestamp, setIncludeTimestamp] = useState(true);

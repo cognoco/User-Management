@@ -11,7 +11,7 @@ import { ChangePasswordForm as HeadlessChangePasswordForm } from '@/ui/headless/
  * Styled ChangePasswordForm component that uses the headless component for behavior
  * This follows the architecture guidelines by separating behavior and appearance
  */
-export function ChangePasswordForm(): React.JSX.Element {
+export function ChangePasswordForm(): React.ReactElement: React.JSX.Element {
   // Track if password is visible (feature not implemented yet)
   
   return (

@@ -18,7 +18,7 @@ import HeadlessAvatarUpload from '@/ui/headless/user/AvatarUpload';
  * Styled AvatarUpload component that uses the headless AvatarUpload component
  * This component only contains UI elements and styling, with all business logic in the headless component
  */
-export function AvatarUpload() {
+export function AvatarUpload(): React.ReactElement {
   const { t } = useTranslation();
 
   return (
