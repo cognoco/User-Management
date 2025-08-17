@@ -46,7 +46,7 @@ export function RoleManager({
   footer,
   className,
   ...headlessProps
-}: StyledRoleManagerProps) {
+}: StyledRoleManagerProps): JSX.Element {
   // Local state for confirmation dialog
   const [confirmationState, setConfirmationState] = useState<{
     roleId: string | null;
@@ -169,7 +169,7 @@ export function RoleManager({
                                     <DialogHeader>
                                       <DialogTitle>Delete Role</DialogTitle>
                                       <DialogDescription>
-                                        Are you sure you want to delete the \"{confirmationState.roleName}\" role? 
+                                        Are you sure you want to delete the &quot;{confirmationState.roleName}&quot; role? 
                                         This action cannot be undone and may affect users with this role.
                                       </DialogDescription>
                                     </DialogHeader>

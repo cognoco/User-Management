@@ -11,7 +11,7 @@ export interface ParentRoleSelectorProps {
   onChange: (parentRoleId: string | null) => void;
 }
 
-export function ParentRoleSelector({ roles, childRoleId, value, onChange }: ParentRoleSelectorProps) {
+export function ParentRoleSelector({ roles, childRoleId, value, onChange }: ParentRoleSelectorProps): JSX.Element {
   const [invalid, setInvalid] = useState(false);
 
   const flatRoles = useMemo(() => {

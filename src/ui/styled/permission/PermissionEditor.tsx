@@ -46,7 +46,7 @@ export function PermissionEditor({
   footer,
   className,
   ...headlessProps
-}: StyledPermissionEditorProps) {
+}: StyledPermissionEditorProps): JSX.Element {
   return (
     <HeadlessPermissionEditor
       {...headlessProps}

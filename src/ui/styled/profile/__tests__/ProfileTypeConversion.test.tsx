@@ -104,7 +104,7 @@ const handlers = [
     return HttpResponse.json({ message: 'CATCH-ALL HANDLER', url, method, body });
   }),
   // Add handler for the GET request made by fetchProfile
-  http.get('/api/profile/business', ({ request }) => {
+  http.get('/api/profile/business', () => {
     return HttpResponse.json({
       id: 'test-id',
       userType: 'private',

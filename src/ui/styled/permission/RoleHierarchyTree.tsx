@@ -16,14 +16,14 @@ export interface RoleHierarchyTreeProps {
   onMove?: (roleId: string, newParentId: string | null) => void;
 }
 
-const RoleNode = ({ role, permissions }: { role: TreeNode; permissions: Permission[] }) => (
+const RoleNode = ({ role, permissions }: { role: TreeNode; permissions: Permission[] }): JSX.Element => (
   <div className="p-4 border rounded-md bg-card" title={`Inherited: ${permissions.length} permissions`}>
     <h3 className="font-medium">{role.name}</h3>
     <p className="text-xs text-muted-foreground">{permissions.length} permissions</p>
   </div>
 );
 
-export function RoleHierarchyTree({ tree, onMove }: RoleHierarchyTreeProps) {
+export function RoleHierarchyTree({ tree, onMove }: RoleHierarchyTreeProps): JSX.Element {
   const { nodes, edges } = useMemo(() => {
     const nodes: Node[] = [];
     const edges: Edge[] = [];
@@ -46,7 +46,7 @@ export function RoleHierarchyTree({ tree, onMove }: RoleHierarchyTreeProps) {
   }, [tree]);
 
   const onNodeDragStop = useCallback(
-    (_: any, node: Node) => {
+    (_: unknown, node: Node) => {
       if (!onMove) return;
       const edge = edges.find(e => e.target === node.id);
       const parentId = edge?.source || null;
@@ -56,7 +56,7 @@ export function RoleHierarchyTree({ tree, onMove }: RoleHierarchyTreeProps) {
   );
 
   const nodeTypes = useMemo(
-    () => ({ roleNode: ({ data }: { data: { role: TreeNode; permissions: Permission[] } }) => <RoleNode role={data.role} permissions={data.permissions} /> }),
+    () => ({ roleNode: ({ data }: { data: { role: TreeNode; permissions: Permission[] } }): JSX.Element => <RoleNode role={data.role} permissions={data.permissions} /> }),
     []
   );
 

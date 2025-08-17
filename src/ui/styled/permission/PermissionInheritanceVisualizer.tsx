@@ -11,7 +11,7 @@ interface Props {
   title?: string;
 }
 
-export function PermissionInheritanceVisualizer({ roleId, title }: Props) {
+export function PermissionInheritanceVisualizer({ roleId, title }: Props): JSX.Element {
   const { fetchHierarchy } = useRoleHierarchy();
   const { fetchApi } = useApi();
   const [direct, setDirect] = useState<Permission[]>([]);
@@ -19,7 +19,7 @@ export function PermissionInheritanceVisualizer({ roleId, title }: Props) {
   const [effective, setEffective] = useState<Permission[]>([]);
 
   useEffect(() => {
-    async function load() {
+    async function load(): Promise<void> {
       const hierarchy = await fetchHierarchy(roleId);
       const ancestorRoles = hierarchy?.ancestors || [];
       const directRes = await fetchApi<{ permissions: Permission[] }>(

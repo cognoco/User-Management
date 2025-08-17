@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect } from 'react';
-import { z } from 'zod';
 
 import { Label } from '@/ui/primitives/label';
 import { Input } from '@/ui/primitives/input';
@@ -24,10 +23,8 @@ export function MultiStepRegistration(): React.ReactElement {
   }, [currentStepState]);
 
   // Handle final submission
-  const handleComplete = async (data: Record<string, any>): Promise<void> => {
-    if (process.env.NODE_ENV === 'development') { 
-      console.log('Registration data:', data); 
-    }
+  const handleComplete = async (_data: Record<string, any>): Promise<void> => {
+    // Registration data would be processed here
     // Here you would typically call your registration service
   };
 

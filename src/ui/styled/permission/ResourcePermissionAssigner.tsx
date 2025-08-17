@@ -5,20 +5,26 @@ import { Button } from '@/ui/primitives/button';
 import { PermissionValues, type Permission } from '@/core/permission/models';
 import { ResourcePermissionAssigner, ResourcePermissionAssignerProps } from '../../headless/permission/ResourcePermissionAssigner';
 
+interface ResourceNode {
+  id: string;
+  type: string;
+  children: ResourceNode[];
+}
+
 interface NodeProps {
-  node: any;
+  node: ResourceNode;
   getEffective: (t: string, id: string) => Promise<Permission[]>;
   assign: (t: string, id: string, p: Permission) => Promise<void>;
   revoke: (t: string, id: string, p: Permission) => Promise<void>;
   level: number;
 }
 
-function Node({ node, getEffective, assign, revoke, level }: NodeProps) {
+function Node({ node, getEffective, assign, revoke, level }: NodeProps): JSX.Element {
   const [effective, setEffective] = useState<Permission[]>([]);
   const [expanded, setExpanded] = useState(false);
   const allPermissions = Object.values(PermissionValues);
 
-  const load = async () => {
+  const load = async (): Promise<void> => {
     setEffective(await getEffective(node.type, node.id));
     setExpanded(true);
   };
@@ -47,7 +53,7 @@ function Node({ node, getEffective, assign, revoke, level }: NodeProps) {
               </label>
             );
           })}
-          {node.children.map((c: any) => (
+          {node.children.map((c: ResourceNode) => (
             <Node key={c.id} node={c} getEffective={getEffective} assign={assign} revoke={revoke} level={level + 1} />
           ))}
         </div>
@@ -56,7 +62,7 @@ function Node({ node, getEffective, assign, revoke, level }: NodeProps) {
   );
 }
 
-export function ResourcePermissionAssignerStyled(props: Omit<ResourcePermissionAssignerProps, 'render'> & { title?: string }) {
+export function ResourcePermissionAssignerStyled(props: Omit<ResourcePermissionAssignerProps, 'render'> & { title?: string }): JSX.Element {
   return (
     <ResourcePermissionAssigner
       {...props}

@@ -229,7 +229,7 @@ vi.mock('@/lib/config/service-container', () => {
 // This prevents complex auth middleware issues in API tests
 vi.mock('@/lib/api/auth-middleware', () => {
   return {
-    createAuthMiddleware: vi.fn(() => vi.fn(async (request) => ({
+    createAuthMiddleware: vi.fn(() => vi.fn(async () => ({
       userId: null,
       isAuthenticated: false,
       user: null,
