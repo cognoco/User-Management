@@ -396,26 +396,6 @@ export type RegistrationData = z.infer<typeof registrationSchema>;
 export type ProfileUpdateData = z.infer<typeof profileUpdateSchema>;
 export type PreferencesUpdateData = z.infer<typeof preferencesUpdateSchema>;
 
-// Re-export all interfaces explicitly for better module resolution
-export type {
-  User,
-  UserProfile,
-  CompanyInfo,
-  Address,
-  ProfileVisibility,
-  UserPreferences,
-  EmailNotificationPreferences,
-  PushNotificationPreferences,
-  LoginPayload,
-  RegistrationPayload,
-  ProfileUpdatePayload,
-  PreferencesUpdatePayload,
-  AuthResult,
-  UserProfileResult,
-  UserSearchResult,
-  UserSearchParams
-};
-
 // ============================================================================
 // Backward Compatibility Exports
 // These exports maintain compatibility with existing code

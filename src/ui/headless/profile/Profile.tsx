@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useUserProfile } from '@/hooks/user/useUserProfile';
-import { UserProfile, ProfileUpdatePayload } from '@/core/user/models';
-import { UserType } from '@/types/user-type';
+import { UserProfile, ProfileUpdatePayload, UserType } from '@/core/common/user-types';
 
 export interface ProfileProps {
   userId?: string;

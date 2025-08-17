@@ -139,7 +139,8 @@ export class MockPermissionService implements PermissionService {
       return false;
     }
     
-    const _role = { ...this.mockRoles[roleId] };
+    // Store role data for potential future use (e.g., undo functionality)
+    // const deletedRole = { ...this.mockRoles[roleId] };
     delete this.mockRoles[roleId];
     delete this.mockRolePermissions[roleId];
     

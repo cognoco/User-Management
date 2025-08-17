@@ -1,11 +1,11 @@
 declare module 'lru-cache' {
-  export interface LRUCacheOptions<K = any, V = any> {
+  export interface LRUCacheOptions {
     max?: number;
     ttl?: number;
   }
 
   export class LRUCache<K = any, V = any> {
-    constructor(options?: LRUCacheOptions<K, V>);
+    constructor(options?: LRUCacheOptions);
     set(key: K, value: V): void;
     get(key: K): V | undefined;
     delete(key: K): void;

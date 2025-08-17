@@ -2,7 +2,6 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { AdapterRegistry } from '@/adapters/registry';
 import { DefaultAuthService } from '../default-auth.service';
 import { getApiAuthService } from '../factory';
-import { MockAuthService } from './mocks/mock-auth-service';
 
 describe('getApiAuthService', () => {
   beforeEach(() => {

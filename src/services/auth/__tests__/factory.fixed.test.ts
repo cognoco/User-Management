@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { AdapterRegistry } from '@/adapters/registry';
-import { DefaultAuthService } from '../default-auth.service';
 import type { AuthService } from '@/core/auth/interfaces';
 
 describe('getApiAuthService - Fixed', () => {

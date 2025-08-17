@@ -2,7 +2,6 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { AdapterRegistry } from '@/adapters/registry';
 import { DefaultAuthService } from '../default-auth.service';
 import { getApiAuthService } from '../factory';
-import { MockAuthService } from './mocks/mock-auth-service';
 
 // The key insight: The factory now checks ServiceLocator first (after our changes)
 // But the global mock in vitest.setup.ts interferes, so we need to work with it

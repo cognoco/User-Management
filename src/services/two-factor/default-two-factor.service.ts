@@ -157,9 +157,7 @@ export class DefaultTwoFactorService implements TwoFactorService {
     }
   }
 
-  async disable(_userId: string, _method: TwoFactorMethodType, _code?: string): Promise<TwoFactorDisableResponse> {
-    const userId = _userId;
-    const method = _method;
+  async disable(userId: string, method: TwoFactorMethodType, _code?: string): Promise<TwoFactorDisableResponse> {
     const supabase = getServiceSupabase();
 
     const { data: { user }, error } = await supabase.auth.admin.getUserById(userId);
@@ -193,8 +191,8 @@ export class DefaultTwoFactorService implements TwoFactorService {
     return { success: true };
   }
 
-  async getUserMethods(_userId: string) { return []; }
-  async getAvailableMethods() { return []; }
+  async getUserMethods(_userId: string): Promise<any[]> { return []; }
+  async getAvailableMethods(): Promise<any[]> { return []; }
 
   async getBackupCodes(userId: string): Promise<BackupCodesResponse> {
     const supabase = getServiceSupabase();

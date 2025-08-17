@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { withValidatedServices } from '@/lib/api/with-services';
-import { User } from '@/core/auth/models';
+import { User } from '@/core/common/user-types';
 import {
   createSuccessResponse,
   createCreatedResponse,

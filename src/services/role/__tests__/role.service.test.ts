@@ -10,9 +10,7 @@ vi.mock('@/lib/database/supabase', () => ({
   getServiceSupabase: vi.fn(() => supabase),
 }));
 
-function mockFrom(returnValue: any) {
-  return vi.fn(() => returnValue);
-}
+// Removed unused mockFrom function
 
 describe('RoleService', () => {
   beforeEach(() => {
@@ -63,11 +61,7 @@ const nameCheck = {
   single: vi.fn().mockRejectedValue({ code: 'PGRST116' }),
 };
 // circular check: parent role's parent is the role itself
-const parentQuery = {
-  select: vi.fn().mockReturnThis(),
-  eq: vi.fn().mockReturnThis(),
-  single: vi.fn().mockResolvedValue({ data: { parent_role_id: 'r1' }, error: null }),
-};
+// parentQuery variable removed as it's not used
 (supabase.from as any).mockReturnValue(nameCheck);
     vi.spyOn(RoleService.prototype as any, 'hasCircularDependency').mockResolvedValue(true);
     const service = new RoleService();

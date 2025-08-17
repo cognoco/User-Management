@@ -6,9 +6,9 @@
  * design principle and delegates to data providers for persistence.
  */
 
-import { authenticator } from 'otplib';
 import * as qrcode from 'qrcode';
 import crypto from 'crypto';
+import { totpValidator } from './totp-validator.service';
 import type {
   TwoFactorSetupResult,
   TwoFactorVerifyResult, 

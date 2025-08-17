@@ -8,7 +8,7 @@
 import { useState, FormEvent, useEffect } from 'react';
 import { useUserProfile } from '@/hooks/user/useUserProfile';
 import { useAuth } from '@/hooks/auth/useAuth';
-import { UserPreferences, PreferencesUpdatePayload, ProfileVisibility, VisibilityLevel } from '@/core/user/models';
+import { UserPreferences, PreferencesUpdatePayload, ProfileVisibility, VisibilityLevel } from '@/core/common/user-types';
 
 export interface AccountSettingsProps {
   /**

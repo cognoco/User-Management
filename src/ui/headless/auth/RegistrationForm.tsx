@@ -7,7 +7,7 @@
 
 import { useState, FormEvent, useEffect } from 'react';
 import { useAuth } from '@/hooks/auth/useAuth';
-import { RegistrationPayload, registerSchema } from '@/core/auth/models';
+import { RegistrationPayload, registrationSchema as registerSchema } from '@/core/common/user-types';
 import { z } from 'zod';
 
 export interface RegistrationFormProps {

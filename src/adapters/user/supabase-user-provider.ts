@@ -15,7 +15,7 @@ import {
   UserSearchParams,
   UserSearchResult,
   ProfileVisibility
-} from '@/core/user/models';
+} from '@/core/common/user-types';
 
 import type { IUserDataProvider } from '@/core/user/IUserDataProvider';
 

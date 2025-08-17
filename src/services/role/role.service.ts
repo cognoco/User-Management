@@ -1,6 +1,5 @@
 import type {
   Role,
-  RoleCreateData,
   RoleUpdateData,
   UserRoleAssignment,
   RoleHierarchyNode,

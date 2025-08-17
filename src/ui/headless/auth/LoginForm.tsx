@@ -10,7 +10,7 @@
  */
 
 import { useState, FormEvent, useEffect } from 'react';
-import { LoginPayload, loginSchema } from '@/core/auth/models';
+import { LoginPayload, loginSchema } from '@/core/common/user-types';
 import { z } from 'zod';
 
 export interface LoginFormProps {

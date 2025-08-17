@@ -18,7 +18,7 @@ interface RBACStoreMockState {
 
 export function createRBACStoreMock(overrides = {}) {
   // Use Zustand to create a real store instance
-  const useRBACStore = create<RBACStoreMockState>((set, _get) => ({
+  const useRBACStore = create<RBACStoreMockState>((set) => ({
     roles: [],
     userRoles: [],
     isLoading: false,

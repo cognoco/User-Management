@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { DefaultMFAHandler } from '../mfa-handler';
-import { authenticator, hotp } from 'otplib';
+import { hotp } from 'otplib';
 
 function generateTOTPToken(secret: string, time: number = Date.now()) {
   const counter = Math.floor(time / 30000);

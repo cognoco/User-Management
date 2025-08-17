@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { api } from '@/lib/api/axios';
+import { secureStorage } from '@/services/auth/secure-storage.service';
 import type { 
   User, 
   AuthResult, 
@@ -58,16 +59,33 @@ export const useAuthStore = create<AuthState>((set) => ({
         rememberMe 
       });
       
+      const { user, token } = response.data;
+      
+      // Initialize secure storage with user context
+      await secureStorage.initialize(user.id, token);
+      
+      // Store sensitive session data encrypted
+      await secureStorage.setItem('session', {
+        userId: user.id,
+        email: user.email,
+        token: token,
+        mfaEnabled: user.mfaEnabled || false,
+        loginTime: Date.now()
+      }, {
+        encrypt: true,
+        ttl: rememberMe ? 30 * 24 * 60 * 60 * 1000 : 24 * 60 * 60 * 1000 // 30 days if remember me, else 24 hours
+      });
+      
       set({ 
-        token: response.data.token,
-        user: response.data.user,
-        mfaEnabled: response.data.user.mfaEnabled || false
+        token: token,
+        user: user,
+        mfaEnabled: user.mfaEnabled || false
       });
 
       return {
         success: true,
         requiresMfa: response.data.requiresMfa,
-        token: response.data.token
+        token: token
       };
     } catch (error: any) {
       const errorMessage = error.response?.data?.message || 'Login failed';
@@ -86,9 +104,26 @@ export const useAuthStore = create<AuthState>((set) => ({
     try {
       set({ loading: true, error: null });
       const response = await api.post<{ user: User; token: string }>('/api/auth/register', data);
+      
+      const { user, token } = response.data;
+      
+      // Initialize secure storage for new user
+      await secureStorage.initialize(user.id, token);
+      
+      // Store initial session data
+      await secureStorage.setItem('session', {
+        userId: user.id,
+        email: user.email,
+        token: token,
+        registrationTime: Date.now()
+      }, {
+        encrypt: true,
+        ttl: 24 * 60 * 60 * 1000 // 24 hours
+      });
+      
       set({ 
-        token: response.data.token,
-        user: response.data.user,
+        token: token,
+        user: user,
         success: 'Registration successful'
       });
       return { success: true };
@@ -106,6 +141,9 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   logout: () => {
+    // Clear secure storage and encryption keys
+    secureStorage.reset();
+    
     set({
       user: null,
       token: null,
@@ -114,6 +152,8 @@ export const useAuthStore = create<AuthState>((set) => ({
       mfaQrCode: null,
       mfaBackupCodes: null
     });
+    
+    // Remove any remaining unencrypted data
     localStorage.removeItem('auth_token');
   },
 
@@ -173,6 +213,22 @@ export const useAuthStore = create<AuthState>((set) => ({
         code,
         isBackupCode
       });
+      
+      // Update secure storage with new MFA-verified token
+      const user = useAuthStore.getState().user;
+      if (user && response.data.token) {
+        await secureStorage.setItem('session', {
+          userId: user.id,
+          email: user.email,
+          token: response.data.token,
+          mfaEnabled: true,
+          mfaVerifiedAt: Date.now()
+        }, {
+          encrypt: true,
+          ttl: 24 * 60 * 60 * 1000
+        });
+      }
+      
       set({ 
         mfaEnabled: true,
         success: 'MFA verification successful',

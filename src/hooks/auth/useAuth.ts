@@ -8,12 +8,14 @@
 import { useState, useEffect, useCallback } from "react";
 import { AuthService } from "@/core/auth/interfaces";
 import {
-  User,
-  RegistrationPayload,
-  AuthResult,
   MFASetupResponse,
   MFAVerifyResponse,
 } from "@/core/auth/models";
+import {
+  User,
+  RegistrationPayload,
+  AuthResult,
+} from "@/core/common/user-types";
 import type {
   TwoFactorSetupResult,
   TwoFactorVerifyResult,

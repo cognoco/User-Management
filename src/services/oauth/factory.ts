@@ -23,17 +23,31 @@ export interface OAuthService {
 }
 
 class ApiOAuthService implements OAuthService {
-  async disconnectProvider(provider: OAuthProvider) {
+  async disconnectProvider(_provider: OAuthProvider): Promise<{
+    success: boolean;
+    error?: string;
+    status?: number;
+  }> {
     // Mock implementation for testing
     return { success: true };
   }
   
-  async linkProvider(provider: OAuthProvider, code: string) {
+  async linkProvider(_provider: OAuthProvider, _code: string): Promise<{
+    success: boolean;
+    user?: any;
+    linkedProviders?: string[];
+    error?: string;
+    status?: number;
+  }> {
     // Mock implementation for testing
     return { success: true, user: { id: '1' }, linkedProviders: ['github'] };
   }
   
-  async verifyProviderEmail(providerId: OAuthProvider, email: string) {
+  async verifyProviderEmail(_providerId: OAuthProvider, _email: string): Promise<{
+    success: boolean;
+    error?: string;
+    status?: number;
+  }> {
     // Mock implementation for testing
     return { success: true };
   }

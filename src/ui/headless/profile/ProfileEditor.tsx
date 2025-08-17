@@ -8,7 +8,7 @@
 import { useState, FormEvent, useEffect } from 'react';
 import { useUserProfile } from '@/hooks/user/useUserProfile';
 import { useAuth } from '@/hooks/auth/useAuth';
-import { ProfileUpdatePayload, UserProfile } from '@/core/user/models';
+import { ProfileUpdatePayload, UserProfile } from '@/core/common/user-types';
 import { z } from 'zod';
 
 export interface ProfileEditorProps {

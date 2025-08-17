@@ -4,12 +4,12 @@ export interface SsoService {
 }
 
 class ApiSsoService implements SsoService {
-  async getProviders(organizationId: string) {
+  async getProviders(_organizationId: string): Promise<any[]> {
     // Mock implementation
     return [];
   }
   
-  async upsertProvider(data: any) {
+  async upsertProvider(data: any): Promise<any> {
     // Mock implementation
     return {
       id: '1',

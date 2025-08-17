@@ -66,7 +66,7 @@ describe('MFA Service Unit Tests', () => {
 
       // Note: In a real test, we'd need to generate a valid TOTP code
       // For now, we'll mock the authenticator verification
-      const originalAuthenticator = require('otplib').authenticator;
+      const { authenticator: originalAuthenticator } = await import('otplib');
       vi.spyOn(originalAuthenticator, 'verify').mockReturnValue(true);
 
       const result = await mfaService.verifyTwoFactor('user123', '123456');
@@ -80,7 +80,7 @@ describe('MFA Service Unit Tests', () => {
       mockDataProvider.getTempTotpSecret = vi.fn().mockResolvedValue('JBSWY3DPEHPK3PXP');
       
       // Mock invalid code
-      const originalAuthenticator = require('otplib').authenticator;
+      const { authenticator: originalAuthenticator } = await import('otplib');
       vi.spyOn(originalAuthenticator, 'verify').mockReturnValue(false);
 
       const result = await mfaService.verifyTwoFactor('user123', '000000');

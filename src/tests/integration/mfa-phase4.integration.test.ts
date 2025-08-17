@@ -11,13 +11,7 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
-import type {
-  TwoFactorSetupResult,
-  TwoFactorVerifyResult,
-  TwoFactorDisableResult,
-  BackupCodeResult,
-  BackupCodeVerifyResult
-} from '@/core/auth/interfaces';
+// Import types are used in the test expectations
 
 // Mock useAuth hook directly with all MFA Phase 4 methods
 vi.mock('@/hooks/auth/useAuth', () => {
@@ -119,8 +113,7 @@ import {
   mockDisableTwoFactor,
   mockGenerateBackupCodes,
   mockVerifyBackupCode,
-  resetMfaState,
-  updateMfaState
+  resetMfaState
 } from '@/hooks/auth/useAuth';
 
 describe('MFA Phase 4 Integration Tests', () => {

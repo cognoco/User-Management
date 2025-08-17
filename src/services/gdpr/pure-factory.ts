@@ -15,7 +15,7 @@ export interface GdprServiceDependencies {
 }
 
 export function createGdprService(deps: GdprServiceDependencies): GdprService {
-  const { adapterRegistry, userService, provider } = deps;
+  const { adapterRegistry, provider } = deps;
   const gdprProvider = provider || adapterRegistry.getAdapter<IGdprDataProvider>('gdpr');
   return new DefaultGdprService(gdprProvider);
 }

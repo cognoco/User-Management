@@ -74,6 +74,10 @@ export class WebhookService implements IWebhookService {
 
     const results = await this.sender.sendWebhookEvent(eventType, payload, userId);
     // Strip success field before returning
-    return results.map(({ success: _success, ...delivery }) => delivery);
+    return results.map(({ success, ...delivery }) => {
+      // Intentionally omitting success field from response
+      void success;
+      return delivery;
+    });
   }
 }

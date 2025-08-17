@@ -11,6 +11,7 @@ import {
 import { 
   NotificationPayload
 } from '@/core/notification/models';
+import { logger } from '@/lib/utils/logger';
 
 /**
  * Default implementation of the NotificationHandler interface
@@ -32,7 +33,7 @@ export class DefaultNotificationHandler implements NotificationHandler {
     
     // Check if permission is already granted
     if (Notification.permission === 'granted') {
-      console.log('Notification permission already granted');
+      logger.debug('Notification permission already granted');
     }
   }
   
@@ -161,7 +162,7 @@ export class DefaultNotificationHandler implements NotificationHandler {
             });
             
             // In a real implementation, this would send the subscription to the server
-            console.log('Push subscription:', subscription);
+            logger.debug('Push subscription created', { subscription });
             
             return true;
           } catch (error) {
