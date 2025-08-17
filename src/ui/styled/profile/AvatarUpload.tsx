@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import Image from 'next/image';
 import { Button } from '@/ui/primitives/button';
 import { Card, CardContent } from '@/ui/primitives/card';
 import { Alert, AlertTitle, AlertDescription } from '@/ui/primitives/alert';
@@ -10,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/ui/primitives/tabs';
 import ReactCrop from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
-import { Upload, User, Trash, Camera, Image } from 'lucide-react';
+import { Upload, User, Trash, Camera, Image as ImageIcon } from 'lucide-react';
 import { getPlatformClasses } from '@/hooks/utils/usePlatformStyles';
 import HeadlessAvatarUpload from '@/ui/headless/user/AvatarUpload';
 
@@ -162,7 +163,7 @@ export function AvatarUpload(): React.ReactElement {
 
                       {!imgSrc ? (
                         <div className="flex flex-col items-center justify-center gap-4 p-8 border-2 border-dashed rounded-lg">
-                          <Image className="h-10 w-10 text-muted-foreground" />
+                          <ImageIcon className="h-10 w-10 text-muted-foreground" />
                           <div className="text-center">
                             <p className="text-sm text-muted-foreground mb-2">
                               {t('profile.dragOrClick')}
@@ -183,10 +184,12 @@ export function AvatarUpload(): React.ReactElement {
                             minHeight={100}
                             circularCrop
                           >
-                            <img
+                            <Image
                               ref={imgRef}
-                              alt="Crop me"
+                              alt="Image to crop for avatar"
                               src={imgSrc}
+                              width={400}
+                              height={400}
                               onLoad={onImageLoad}
                               style={{ maxHeight: '50vh', margin: '0 auto' }}
                             />

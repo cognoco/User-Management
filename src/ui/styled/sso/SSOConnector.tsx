@@ -1,3 +1,4 @@
+import React from 'react';
 import { SSOConnector as HeadlessSSOConnector, type SSOConnectorProps } from '@/ui/headless/sso/SSOConnector';
 import { SsoProviderButton } from './SsoProviderButton';
 import { Card, CardHeader, CardTitle, CardContent } from '@/ui/primitives/card';
@@ -6,7 +7,7 @@ import { Alert } from '@/ui/primitives/alert';
 
 export type StyledSSOConnectorProps = Omit<SSOConnectorProps, 'children'>;
 
-export function SSOConnector(props: StyledSSOConnectorProps) {
+export function SSOConnector(props: StyledSSOConnectorProps): React.ReactElement {
   return (
     <HeadlessSSOConnector {...props}>
       {({ providers, connections, loading, error, connect, disconnect, refresh }) => (

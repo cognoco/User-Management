@@ -11,7 +11,7 @@ import { useToast } from '@/lib/hooks/use-toast';
 import ProfileFormHeadless from '@/ui/headless/user/ProfileForm';
 import { Edit2, XCircle, Save } from 'lucide-react';
 
-const ProfileDisplayField = ({ label, value }: { label: string; value: string | null | undefined }) => {
+const ProfileDisplayField = ({ label, value }: { label: string; value: string | null | undefined }): React.ReactElement | null => {
   if (!value) return null;
   return (
     <div className="mb-4">
@@ -58,11 +58,11 @@ export function ProfileForm(): React.ReactElement {
         const displayName = [profile.first_name, profile.last_name].filter(Boolean).join(' ') || 'Name not set';
         const combinedLoading = isLoading || isPrivacyLoading;
 
-        const onPrivacyToggle = async (checked: boolean) => {
+        const onPrivacyToggle = async (checked: boolean): Promise<void> => {
           try {
             const data = await handlePrivacyChange(checked);
             toast({ title: 'Success', description: data?.message });
-          } catch (err: any) {
+          } catch (err: unknown) {
             const errorMsg = err?.response?.data?.error || 'Failed to update visibility.';
             toast({ title: 'Error', description: errorMsg, variant: 'destructive' });
           }

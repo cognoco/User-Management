@@ -5,7 +5,7 @@ import { Button } from '@/ui/primitives/button';
 import { Alert, AlertDescription } from '@/ui/primitives/alert';
 import { DataExport as DataExportHeadless } from '@/ui/headless/settings/DataExport';
 
-export default function DataExport() {
+export default function DataExport(): React.ReactElement {
   const { t } = useTranslation();
   const [success, setSuccess] = useState<string | null>(null);
 

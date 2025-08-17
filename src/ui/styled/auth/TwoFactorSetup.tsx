@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import Image from 'next/image';
 import { TwoFactorSetup as HeadlessTwoFactorSetup } from '@/ui/headless/auth/TwoFactorSetup';
 import { Button } from '@/ui/primitives/button';
 import { Card } from '@/ui/primitives/card';
@@ -14,15 +15,15 @@ interface TwoFactorSetupProps {
   onCancel?: () => void;
 }
 
-export function TwoFactorSetup({ onComplete, onCancel }: TwoFactorSetupProps) {
+export function TwoFactorSetup({ onComplete, onCancel }: TwoFactorSetupProps): React.ReactElement {
   const { t } = useTranslation();
   const [verificationCode, setVerificationCode] = useState('');
 
-  const copyCodes = (codes: string[]) => {
+  const copyCodes = (codes: string[]): void => {
     navigator.clipboard.writeText(codes.join('\n')).catch(() => {});
   };
 
-  const downloadCodes = (codes: string[]) => {
+  const downloadCodes = (codes: string[]): void => {
     const blob = new Blob([codes.join('\n')], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -81,7 +82,7 @@ export function TwoFactorSetup({ onComplete, onCancel }: TwoFactorSetupProps) {
               <h3 className="text-lg font-semibold">{t('2fa.setup.verify')}</h3>
               {qrCode && (
                 <div className="flex flex-col items-center mb-4">
-                  <img src={qrCode} alt="QR Code" className="mb-2 w-48 h-48" />
+                  <Image src={qrCode} alt="QR Code" width={192} height={192} className="mb-2 w-48 h-48" />
                   {secret && (
                     <div className="text-center">
                       <p className="text-sm text-muted-foreground mb-1">{t('2fa.setup.manualCode')}</p>

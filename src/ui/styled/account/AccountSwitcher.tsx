@@ -29,23 +29,23 @@ export const AccountSwitcher: React.FC<AccountSwitcherProps> = ({ showDetails = 
   const [switchingAccountId, setSwitchingAccountId] = useState<string | null>(null);
 
   useEffect(() => {
-    const loadAccounts = async () => {
+    const loadAccounts = async (): Promise<void> => {
       setIsLoadingAccounts(true);
       try {
         const data = await fetchAccounts();
         setAccounts(Array.isArray(data) ? data : []);
         setCurrentAccountId(Array.isArray(data) && data[0]?.id ? data[0].id : null);
-      } catch (err: any) {
-        setError(err.message || t('error.loadingAccounts'));
+      } catch (err: unknown) {
+        setError((err as Error).message || t('error.loadingAccounts'));
         setAccounts([]); // Defensive: ensure accounts is always an array
       } finally {
         setIsLoadingAccounts(false);
       }
     };
     loadAccounts();
-  }, []);
+  }, [t]);
 
-  const handleSwitch = async (account: Account) => {
+  const handleSwitch = async (account: Account): Promise<void> => {
     setError(null);
     setSuccessMsg(null);
     setSwitchingAccountId(account.id);
@@ -54,14 +54,14 @@ export const AccountSwitcher: React.FC<AccountSwitcherProps> = ({ showDetails = 
       setCurrentAccountId(account.id);
       setSuccessMsg(t('accountSwitcher.switched', { name: account.name }));
       window.location.reload();
-    } catch (err: any) {
-      setError(err.message || t('error.switchingAccount'));
+    } catch (err: unknown) {
+      setError((err as Error).message || t('error.switchingAccount'));
     } finally {
       setSwitchingAccountId(null);
     }
   };
 
-  const handleCreateOrg = async () => {
+  const handleCreateOrg = async (): Promise<void> => {
     setOrgLoading(true);
     setOrgError(null);
     try {
@@ -73,14 +73,14 @@ export const AccountSwitcher: React.FC<AccountSwitcherProps> = ({ showDetails = 
       // Optionally auto-switch to new org
       await switchAccount(newOrg.id);
       window.location.reload();
-    } catch (err: any) {
-      setOrgError(err.message || t('error.creatingOrganization'));
+    } catch (err: unknown) {
+      setOrgError((err as Error).message || t('error.creatingOrganization'));
     } finally {
       setOrgLoading(false);
     }
   };
 
-  const handleShowDetails = async (account: Account) => {
+  const handleShowDetails = async (account: Account): Promise<void> => {
     setSelectedAccount(account);
     if (account.type === 'organization') {
       try {
@@ -94,7 +94,7 @@ export const AccountSwitcher: React.FC<AccountSwitcherProps> = ({ showDetails = 
     }
   };
 
-  const handleLeaveOrganization = async () => {
+  const handleLeaveOrganization = async (): Promise<void> => {
     if (!selectedAccount) return;
     setLeaveLoading(true);
     setLeaveError(null);
@@ -104,8 +104,8 @@ export const AccountSwitcher: React.FC<AccountSwitcherProps> = ({ showDetails = 
       setShowLeaveDialog(false);
       setSelectedAccount(null);
       setSuccessMsg(t('accountSwitcher.leftOrganization'));
-    } catch (err: any) {
-      setLeaveError(err.message || t('error.leavingOrganization'));
+    } catch (err: unknown) {
+      setLeaveError((err as Error).message || t('error.leavingOrganization'));
     } finally {
       setLeaveLoading(false);
     }

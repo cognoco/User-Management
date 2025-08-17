@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { Alert, AlertDescription, AlertTitle } from '@/ui/primitives/alert';
 import { useTranslation } from 'react-i18next';
 import { isRtlLanguage } from '@/lib/i18n/messages';
@@ -13,7 +14,7 @@ interface ApiErrorAlertProps {
 /**
  * Display user-friendly API error messages with optional retry.
  */
-export function ApiErrorAlert({ message, onRetry, severity = 'low' }: ApiErrorAlertProps) {
+export function ApiErrorAlert({ message, onRetry, severity = 'low' }: ApiErrorAlertProps): React.ReactElement | null {
   const { i18n } = useTranslation();
   const dir = isRtlLanguage(i18n.language) ? 'rtl' : undefined;
   if (!message) return null;

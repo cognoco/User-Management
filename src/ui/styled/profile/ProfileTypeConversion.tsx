@@ -94,8 +94,9 @@ export function ProfileTypeConversion(): React.ReactElement {
 
     } catch (err: unknown) {
       if (process.env.NODE_ENV === 'development') { console.error("Profile conversion error:", err); }
-      const isDomainValidationError = (err as any).response?.status === 400 && (err as any).response?.data?.isValid === false;
-      const errorMsg = (err as any).response?.data?.error || (err as any).response?.data?.message || (err as any).message || 'An unexpected error occurred during conversion.';
+      const errorResponse = err as { response?: { status?: number; data?: { isValid?: boolean; error?: string; message?: string } }; message?: string };
+      const isDomainValidationError = errorResponse.response?.status === 400 && errorResponse.response?.data?.isValid === false;
+      const errorMsg = errorResponse.response?.data?.error || errorResponse.response?.data?.message || errorResponse.message || 'An unexpected error occurred during conversion.';
       setConversionError(errorMsg);
       toast({
         title: isDomainValidationError ? 'Validation Failed' : 'Conversion Failed',

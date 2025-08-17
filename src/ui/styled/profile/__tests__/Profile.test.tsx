@@ -26,7 +26,7 @@ vi.mock('../Profile.jsx', async () => {
 vi.mock('@/lib/database/supabase', async () => await import('@/tests/mocks/supabase'));
 import { supabase } from '@/lib/database/supabase';
 
-function renderWithWrapper(ui: React.ReactElement) {
+function renderWithWrapper(ui: React.ReactElement): unknown {
   return renderWithProviders(
     <TestWrapper authenticated>{ui}</TestWrapper>
   );
@@ -35,10 +35,10 @@ function renderWithWrapper(ui: React.ReactElement) {
 describe('Profile Component', () => {
   // Setup test environment and router
   let cleanup: (() => void) | undefined;
-  let storageFromSpy: any;
-  let uploadSpy: any;
-  let getPublicUrlSpy: any;
-  let originalWindow: any;
+  let storageFromSpy: unknown;
+  let uploadSpy: unknown;
+  let getPublicUrlSpy: unknown;
+  let originalWindow: unknown;
 
   beforeAll(() => {
     cleanup = setupTestEnvironment();

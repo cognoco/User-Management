@@ -3,10 +3,10 @@ import userEvent from '@testing-library/user-event';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { MFAVerificationForm } from '../MFAVerificationForm';
 
-let state: any;
+let state: unknown;
 
 vi.mock('../../../headless/auth/MFAVerificationForm', () => ({
-  MFAVerificationForm: ({ render, onUseBackupCode }: any) => {
+  MFAVerificationForm: ({ render, onUseBackupCode }: { render: (state: unknown) => React.ReactNode; onUseBackupCode: unknown }) => {
     state.onUseBackupCode = onUseBackupCode;
     return render(state);
   }
@@ -15,11 +15,11 @@ vi.mock('../../../headless/auth/MFAVerificationForm', () => ({
 describe('MFAVerificationForm styled component', () => {
   beforeEach(() => {
     state = {
-      handleSubmit: vi.fn((e: any) => e.preventDefault()),
+      handleSubmit: vi.fn((e: unknown) => e.preventDefault()),
       verificationCode: '',
       setVerificationCode: vi.fn((v: string) => { state.verificationCode = v; }),
       isSubmitting: false,
-      errors: {} as any,
+      errors: {} as unknown,
       touched: { verificationCode: false },
       handleBlur: vi.fn(),
     };

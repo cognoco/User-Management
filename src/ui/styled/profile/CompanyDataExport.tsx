@@ -3,7 +3,7 @@ import { Button } from '@/ui/primitives/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/ui/primitives/card';
 import { CompanyDataExport as HeadlessCompanyDataExport } from '@/ui/headless/profile/CompanyDataExport';
 
-export default function CompanyDataExport() {
+export default function CompanyDataExport(): React.ReactElement {
   return (
     <HeadlessCompanyDataExport>
       {({ isExporting, error, success, exportData }) => (

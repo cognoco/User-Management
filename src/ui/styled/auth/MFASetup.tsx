@@ -6,6 +6,7 @@
  */
 
 import React from 'react';
+import Image from 'next/image';
 import { MFASetup as HeadlessMFASetup, MFASetupProps } from '../../headless/auth/MFASetup';
 import { Input } from '@/ui/primitives/input';
 import { Button } from '@/ui/primitives/button';
@@ -43,7 +44,7 @@ export function MFASetup({
   footer,
   className,
   ...headlessProps
-}: StyledMFASetupProps) {
+}: StyledMFASetupProps): React.ReactElement {
   return (
     <HeadlessMFASetup
       {...headlessProps}
@@ -143,7 +144,7 @@ export function MFASetup({
                       
                       {qrCodeUrl && (
                         <div className="border p-4 rounded-md bg-white">
-                          <img src={qrCodeUrl} alt="QR Code" className="w-48 h-48" />
+                          <Image src={qrCodeUrl} alt="QR Code" width={192} height={192} className="w-48 h-48" />
                         </div>
                       )}
                       

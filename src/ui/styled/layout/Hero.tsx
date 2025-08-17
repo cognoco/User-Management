@@ -9,7 +9,7 @@ interface HeroProps {
   children?: ReactNode;
 }
 
-export function Hero({ title, description, className, children }: HeroProps): JSX.Element {
+export function Hero({ title, description, className, children: heroChildren }: HeroProps): JSX.Element {
   return (
     <HeadlessHero
       title={title}
@@ -27,7 +27,7 @@ export function Hero({ title, description, className, children }: HeroProps): JS
                 </p>
               </div>
               <div className="mt-10 flex items-center justify-center gap-x-6">
-                {children}
+                {heroChildren || children}
               </div>
             </div>
           </div>

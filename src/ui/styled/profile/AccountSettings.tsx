@@ -46,7 +46,7 @@ export function AccountSettings({
   footer,
   className,
   ...headlessProps
-}: StyledAccountSettingsProps) {
+}: StyledAccountSettingsProps): React.ReactElement {
   return (
     <HeadlessAccountSettings
       {...headlessProps}

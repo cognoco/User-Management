@@ -11,7 +11,7 @@ import Link from 'next/link';
 import { NotificationCenter as HeadlessNotificationCenter } from '@/ui/headless/notification/NotificationCenter';
 import type { Notification } from '@/core/notification/models';
 
-const getIconForCategory = (category: string) => {
+const getIconForCategory = (category: string): React.ReactElement => {
   switch (category) {
     case 'sso':
       return <KeyRound className="h-4 w-4 text-indigo-500" />;
@@ -35,17 +35,17 @@ const NotificationItem: React.FC<{ notification: Notification; onMarkAsRead: (id
       <div className="flex justify-between items-start">
         <div className="flex items-start space-x-3">
           <div className="mt-0.5">
-            {getIconForCategory((notification as any).category)}
+            {getIconForCategory((notification as unknown as { category: string }).category)}
           </div>
           <div>
             <p className={`text-sm font-medium ${notification.isRead ? '' : 'font-semibold'}`}>{notification.title}</p>
             <p className="text-xs text-gray-500 mt-1">{notification.message}</p>
-            {(notification as any).action && (
+            {(notification as unknown as { action?: { url?: string; label?: string } }).action && (
               <div className="mt-2">
-                {(notification as any).action.url ? (
-                  <Link href={(notification as any).action.url}>
+                {(notification as unknown as { action: { url?: string; label?: string } }).action.url ? (
+                  <Link href={(notification as unknown as { action: { url: string } }).action.url}>
                     <Button variant="link" size="sm" className="h-auto p-0 text-xs text-blue-500">
-                      {(notification as any).action.label}
+                      {(notification as unknown as { action: { label: string } }).action.label}
                     </Button>
                   </Link>
                 ) : (

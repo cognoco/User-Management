@@ -18,7 +18,7 @@ interface Props {
   error?: string | null;
 }
 
-export function CorporateProfileSection(props: Props) {
+export function CorporateProfileSection(props: Props): React.ReactElement {
   const { t } = useTranslation();
   const [editMode, setEditMode] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);

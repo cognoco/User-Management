@@ -1,5 +1,6 @@
 import React, { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import Image from 'next/image';
 import { Button } from '@/ui/primitives/button';
 import FeedbackFormHeadless from '@/ui/headless/common/FeedbackForm';
 import { feedbackCategoryEnum } from '@/types/feedback';
@@ -75,7 +76,7 @@ export const FeedbackForm: React.FC<FeedbackFormProps> = ({ onSuccess, onError }
               className="w-full"
             />
             {screenshotPreview && (
-              <img src={screenshotPreview} alt={t('screenshot preview')} className="mt-2 max-h-40 rounded border" />
+              <Image src={screenshotPreview} alt={t('screenshot preview')} width={160} height={160} className="mt-2 max-h-40 rounded border" />
             )}
           </div>
           <Button type="submit" disabled={loading} aria-busy={loading} className="bg-blue-600 text-white px-4 py-1 rounded">

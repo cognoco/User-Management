@@ -7,12 +7,12 @@ interface DevErrorDetailsPanelProps {
   error: ErrorEntry;
 }
 
-export function DevErrorDetailsPanel({ error }: DevErrorDetailsPanelProps) {
+export function DevErrorDetailsPanel({ error }: DevErrorDetailsPanelProps): React.ReactElement | null {
   if (!error?.details && !error?.message) {
     return null;
   }
 
-  const stack = (error as any).stack as string | undefined;
+  const stack = (error as unknown as { stack?: string }).stack;
   const lines = stack ? stack.split('\n').slice(1, 5) : [];
 
   return (

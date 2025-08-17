@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { Button } from '@/ui/primitives/button';
 import { Input } from '@/ui/primitives/input';
 import { Alert, AlertDescription } from '@/ui/primitives/alert';
@@ -69,9 +70,11 @@ export default function Profile(): React.ReactElement {
               </Alert>
             )}
             <div className="avatar">
-              <img 
+              <Image 
                 src={profile.profilePictureUrl || 'https://example.com/avatar.jpg'} 
-                alt="Avatar" 
+                alt="User profile avatar" 
+                width={150}
+                height={150}
               />
               <div className="avatar-upload">
                 <label htmlFor="avatar-upload">

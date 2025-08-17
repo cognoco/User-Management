@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/ui/primitives/select';
 import { useUserManagement } from '@/lib/auth/UserManagementProvider';
@@ -10,11 +11,11 @@ interface LanguageSelectorProps {
   minimal?: boolean;
 }
 
-export function LanguageSelector({ minimal = false }: LanguageSelectorProps) {
+export function LanguageSelector({ minimal = false }: LanguageSelectorProps): React.ReactElement {
   const { t, i18n } = useTranslation();
   const { platform, isNative } = useUserManagement();
 
-  const handleLanguageChange = (value: string) => {
+  const handleLanguageChange = (value: string): void => {
     i18n.changeLanguage(value);
   };
 

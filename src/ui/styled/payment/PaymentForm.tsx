@@ -1,3 +1,4 @@
+import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { PaymentForm as HeadlessPaymentForm, type PaymentFormProps } from '@/ui/headless/payment/PaymentForm';
 import { Button } from '@/ui/primitives/button';
@@ -7,7 +8,7 @@ import { Alert } from '@/ui/primitives/alert';
 
 export type StyledPaymentFormProps = Omit<PaymentFormProps, 'render'>;
 
-export function PaymentForm(props: StyledPaymentFormProps) {
+export function PaymentForm(props: StyledPaymentFormProps): React.ReactElement {
   const { t } = useTranslation();
 
   return (

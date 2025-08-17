@@ -27,7 +27,7 @@ const mockUsers: User[] = [
   { id: 4, name: 'Dave Brown', email: 'dave@example.com', role: 'User', status: 'Active' },
 ];
 
-export function ResponsiveExample(): React.ReactElement: JSX.Element {
+export function ResponsiveExample(): React.ReactElement {
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',

@@ -21,7 +21,7 @@ import DataTableHeadless, {
 } from '@/ui/headless/common/DataTable';
 
 interface Column<T> extends HeadlessColumn<T> {
-  render?: (value: any, record: T) => React.ReactNode;
+  render?: (value: unknown, record: T) => React.ReactNode;
 }
 
 interface DataTableProps<T> extends Omit<HeadlessProps<T>, 'render'> {
@@ -29,14 +29,14 @@ interface DataTableProps<T> extends Omit<HeadlessProps<T>, 'render'> {
   emptyMessage?: string;
 }
 
-export function DataTable<T extends Record<string, any>>({
+export function DataTable<T extends Record<string, unknown>>({
   data,
   columns,
   searchable = true,
   rowActions,
   emptyMessage = 'No data available',
   cardView: forceCardView = false,
-}: DataTableProps<T>) {
+}: DataTableProps<T>): React.ReactElement {
   return (
     <DataTableHeadless
       data={data}
@@ -53,7 +53,7 @@ export function DataTable<T extends Record<string, any>>({
         getVisibleColumns,
         getPrimaryColumn
       }) => {
-        const SearchInput = () => (
+        const SearchInput = (): React.ReactElement => (
           <div className="relative">
             <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
@@ -76,7 +76,7 @@ export function DataTable<T extends Record<string, any>>({
           );
         }
 
-        const renderCardView = () => (
+        const renderCardView = (): React.ReactElement => (
           <div className="grid grid-cols-1 gap-4">
             {filteredData.map((row, rowIndex) => {
               const primaryColumn = getPrimaryColumn();
@@ -125,7 +125,7 @@ export function DataTable<T extends Record<string, any>>({
           </div>
         );
 
-        const renderTableView = () => (
+        const renderTableView = (): React.ReactElement => (
           <div className="rounded-md border overflow-hidden">
             <Table>
               <TableHeader>

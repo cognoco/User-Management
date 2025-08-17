@@ -30,13 +30,13 @@ const ProfileVerification: React.FC<ProfileVerificationProps> = ({ enableDocumen
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     if (e.target.files && e.target.files[0]) {
       setSelectedFile(e.target.files[0]);
     }
   };
 
-  const handleRequestVerification = async () => {
+  const handleRequestVerification = async (): Promise<void> => {
     setRequesting(true);
     await requestVerification(selectedFile || undefined);
     setRequesting(false);

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
+import Image from 'next/image';
 import Cropper from 'react-cropper';
 import 'cropperjs/dist/cropper.css';
 import { Button } from '@/ui/primitives/button';
@@ -24,28 +25,28 @@ export function ProfileEditor(): React.ReactElement {
   useEffect(() => {
     if (profile) {
       setForm({
-        name: (profile as any).name ?? '',
+        name: (profile as Record<string, unknown>).name as string ?? '',
         bio: profile.bio ?? '',
-        location: (profile as any).location ?? '',
+        location: (profile as Record<string, unknown>).location as string ?? '',
         website: profile.website ?? ''
       });
-      setAvatarPreview((profile as any).avatarUrl ?? profile.avatar_url ?? null);
+      setAvatarPreview((profile as Record<string, unknown>).avatarUrl as string ?? profile.avatar_url ?? null);
     }
   }, [profile]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>): void => {
     const { name, value } = e.target;
     setForm((f) => ({ ...f, [name]: value }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
     setIsSubmitting(true);
-    await updateProfile(form as any);
+    await updateProfile(form as Record<string, unknown>);
     setIsSubmitting(false);
   };
 
-  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const file = e.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
@@ -56,7 +57,7 @@ export function ProfileEditor(): React.ReactElement {
     reader.readAsDataURL(file);
   };
 
-  const handleCropComplete = async () => {
+  const handleCropComplete = async (): Promise<void> => {
     if (cropperRef.current) {
       const canvas = cropperRef.current.getCroppedCanvas();
       canvas.toBlob(async (blob) => {
@@ -73,7 +74,7 @@ export function ProfileEditor(): React.ReactElement {
     <div className="space-y-8">
       <div className="flex items-center space-x-4">
         <Avatar className="h-20 w-20">
-          <img src={avatarPreview || '/default-avatar.png'} alt="Profile" />
+          <Image src={avatarPreview || '/default-avatar.png'} alt="Profile avatar" width={80} height={80} />
         </Avatar>
         <div>
           <Input

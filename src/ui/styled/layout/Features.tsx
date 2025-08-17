@@ -36,7 +36,7 @@ export function Features({
   description,
   features,
   className,
-}: FeaturesProps) {
+}: FeaturesProps): React.ReactElement {
   return (
     <HeadlessFeatures
       title={title}

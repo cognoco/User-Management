@@ -19,7 +19,7 @@ const SessionManagement: React.FC = () => {
   return (
     <HeadlessSessionManagement
       render={({ sessions, loading, error, revoke }) => {
-        const handleRevoke = async () => {
+        const handleRevoke = async (): Promise<void> => {
           if (!pendingSessionId) return;
           await revoke(pendingSessionId);
           toast({

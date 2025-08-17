@@ -7,14 +7,14 @@ import { Alert, AlertDescription } from '@/ui/primitives/alert';
 
 interface WebAuthnLoginProps {
   userId: string;
-  onSuccess: (userData: any) => void;
+  onSuccess: (userData: unknown) => void;
 }
 
-export function WebAuthnLogin({ userId, onSuccess }: WebAuthnLoginProps) {
+export function WebAuthnLogin({ userId, onSuccess }: WebAuthnLoginProps): React.ReactElement {
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleAuthenticate = async () => {
+  const handleAuthenticate = async (): Promise<void> => {
     setIsAuthenticating(true);
     setError(null);
     try {

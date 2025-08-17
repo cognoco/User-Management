@@ -1,3 +1,4 @@
+import React from 'react';
 import { BillingForm as HeadlessBillingForm, type BillingFormProps } from '@/ui/headless/subscription/BillingForm';
 import { Input } from '@/ui/primitives/input';
 import { Button } from '@/ui/primitives/button';
@@ -5,7 +6,7 @@ import { Alert } from '@/ui/primitives/alert';
 
 export type StyledBillingFormProps = Omit<BillingFormProps, 'render'>;
 
-export function BillingForm(props: StyledBillingFormProps) {
+export function BillingForm(props: StyledBillingFormProps): React.ReactElement {
   return (
     <HeadlessBillingForm
       {...props}

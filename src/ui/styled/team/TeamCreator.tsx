@@ -44,7 +44,7 @@ export function TeamCreator({
   footer,
   className,
   ...headlessProps
-}: StyledTeamCreatorProps) {
+}: StyledTeamCreatorProps): React.ReactElement {
   return (
     <HeadlessTeamCreator
       {...headlessProps}

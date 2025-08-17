@@ -16,8 +16,8 @@ export function WebhookEvents({
   available = defaultEvents,
   onChange,
   children
-}: WebhookEventsProps) {
-  const renderDefault = ({ selected, toggle }: { selected: string[]; toggle: (e: string) => void }) => (
+}: WebhookEventsProps): React.ReactElement {
+  const renderDefault = ({ selected, toggle }: { selected: string[]; toggle: (e: string) => void }): React.ReactElement => (
     <div className="space-y-2">
       {available.map((event) => (
         <label key={event} className="flex items-center space-x-2">

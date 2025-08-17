@@ -2,6 +2,9 @@ import React from 'react';
 import { useState } from 'react';
 import { supabase } from '@/lib/database/supabase';
 
+/**
+ * @returns {React.ReactElement}
+ */
 export default function Auth() {
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState('');
@@ -9,6 +12,9 @@ export default function Auth() {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
+  /**
+   * @returns {boolean}
+   */
   const validateInput = () => {
     // Email validation using regex
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

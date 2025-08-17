@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import Image from 'next/image';
 import { Button } from '@/ui/primitives/button';
 import { Card, CardContent } from '@/ui/primitives/card';
 import { Alert, AlertTitle, AlertDescription } from '@/ui/primitives/alert';
@@ -41,9 +42,9 @@ export function CompanyLogoUpload(): React.ReactElement {
             <div className="relative" data-testid="company-logo-upload">
               <Avatar className="h-32 w-32 rounded-md border-4 border-background flex items-center justify-center overflow-hidden bg-muted">
                 {imgSrc ? (
-                  <img ref={imgRef} src={imgSrc} alt="logo" className="h-full w-full object-cover" />
+                  <Image ref={imgRef} src={imgSrc} alt="Company logo preview" width={128} height={128} className="h-full w-full object-cover" />
                 ) : hasLogo && profile?.companyLogoUrl ? (
-                  <img src={profile.companyLogoUrl} alt="logo" className="h-full w-full object-cover" />
+                  <Image src={profile.companyLogoUrl} alt="Company logo" width={128} height={128} className="h-full w-full object-cover" />
                 ) : (
                   <Building className="h-1/2 w-1/2 text-muted-foreground" />
                 )}
@@ -97,7 +98,7 @@ export function CompanyLogoUpload(): React.ReactElement {
                       minWidth={100}
                       minHeight={100}
                     >
-                      <img ref={imgRef} alt="Crop me" src={imgSrc} style={{ maxHeight: '50vh' }} />
+                      <Image ref={imgRef} alt="Image to crop for company logo" src={imgSrc} width={600} height={400} style={{ maxHeight: '50vh' }} />
                     </ReactCrop>
                   </div>
                 )}

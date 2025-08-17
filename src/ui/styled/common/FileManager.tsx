@@ -68,7 +68,7 @@ const FileManager: React.FC<FileManagerProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch files/folders
-  const fetchFiles = async () => {
+  const fetchFiles = async (): Promise<void> => {
     setLoading(true);
     setError(null);
     const { data, error } = await supabase.storage.from(bucket).list(currentPath, { limit: 100, offset: 0 });
@@ -87,7 +87,7 @@ const FileManager: React.FC<FileManagerProps> = ({
   }, [currentPath, bucket]);
 
   // Upload handler
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>): Promise<void> => {
     const file = e.target.files?.[0];
     if (!file) return;
     setUploading(true);
@@ -105,14 +105,14 @@ const FileManager: React.FC<FileManagerProps> = ({
   };
 
   // Download handler
-  const getDownloadUrl = (file: FileItem) => {
+  const getDownloadUrl = (file: FileItem): string => {
     const path = currentPath ? `${currentPath}/${file.name}` : file.name;
     const { data } = supabase.storage.from(bucket).getPublicUrl(path);
     return data?.publicUrl || '#';
   };
 
   // Delete handler
-  const handleDelete = async () => {
+  const handleDelete = async (): Promise<void> => {
     if (!deleteDialog.file) return;
     const path = currentPath ? `${currentPath}/${deleteDialog.file.name}` : deleteDialog.file.name;
     const { error } = await supabase.storage.from(bucket).remove([path]);
@@ -126,7 +126,7 @@ const FileManager: React.FC<FileManagerProps> = ({
   };
 
   // Rename handler
-  const handleRename = async () => {
+  const handleRename = async (): Promise<void> => {
     if (!renameDialog.file || !renameValue) return;
     const oldPath = currentPath ? `${currentPath}/${renameDialog.file.name}` : renameDialog.file.name;
     const newPath = currentPath ? `${currentPath}/${renameValue}` : renameValue;
@@ -142,10 +142,10 @@ const FileManager: React.FC<FileManagerProps> = ({
   };
 
   // Folder navigation
-  const handleNavigate = (folder: string) => {
+  const handleNavigate = (folder: string): void => {
     setCurrentPath(currentPath ? `${currentPath}/${folder}` : folder);
   };
-  const handleBreadcrumbClick = (index: number) => {
+  const handleBreadcrumbClick = (index: number): void => {
     if (index === -1) {
       setCurrentPath('');
     } else {

@@ -9,7 +9,7 @@ export interface BusinessSSOAuthProps extends Omit<HeadlessProps, 'children'> {
   className?: string;
 }
 
-export function BusinessSSOAuth({ className, ...props }: BusinessSSOAuthProps) {
+export function BusinessSSOAuth({ className, ...props }: BusinessSSOAuthProps): React.ReactElement {
   const { t } = useTranslation();
 
   return (

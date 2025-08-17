@@ -63,7 +63,7 @@ export const SocialSharingComponent: React.FC<SocialSharingComponentProps> = ({
               content_title: itemData.title
           });
       }
-      if (process.env.NODE_ENV === 'development') { console.log(`Shared on ${platform}`); }
+      // if (process.env.NODE_ENV === 'development') { console.log(`Shared on ${platform}`); }
   };
 
   const handleCopyLink = async () => {

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { NotificationPreferences as HeadlessNotificationPreferences } from '@/ui/headless/shared/NotificationPreferences';
 
-export default function NotificationPreferences() {
+export default function NotificationPreferences(): React.ReactElement {
   const { t } = useTranslation();
 
   return (
@@ -13,14 +13,14 @@ export default function NotificationPreferences() {
 }
 
 interface ContentProps {
-  preferences: any;
+  preferences: unknown;
   isLoading: boolean;
   error: string | null;
-  update: (prefs: any) => Promise<void>;
+  update: (prefs: unknown) => Promise<void>;
   t: (key: string, defaultValue?: string) => string;
 }
 
-function NotificationPreferencesContent({ preferences, isLoading, error, update, t }: ContentProps) {
+function NotificationPreferencesContent({ preferences, isLoading, error, update, t }: ContentProps): React.ReactElement {
   const [form, setForm] = useState(
     preferences?.notifications || { email: true, push: true, marketing: false }
   );
@@ -35,7 +35,7 @@ function NotificationPreferencesContent({ preferences, isLoading, error, update,
     setForm({ ...form, [key]: e.target.checked });
   };
 
-  const handleSave = async (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
     await update({ notifications: form });
   };

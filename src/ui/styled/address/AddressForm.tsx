@@ -2,7 +2,7 @@ import React from 'react';
 import { AddressForm as HeadlessAddressForm } from '@/ui/headless/address/AddressForm';
 import type { AddressFormProps } from '@/ui/headless/address/AddressForm';
 
-export function StyledAddressForm(props: AddressFormProps) {
+export function StyledAddressForm(props: AddressFormProps): React.ReactElement {
   return (
     <div className="max-w-md">
       <HeadlessAddressForm

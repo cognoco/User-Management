@@ -15,7 +15,7 @@ export function BackupCodesDisplay({
   existingCodes = [], 
   showRegenerateOption = true,
   onClose 
-}: BackupCodesDisplayProps) {
+}: BackupCodesDisplayProps): React.ReactElement {
   const { t } = useTranslation();
   const [regenerateConfirmVisible, setRegenerateConfirmVisible] = useState(false);
 

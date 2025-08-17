@@ -4,7 +4,7 @@ import { Badge } from '@/ui/primitives/badge';
 import { ApiKeyDetail as HeadlessApiKeyDetail } from '@/ui/headless/api-keys/ApiKeyDetail';
 import type { ApiKey } from '@/core/api-keys/types';
 
-export function ApiKeyDetail({ apiKey }: { apiKey: ApiKey }) {
+export function ApiKeyDetail({ apiKey }: { apiKey: ApiKey }): React.ReactElement {
   return (
     <HeadlessApiKeyDetail apiKey={apiKey}>
       {({ apiKey, regenerate, revoke }) => (

@@ -1,7 +1,7 @@
 import { format } from 'date-fns';
 import { ActivityLog as HeadlessActivityLog } from '@/ui/headless/profile/ActivityLog';
 
-export default function ActivityLog() {
+export default function ActivityLog(): React.ReactElement {
   return (
     <HeadlessActivityLog>
       {({ logs, isLoading, error, page, totalPages, setFilter }) => (

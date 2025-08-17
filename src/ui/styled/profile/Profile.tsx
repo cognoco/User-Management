@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { Button } from '@/ui/primitives/button';
 import { Input } from '@/ui/primitives/input';
 import { Alert, AlertDescription } from '@/ui/primitives/alert';
@@ -65,7 +66,7 @@ export default function Profile(): React.ReactElement {
               </Alert>
             )}
             <div className="avatar">
-              <img src={form.avatarUrl || 'https://example.com/avatar.jpg'} alt="Avatar" />
+              <Image src={form.avatarUrl || 'https://example.com/avatar.jpg'} alt="User avatar" width={150} height={150} className="rounded-full object-cover" />
               <div className="avatar-upload">
                 <label htmlFor="avatar-upload">
                   Upload Avatar

@@ -4,7 +4,7 @@ interface UpgradeToBusinessFlowProps {
   onCompleted: () => void;
 }
 
-export function UpgradeToBusinessFlow({ onCompleted }: UpgradeToBusinessFlowProps) {
+export function UpgradeToBusinessFlow({ onCompleted }: UpgradeToBusinessFlowProps): React.ReactElement {
   return (
     <div>
       <h2>Upgrade to Business Flow</h2>

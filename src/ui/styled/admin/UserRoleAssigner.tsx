@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/ui/primitives/card';
 import { Select, SelectItem } from '@/ui/primitives/select';
 import { UserRoleAssigner, UserRoleAssignerProps } from '../../headless/admin/UserRoleAssigner';
 
-export function UserRoleAssignerStyled(props: Omit<UserRoleAssignerProps, 'render'> & { title?: string }) {
+export function UserRoleAssignerStyled(props: Omit<UserRoleAssignerProps, 'render'> & { title?: string }): React.ReactElement {
   const [query, setQuery] = useState('');
   const [expiresAt, setExpiresAt] = useState<string>('');
 

@@ -42,7 +42,7 @@ export function PasswordResetForm({
   footer,
   className,
   ...headlessProps
-}: StyledPasswordResetFormProps) {
+}: StyledPasswordResetFormProps): React.ReactElement {
   return (
     <HeadlessPasswordResetForm
       {...headlessProps}

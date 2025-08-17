@@ -45,11 +45,12 @@ export function RegistrationForm(): React.ReactElement {
   // Debug effect to log form errors
   useEffect(() => {
     if (process.env.NODE_ENV === 'development') {
-      console.log('[RegistrationForm] Form state changed:', {
-        userType,
-        shouldRedirect,
-        apiSuccess
-      });
+      // Development debugging
+      // console.log('[RegistrationForm] Form state changed:', {
+      //   userType,
+      //   shouldRedirect,
+      //   apiSuccess
+      // });
     }
   }, [userType, shouldRedirect, apiSuccess]);
 

@@ -11,12 +11,12 @@ interface WebAuthnRegistrationProps {
   onError?: (error: string) => void;
 }
 
-export function WebAuthnRegistration({ onSuccess, onError }: WebAuthnRegistrationProps) {
+export function WebAuthnRegistration({ onSuccess, onError }: WebAuthnRegistrationProps): React.ReactElement {
   const [isRegistering, setIsRegistering] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
-  const handleRegister = async () => {
+  const handleRegister = async (): Promise<void> => {
     try {
       setIsRegistering(true);
       setError(null);

@@ -11,7 +11,7 @@ import { useToast } from '@/lib/hooks/use-toast';
 import { Edit2, XCircle, Save } from 'lucide-react';
 import HeadlessProfileForm from '@/ui/headless/user/ProfileForm';
 
-const ProfileDisplayField = ({ label, value }: { label: string; value: string | null | undefined }) => {
+const ProfileDisplayField = ({ label, value }: { label: string; value: string | null | undefined }): React.ReactElement | null => {
     if (!value) return null;
     return (
         <div className="mb-4">
@@ -45,14 +45,14 @@ export function ProfileForm(): React.ReactElement {
         onSubmit,
         userEmail
       }) => {
-        const handlePrivacyChangeWithToast = async (checked: boolean) => {
+        const handlePrivacyChangeWithToast = async (checked: boolean): Promise<void> => {
           try {
             const response = await handlePrivacyChange(checked);
             toast({ 
               title: "Success", 
               description: response.message || "Privacy settings updated successfully" 
             });
-          } catch (err: any) {
+          } catch (err: unknown) {
             toast({
               variant: "destructive",
               title: "Error",

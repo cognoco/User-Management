@@ -12,7 +12,7 @@ interface ResetPasswordFormProps {
   token: string;
 }
 
-export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
+export function ResetPasswordForm({ token }: ResetPasswordFormProps): React.ReactElement {
   return (
     <ErrorBoundary fallback={DefaultErrorFallback}>
       <HeadlessResetPasswordForm

@@ -2,7 +2,7 @@ import React from 'react';
 import { AddressList as HeadlessAddressList } from '@/ui/headless/address/AddressList';
 import type { AddressListProps } from '@/ui/headless/address/AddressList';
 
-export function StyledAddressList(props: AddressListProps) {
+export function StyledAddressList(props: AddressListProps): React.ReactElement {
   return (
     <div className="space-y-4">
       <HeadlessAddressList

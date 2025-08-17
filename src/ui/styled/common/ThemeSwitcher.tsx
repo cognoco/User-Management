@@ -1,8 +1,9 @@
+import React from 'react';
 import { Moon, Sun } from 'lucide-react';
 import { Button } from '../../../components/ui/button';
 import { useTheme } from 'next-themes';
 
-export function ThemeSwitcher(): React.ReactElement: JSX.Element {
+export function ThemeSwitcher(): React.ReactElement {
   const { theme, setTheme } = useTheme();
 
   return (

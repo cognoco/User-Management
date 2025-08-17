@@ -7,7 +7,7 @@ import {
 
 interface FooterProps extends Omit<HeadlessProps, "children"> {}
 
-export function Footer({ position = "static" }: FooterProps) {
+export function Footer({ position = "static" }: FooterProps): React.ReactElement {
   const { t } = useTranslation();
   return (
     <HeadlessFooter position={position}>

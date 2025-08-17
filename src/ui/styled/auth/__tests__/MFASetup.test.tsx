@@ -1,12 +1,13 @@
+import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { vi, beforeEach, describe, it, expect } from 'vitest';
 import { MFASetup } from '../MFASetup';
 
-let state: any;
+let state: unknown;
 
 vi.mock('../../../headless/auth/MFASetup', () => ({
-  MFASetup: ({ render }: any) => render(state)
+  MFASetup: ({ render }: { render: (state: unknown) => React.ReactNode }) => render(state)
 }));
 
 describe('MFASetup styled component', () => {

@@ -1,3 +1,4 @@
+import React from 'react';
 import { Button } from '@/ui/primitives/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/ui/primitives/card';
 import type { SubscriptionPlan } from '@/types/subscription';
@@ -7,7 +8,7 @@ export interface PlanCardProps {
   onSelect: (planId: string) => void;
 }
 
-export function PlanCard({ plan, onSelect }: PlanCardProps) {
+export function PlanCard({ plan, onSelect }: PlanCardProps): React.ReactElement {
   return (
     <Card className="h-full">
       <CardHeader>

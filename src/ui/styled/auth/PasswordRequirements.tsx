@@ -6,7 +6,7 @@ interface PasswordRequirementProps {
   text: string;
 }
 
-function PasswordRequirement({ meets, text }: PasswordRequirementProps) {
+function PasswordRequirement({ meets, text }: PasswordRequirementProps): React.ReactElement {
   return (
     <div 
       role="listitem"
@@ -28,7 +28,7 @@ interface PasswordRequirementsProps {
   password: string;
 }
 
-export function PasswordRequirements({ password }: PasswordRequirementsProps) {
+export function PasswordRequirements({ password }: PasswordRequirementsProps): React.ReactElement | null {
   const requirements = [
     { meets: password.length >= 8, text: 'Password must be at least 8 characters' },
     { meets: /[A-Z]/.test(password), text: 'Password must contain at least one uppercase letter' },

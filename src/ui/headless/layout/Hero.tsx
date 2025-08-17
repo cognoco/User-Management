@@ -20,6 +20,6 @@ const defaultTitle = (
 const defaultDescription =
   'A complete solution for building modern web applications. Start with our production-ready components and focus on what matters most - your business logic.';
 
-export function Hero({ title = defaultTitle, description = defaultDescription, children, render }: HeroProps) {
+export function Hero({ title = defaultTitle, description = defaultDescription, children, render }: HeroProps): React.ReactElement {
   return <>{render({ title, description, children })}</>;
 }

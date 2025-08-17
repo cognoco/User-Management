@@ -1,4 +1,5 @@
 'use client';
+import React from 'react';
 import { format } from 'date-fns';
 import { Alert, AlertDescription } from '@/ui/primitives/alert';
 import { Button } from '@/ui/primitives/button';
@@ -12,7 +13,7 @@ interface StyledTwoFactorStatusProps {
   onDisable: () => Promise<void>;
 }
 
-export function TwoFactorStatus(props: StyledTwoFactorStatusProps) {
+export function TwoFactorStatus(props: StyledTwoFactorStatusProps): React.ReactElement {
   return (
     <HeadlessTwoFactorStatus {...props}>
       {({

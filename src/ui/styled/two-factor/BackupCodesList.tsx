@@ -1,21 +1,21 @@
 'use client';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/ui/primitives/button';
 
 export interface BackupCodesListProps {
   codes: string[];
 }
 
-export function BackupCodesList({ codes }: BackupCodesListProps) {
+export function BackupCodesList({ codes }: BackupCodesListProps): React.ReactElement {
   const [copied, setCopied] = useState(false);
 
-  const copy = async () => {
+  const copy = async (): Promise<void> => {
     await navigator.clipboard.writeText(codes.join('\n'));
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const download = () => {
+  const download = (): void => {
     const blob = new Blob([codes.join('\n')], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');

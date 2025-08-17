@@ -19,7 +19,7 @@ interface HeaderProps {
   type?: "fixed" | "static" | "sticky";
 }
 
-export function Header({ type = "fixed" }: HeaderProps) {
+export function Header({ type = "fixed" }: HeaderProps): React.ReactElement {
   const { t } = useTranslation();
 
   const navItems: NavItem[] = [

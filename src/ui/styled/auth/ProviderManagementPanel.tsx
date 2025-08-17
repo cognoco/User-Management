@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import Image from 'next/image';
 import {
   Dialog,
   DialogTrigger,
@@ -36,7 +37,7 @@ export function ProviderManagementPanel(): React.ReactElement {
     fetchLinkedProviders();
   }, [fetchLinkedProviders]);
 
-  const handleLink = async (provider: OAuthProvider) => {
+  const handleLink = async (provider: OAuthProvider): Promise<void> => {
     setSelectedProvider(provider);
     try {
       // Request the OAuth authorization URL from the backend
@@ -50,10 +51,10 @@ export function ProviderManagementPanel(): React.ReactElement {
       if (!data.url) throw new Error('No authorization URL returned');
       // Redirect to the provider's authorization URL
       window.location.href = data.url;
-    } catch (err: any) {
+    } catch (err: unknown) {
       toast({
         title: `Failed to start ${provider} login`,
-        description: err.message || '',
+        description: (err instanceof Error ? err.message : '') || '',
         variant: 'destructive',
       });
     } finally {
@@ -62,12 +63,12 @@ export function ProviderManagementPanel(): React.ReactElement {
   };
 
 
-  const handleUnlink = async (provider: OAuthProvider) => {
+  const handleUnlink = async (provider: OAuthProvider): Promise<void> => {
     setSelectedProvider(provider);
     setShowConfirm(true);
   };
 
-  const confirmUnlink = async () => {
+  const confirmUnlink = async (): Promise<void> => {
     if (!selectedProvider) return;
     try {
       await unlinkProvider(selectedProvider);
@@ -76,10 +77,10 @@ export function ProviderManagementPanel(): React.ReactElement {
         description: `${selectedProvider} has been removed from your account.`,
       });
       fetchLinkedProviders();
-    } catch (err: any) {
+    } catch (err: unknown) {
       toast({
         title: `Failed to unlink ${selectedProvider}`,
-        description: err.message || '',
+        description: (err instanceof Error ? err.message : '') || '',
         variant: 'destructive',
       });
     } finally {
@@ -88,7 +89,7 @@ export function ProviderManagementPanel(): React.ReactElement {
     }
   };
 
-  const cancelUnlink = () => {
+  const cancelUnlink = (): void => {
     setSelectedProvider(null);
     setShowConfirm(false);
   };
@@ -112,7 +113,7 @@ export function ProviderManagementPanel(): React.ReactElement {
                 return (
                   <span className="flex items-center gap-2">
                     {info.icon && (
-                      <img src={info.icon} alt={info.label} className="w-5 h-5" />
+                      <Image src={info.icon} alt={info.label} width={20} height={20} className="w-5 h-5" />
                     )}
                     <span>{info.label}</span>
                   </span>

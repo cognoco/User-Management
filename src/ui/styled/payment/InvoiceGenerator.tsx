@@ -1,3 +1,4 @@
+import React from 'react';
 import {
   InvoiceGenerator as HeadlessInvoiceGenerator,
   type InvoiceGeneratorProps,
@@ -10,7 +11,7 @@ import { Download } from 'lucide-react';
 
 export type StyledInvoiceGeneratorProps = Omit<InvoiceGeneratorProps, 'render'>;
 
-export function InvoiceGenerator(props: StyledInvoiceGeneratorProps) {
+export function InvoiceGenerator(props: StyledInvoiceGeneratorProps): React.ReactElement {
   return (
     <HeadlessInvoiceGenerator
       {...props}

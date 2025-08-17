@@ -17,8 +17,8 @@ vi.mock('next/navigation', () => ({
 // Use robust mock for useAuth
 vi.mock('@/hooks/auth/useAuth', () => {
   // Move setupZustandSelectorMock inside the factory
-  function setupZustandSelectorMock(store: any) {
-    return (selector: any) => (typeof selector === 'function' ? selector(store) : store);
+  function setupZustandSelectorMock(store: unknown) {
+    return (selector: unknown) => (typeof selector === 'function' ? selector(store) : store);
   }
   const mockStore = {
     isAuthenticated: false,
@@ -26,9 +26,9 @@ vi.mock('@/hooks/auth/useAuth', () => {
     isLoading: false
   };
   // Create a mock function that supports selectors
-  const useAuthMock: any = vi.fn(setupZustandSelectorMock(mockStore));
+  const useAuthMock: unknown = vi.fn(setupZustandSelectorMock(mockStore));
   // Add setState method to update the mock store
-  useAuthMock.setState = (newState: any) => {
+  useAuthMock.setState = (newState: unknown) => {
     Object.assign(mockStore, newState);
   };
   return { useAuth: useAuthMock };
@@ -37,7 +37,7 @@ vi.mock('@/hooks/auth/useAuth', () => {
 // Setup RBAC store with selector support
 vi.mock('@/lib/stores/rbac.store', () => {
   // Move setupZustandSelectorMock inside the factory
-  function setupZustandSelectorMock(store: any) {
+  function setupZustandSelectorMock(store: unknown) {
     return (selector: any) => (typeof selector === 'function' ? selector(store) : store);
   }
   // Move the mock state and spies inside the factory

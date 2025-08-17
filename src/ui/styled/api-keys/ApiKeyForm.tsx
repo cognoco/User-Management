@@ -11,7 +11,7 @@ export interface ApiKeyFormProps extends HeadlessApiKeyFormProps {
   availablePermissions: string[];
 }
 
-export function ApiKeyForm({ availablePermissions, onSubmit, defaultPermissions }: ApiKeyFormProps) {
+export function ApiKeyForm({ availablePermissions, onSubmit, defaultPermissions }: ApiKeyFormProps): React.ReactElement {
   return (
     <HeadlessApiKeyForm onSubmit={onSubmit} defaultPermissions={defaultPermissions}>
       {({

@@ -8,7 +8,7 @@ interface ErrorBoundaryProps {
   fallback: React.ComponentType<{ error: Error; reset: () => void }>;
 }
 
-export function ErrorBoundary({ children, fallback: Fallback }: ErrorBoundaryProps) {
+export function ErrorBoundary({ children, fallback: Fallback }: ErrorBoundaryProps): React.ReactElement {
   return (
     <HeadlessErrorBoundary
       render={({ error, reset, children: safeChildren }) =>
@@ -20,7 +20,7 @@ export function ErrorBoundary({ children, fallback: Fallback }: ErrorBoundaryPro
   );
 }
 
-export function DefaultErrorFallback({ error, reset }: { error: Error; reset: () => void }) {
+export function DefaultErrorFallback({ error, reset }: { error: Error; reset: () => void }): React.ReactElement {
   return (
     <div className="p-4 bg-red-50 border border-red-200 rounded-md">
       <h2 className="text-lg font-semibold text-red-800 mb-2">Something went wrong</h2>

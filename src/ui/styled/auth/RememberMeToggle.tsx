@@ -11,7 +11,7 @@ interface RememberMeToggleProps {
   onChange?: (checked: boolean) => void;
 }
 
-export function RememberMeToggle({ initialChecked = false, onChange }: RememberMeToggleProps) {
+export function RememberMeToggle({ initialChecked = false, onChange }: RememberMeToggleProps): React.ReactElement {
   return (
     <HeadlessRememberMeToggle
       initialChecked={initialChecked}

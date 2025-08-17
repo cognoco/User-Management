@@ -27,7 +27,7 @@ describe('ProfileEditor', () => {
     mockConnectAccount = vi.fn();
     mockDisconnectAccount = vi.fn();
     vi.resetModules();
-    (useConnectedAccountsStore as any).mockReturnValue(
+    (useConnectedAccountsStore as unknown as Mock).mockReturnValue(
       createConnectedAccountsStoreMock({
         accounts: [
           {
