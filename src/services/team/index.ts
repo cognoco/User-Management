@@ -40,3 +40,6 @@ export function createTeamService(config: TeamServiceConfig): TeamService {
 export default {
   createTeamService
 };
+
+// Re-export from team.factory.ts for compatibility
+export { getTeamService } from './team.factory';

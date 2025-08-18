@@ -37,3 +37,6 @@ export function createUserService(config: UserServiceConfig): UserService {
 export default {
   createUserService
 };
+
+// Re-export from user.factory.ts for compatibility
+export { getUserService } from './user.factory';

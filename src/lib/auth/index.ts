@@ -95,3 +95,6 @@ export type { CurrentSession, AuthenticatedUser };
 
 export * from './supabase-auth.config';
 export { initializeSupabaseAuth } from './initialize-supabase-auth';
+
+// Alias for compatibility - getServerSession points to getSession
+export { getSession as getServerSession } from './';

@@ -13,7 +13,13 @@
     "test": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:ui": "vitest --ui",
-    "error:search": "node scripts/search-error-code.js"
+    "error:search": "node scripts/search-error-code.js",
+    "e2e": "playwright test",
+    "e2e:ui": "playwright test --ui",
+    "e2e:debug": "playwright test --debug",
+    "e2e:headed": "playwright test --headed",
+    "e2e:codegen": "playwright codegen",
+    "e2e:report": "playwright show-report"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.8.0",
