@@ -7,7 +7,7 @@ export interface SessionCardProps {
   onTerminate?: (id: string) => void;
 }
 
-export function SessionCard({ session, isCurrent, onTerminate }: SessionCardProps) {
+export function SessionCard({ session, isCurrent, onTerminate }: SessionCardProps): React.ReactElement {
   return (
     <div className="border rounded p-2 flex items-center justify-between">
       <div>

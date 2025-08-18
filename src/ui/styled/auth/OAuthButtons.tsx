@@ -35,7 +35,7 @@ export interface OAuthButtonsProps {
   className?: string;
   onSuccess?: (provider: OAuthProvider) => void;
   onProviderClick?: (provider: OAuthProvider) => void;
-  providers?: { provider: OAuthProvider; [key: string]: any }[];
+  providers?: { provider: OAuthProvider; [key: string]: unknown }[];
 }
 
 export function OAuthButtons({
@@ -46,7 +46,7 @@ export function OAuthButtons({
   onSuccess,
   onProviderClick,
   providers,
-}: OAuthButtonsProps) {
+}: OAuthButtonsProps): React.ReactElement {
   const { t } = useTranslation();
   const { oauth } = useUserManagement();
   const { isLoading, error } = useAuth();
@@ -64,7 +64,7 @@ export function OAuthButtons({
   
   // If in test environment and no providers are available, add Google and GitHub for testing
   if (isTestEnvironment && (!oauth.enabled || buttonProviders.length === 0)) {
-    console.log("[DEBUG] Test environment detected, adding Google and GitHub providers for testing");
+    // Debug: Test environment detected, adding Google and GitHub providers for testing
     buttonProviders = [
       { provider: OAuthProvider.GOOGLE, enabled: true },
       { provider: OAuthProvider.GITHUB, enabled: true }
@@ -77,7 +77,7 @@ export function OAuthButtons({
   }
   
   // Get button text based on mode
-  const getButtonText = (provider: OAuthProvider) => {
+  const getButtonText = (provider: OAuthProvider): string => {
     // Try translation, fallback to English
     let providerName = '';
     switch (provider) {
@@ -111,7 +111,7 @@ export function OAuthButtons({
   };
   
   // Handle login with provider
-  const handleLogin = async (provider: OAuthProvider) => {
+  const handleLogin = async (provider: OAuthProvider): Promise<void> => {
     try {
       await oauthStore.login(provider);
       if (typeof onSuccess === 'function') {

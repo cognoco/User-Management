@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -29,7 +29,7 @@ export interface DomainManagementProps {
   }) => React.ReactNode;
 }
 
-export function DomainManagement({ companyId, onVerificationChange, render }: DomainManagementProps) {
+export function DomainManagement({ companyId, onVerificationChange, render }: DomainManagementProps): React.ReactElement => {
   const [domains, setDomains] = useState<CompanyDomain[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -39,7 +39,7 @@ export function DomainManagement({ companyId, onVerificationChange, render }: Do
     defaultValues: { domain: '' },
   });
 
-  const fetchDomains = async () => {
+  const fetchDomains = async (): Promise<void> => {
     setIsLoading(true);
     try {
       const response = await api.get('/api/company/domains');
@@ -53,7 +53,7 @@ export function DomainManagement({ companyId, onVerificationChange, render }: Do
 
   useEffect(() => { fetchDomains(); }, []);
 
-  const handleAddDomain = async () => {
+  const handleAddDomain = async (): Promise<void> => {
     const values = form.getValues();
     setIsLoading(true);
     setError(null);
@@ -70,7 +70,7 @@ export function DomainManagement({ companyId, onVerificationChange, render }: Do
     }
   };
 
-  const handleDeleteDomain = async (id: string) => {
+  const handleDeleteDomain = async (id: string): Promise<void> => {
     setIsLoading(true);
     setError(null);
     try {
@@ -83,7 +83,7 @@ export function DomainManagement({ companyId, onVerificationChange, render }: Do
     }
   };
 
-  const handleSetPrimary = async (id: string) => {
+  const handleSetPrimary = async (id: string): Promise<void> => {
     setIsLoading(true);
     setError(null);
     try {
@@ -96,7 +96,7 @@ export function DomainManagement({ companyId, onVerificationChange, render }: Do
     }
   };
 
-  const handleVerifyDomain = () => {
+  const handleVerifyDomain = (): void => {
     onVerificationChange?.();
   };
 

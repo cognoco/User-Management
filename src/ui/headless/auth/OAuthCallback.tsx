@@ -1,4 +1,4 @@
-import { ReactNode, useState, useEffect } from 'react';
+import React, { ReactNode, useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/auth/useAuth';
 
 /**
@@ -100,7 +100,7 @@ export const OAuthCallback = ({
   isLoading: externalIsLoading,
   error: externalError,
   children
-}: OAuthCallbackProps) => {
+}: OAuthCallbackProps): React.ReactElement => {
   // Get authentication hook
   const { handleOAuthCallback, isLoading: authIsLoading, error: authError } = useAuth();
   
@@ -120,7 +120,7 @@ export const OAuthCallback = ({
   const error = externalError !== undefined ? externalError : authError;
 
   // Handle OAuth callback
-  const processOAuthCallback = async () => {
+  const processOAuthCallback = async (): Promise<void> => {
     setIsSubmitting(true);
     setStatus('loading');
     
@@ -174,7 +174,7 @@ export const OAuthCallback = ({
   }, [provider, callbackUrl]);
 
   // Retry the OAuth callback process
-  const retry = () => {
+  const retry = (): void => {
     processOAuthCallback();
   };
   

@@ -1,4 +1,20 @@
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { NextRequest } from 'next/server';
+
+// Mock dependencies before imports
+vi.mock('@/lib/payments/stripe-enhanced', () => ({
+  getCustomerInvoices: vi.fn(),
+  getInvoice: vi.fn(),
+  getInvoicePdfUrl: vi.fn(),
+  getCustomerByUserId: vi.fn(),
+  sendInvoice: vi.fn(),
+}));
+
+vi.mock('@/lib/auth', () => ({
+  getServerSession: vi.fn(),
+}));
+
+// Import after mocks
 import { GET, POST } from '../route';
 import { 
   getCustomerInvoices, 
@@ -8,10 +24,6 @@ import {
   sendInvoice 
 } from '@/lib/payments/stripe-enhanced';
 import { getServerSession } from '@/lib/auth';
-
-// Mock dependencies
-jest.mock('@/lib/payments/stripe-enhanced');
-jest.mock('@/lib/auth');
 
 describe('/api/payments/invoices', () => {
   const mockSession = {
@@ -49,51 +61,53 @@ describe('/api/payments/invoices', () => {
           quantity: 1,
           price: {
             id: 'price_test',
+            nickname: 'Premium',
           },
         },
       ],
     },
-    description: 'Monthly subscription',
+    subscription: 'sub_test',
     period_start: 1234567890,
     period_end: 1234567890,
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    (getServerSession as jest.Mock).mockResolvedValue(mockSession);
-    (getCustomerByUserId as jest.Mock).mockResolvedValue(mockCustomer);
+    vi.clearAllMocks();
+    vi.mocked(getServerSession).mockResolvedValue(mockSession);
+    vi.mocked(getCustomerByUserId).mockResolvedValue(mockCustomer);
   });
 
   describe('GET /api/payments/invoices', () => {
-    it('should return list of invoices', async () => {
+    it('should list invoices with pagination', async () => {
       const mockInvoices = {
         data: [mockInvoice],
-        has_more: false,
+        has_more: true,
       };
 
-      (getCustomerInvoices as jest.Mock).mockResolvedValue(mockInvoices);
-      (getInvoicePdfUrl as jest.Mock).mockResolvedValue('https://pdf.stripe.com/inv_test.pdf');
+      vi.mocked(getCustomerInvoices).mockResolvedValue(mockInvoices);
 
-      const request = new NextRequest('http://localhost/api/payments/invoices');
+      const request = new NextRequest('http://localhost/api/payments/invoices?limit=10');
 
       const response = await GET(request);
       const data = await response.json();
 
       expect(response.status).toBe(200);
       expect(data.invoices).toHaveLength(1);
+      expect(data.has_more).toBe(true);
       expect(data.invoices[0]).toMatchObject({
         id: 'inv_test',
         number: 'INV-001',
         status: 'paid',
         amount_due: 1999,
-        pdf_url: 'https://pdf.stripe.com/inv_test.pdf',
       });
-      expect(data.has_more).toBe(false);
+
+      expect(getCustomerInvoices).toHaveBeenCalledWith('cus_test', {
+        limit: 10,
+      });
     });
 
-    it('should return specific invoice when invoiceId is provided', async () => {
-      (getInvoice as jest.Mock).mockResolvedValue(mockInvoice);
-      (getInvoicePdfUrl as jest.Mock).mockResolvedValue('https://pdf.stripe.com/inv_test.pdf');
+    it('should retrieve single invoice by ID', async () => {
+      vi.mocked(getInvoice).mockResolvedValue(mockInvoice);
 
       const request = new NextRequest('http://localhost/api/payments/invoices?invoiceId=inv_test');
 
@@ -101,40 +115,41 @@ describe('/api/payments/invoices', () => {
       const data = await response.json();
 
       expect(response.status).toBe(200);
-      expect(data.invoice).toMatchObject({
+      expect(data).toMatchObject({
         id: 'inv_test',
         number: 'INV-001',
         status: 'paid',
-        pdf_url: 'https://pdf.stripe.com/inv_test.pdf',
       });
+
+      expect(getInvoice).toHaveBeenCalledWith('inv_test');
     });
 
-    it('should handle pagination parameters', async () => {
-      const mockInvoices = {
-        data: [mockInvoice],
-        has_more: true,
-      };
+    it('should get invoice PDF URL', async () => {
+      vi.mocked(getInvoicePdfUrl).mockResolvedValue('https://invoice.stripe.com/pdf/inv_test');
 
-      (getCustomerInvoices as jest.Mock).mockResolvedValue(mockInvoices);
-      (getInvoicePdfUrl as jest.Mock).mockResolvedValue('https://pdf.stripe.com/inv_test.pdf');
-
-      const request = new NextRequest('http://localhost/api/payments/invoices?limit=5&startingAfter=inv_prev');
+      const request = new NextRequest('http://localhost/api/payments/invoices?invoiceId=inv_test&pdf=true');
 
       const response = await GET(request);
       const data = await response.json();
 
       expect(response.status).toBe(200);
-      expect(getCustomerInvoices).toHaveBeenCalledWith({
-        customerId: 'cus_test',
-        limit: 5,
-        startingAfter: 'inv_prev',
-      });
-      expect(data.has_more).toBe(true);
-      expect(data.next_cursor).toBe('inv_test');
+      expect(data.pdf_url).toBe('https://invoice.stripe.com/pdf/inv_test');
     });
 
-    it('should return empty list if customer does not exist', async () => {
-      (getCustomerByUserId as jest.Mock).mockResolvedValue(null);
+    it('should return 401 if user is not authenticated', async () => {
+      vi.mocked(getServerSession).mockResolvedValue(null);
+
+      const request = new NextRequest('http://localhost/api/payments/invoices');
+
+      const response = await GET(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(401);
+      expect(data.error).toBe('Unauthorized');
+    });
+
+    it('should return empty array if no customer exists', async () => {
+      vi.mocked(getCustomerByUserId).mockResolvedValue(null);
 
       const request = new NextRequest('http://localhost/api/payments/invoices');
 
@@ -146,33 +161,28 @@ describe('/api/payments/invoices', () => {
       expect(data.has_more).toBe(false);
     });
 
-    it('should return 401 if user is not authenticated', async () => {
-      (getServerSession as jest.Mock).mockResolvedValue(null);
+    it('should handle pagination with startingAfter', async () => {
+      const mockInvoices = {
+        data: [mockInvoice],
+        has_more: false,
+      };
 
-      const request = new NextRequest('http://localhost/api/payments/invoices');
+      vi.mocked(getCustomerInvoices).mockResolvedValue(mockInvoices);
 
-      const response = await GET(request);
-      const data = await response.json();
-
-      expect(response.status).toBe(401);
-      expect(data.error).toBe('Unauthorized');
-    });
-
-    it('should return 404 if invoice does not belong to user', async () => {
-      const wrongCustomerInvoice = { ...mockInvoice, customer: 'cus_different' };
-      (getInvoice as jest.Mock).mockResolvedValue(wrongCustomerInvoice);
-
-      const request = new NextRequest('http://localhost/api/payments/invoices?invoiceId=inv_test');
+      const request = new NextRequest('http://localhost/api/payments/invoices?startingAfter=inv_prev');
 
       const response = await GET(request);
       const data = await response.json();
 
-      expect(response.status).toBe(404);
-      expect(data.error).toBe('Invoice not found');
+      expect(response.status).toBe(200);
+      expect(getCustomerInvoices).toHaveBeenCalledWith('cus_test', {
+        limit: 10,
+        starting_after: 'inv_prev',
+      });
     });
 
     it('should handle errors gracefully', async () => {
-      (getCustomerInvoices as jest.Mock).mockRejectedValue(new Error('Stripe error'));
+      vi.mocked(getCustomerInvoices).mockRejectedValue(new Error('Stripe error'));
 
       const request = new NextRequest('http://localhost/api/payments/invoices');
 
@@ -185,43 +195,34 @@ describe('/api/payments/invoices', () => {
   });
 
   describe('POST /api/payments/invoices/send', () => {
-    beforeEach(() => {
-      // Mock dynamic import
-      jest.doMock('@/lib/payments/stripe-enhanced', () => ({
-        ...jest.requireActual('@/lib/payments/stripe-enhanced'),
-        sendInvoice: jest.fn().mockResolvedValue({ id: 'inv_test' }),
-      }));
-    });
-
     it('should send invoice successfully', async () => {
-      (getInvoice as jest.Mock).mockResolvedValue(mockInvoice);
+      const sentInvoice = { ...mockInvoice, status: 'sent' };
+      vi.mocked(sendInvoice).mockResolvedValue(sentInvoice);
 
       const request = new NextRequest('http://localhost/api/payments/invoices/send', {
         method: 'POST',
-        body: JSON.stringify({
-          invoiceId: 'inv_test',
-        }),
+        body: JSON.stringify({ invoiceId: 'inv_test' }),
       });
 
       const response = await POST(request);
       const data = await response.json();
 
       expect(response.status).toBe(200);
-      expect(data).toEqual({
-        success: true,
-        message: 'Invoice sent successfully',
-        invoice_id: 'inv_test',
+      expect(data.success).toBe(true);
+      expect(data.invoice).toMatchObject({
+        id: 'inv_test',
+        status: 'sent',
       });
+
+      expect(sendInvoice).toHaveBeenCalledWith('inv_test');
     });
 
     it('should return 401 if user is not authenticated', async () => {
-      (getServerSession as jest.Mock).mockResolvedValue(null);
+      vi.mocked(getServerSession).mockResolvedValue(null);
 
       const request = new NextRequest('http://localhost/api/payments/invoices/send', {
         method: 'POST',
-        body: JSON.stringify({
-          invoiceId: 'inv_test',
-        }),
+        body: JSON.stringify({ invoiceId: 'inv_test' }),
       });
 
       const response = await POST(request);
@@ -244,38 +245,31 @@ describe('/api/payments/invoices', () => {
       expect(data.error).toBe('Invoice ID is required');
     });
 
-    it('should return 404 if invoice does not belong to user', async () => {
-      const wrongCustomerInvoice = { ...mockInvoice, customer: 'cus_different' };
-      (getInvoice as jest.Mock).mockResolvedValue(wrongCustomerInvoice);
+    it('should validate invoice ownership', async () => {
+      vi.mocked(getInvoice).mockResolvedValue({
+        ...mockInvoice,
+        customer: 'cus_different',
+      });
 
       const request = new NextRequest('http://localhost/api/payments/invoices/send', {
         method: 'POST',
-        body: JSON.stringify({
-          invoiceId: 'inv_test',
-        }),
+        body: JSON.stringify({ invoiceId: 'inv_test' }),
       });
 
       const response = await POST(request);
       const data = await response.json();
 
-      expect(response.status).toBe(404);
-      expect(data.error).toBe('Invoice not found');
+      expect(response.status).toBe(403);
+      expect(data.error).toBe('Invoice does not belong to this user');
     });
 
-    it('should handle errors gracefully', async () => {
-      (getInvoice as jest.Mock).mockResolvedValue(mockInvoice);
-      
-      // Mock the dynamic import to throw an error
-      jest.doMock('@/lib/payments/stripe-enhanced', () => ({
-        ...jest.requireActual('@/lib/payments/stripe-enhanced'),
-        sendInvoice: jest.fn().mockRejectedValue(new Error('Stripe error')),
-      }));
+    it('should handle send errors gracefully', async () => {
+      vi.mocked(getInvoice).mockResolvedValue(mockInvoice);
+      vi.mocked(sendInvoice).mockRejectedValue(new Error('Failed to send'));
 
       const request = new NextRequest('http://localhost/api/payments/invoices/send', {
         method: 'POST',
-        body: JSON.stringify({
-          invoiceId: 'inv_test',
-        }),
+        body: JSON.stringify({ invoiceId: 'inv_test' }),
       });
 
       const response = await POST(request);

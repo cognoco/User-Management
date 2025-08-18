@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -21,7 +21,7 @@ export interface CompanyProfileFormProps {
   render: (props: { form: ReturnType<typeof useForm<CompanyProfileFormData>>; isSubmitting: boolean; handleSubmit: () => Promise<void>; }) => React.ReactNode;
 }
 
-export function CompanyProfileForm({ initialData, onSubmit, render }: CompanyProfileFormProps) {
+export function CompanyProfileForm({ initialData, onSubmit, render }: CompanyProfileFormProps): React.ReactElement => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const form = useForm<CompanyProfileFormData>({
     resolver: zodResolver(companyProfileSchema),
@@ -34,7 +34,7 @@ export function CompanyProfileForm({ initialData, onSubmit, render }: CompanyPro
     },
   });
 
-  const handleSubmit = async (data: CompanyProfileFormData) => {
+  const handleSubmit = async (data: CompanyProfileFormData): Promise<void> => {
     setIsSubmitting(true);
     try {
       await onSubmit(data);

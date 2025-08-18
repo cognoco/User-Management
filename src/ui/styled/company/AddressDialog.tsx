@@ -53,7 +53,7 @@ export function AddressDialog({
   onSave,
   initialData,
   title = 'Add Address',
-}: AddressDialogProps) {
+}: AddressDialogProps): React.ReactElement {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Initialize form with schema and default values

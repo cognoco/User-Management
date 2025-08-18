@@ -5,7 +5,7 @@
  * It follows the headless UI pattern using render props to allow complete UI customization.
  */
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '@/hooks/auth/useAuth';
 
 export interface OAuthProvider {
@@ -52,7 +52,7 @@ export function OAuthButtons({
   isLoading: externalIsLoading,
   error: externalError,
   render
-}: OAuthButtonsProps) {
+}: OAuthButtonsProps): React.ReactElement => {
   // Get authentication hook
   const { getOAuthProviders, signInWithOAuth, isLoading: authIsLoading, error: authError } = useAuth();
   
@@ -68,7 +68,7 @@ export function OAuthButtons({
   const providers = customProviders || getOAuthProviders();
   
   // Handle provider click
-  const handleProviderClick = async (providerId: string) => {
+  const handleProviderClick = async (providerId: string): Promise<void> => {
     setError(undefined);
     setIsSubmitting(true);
     

@@ -9,7 +9,7 @@ export interface AddressCardProps {
 }
 
 export function AddressCard({ address, onEdit, onDelete, render }: AddressCardProps) {
-  const handleEdit = () => onEdit?.(address);
-  const handleDelete = () => onDelete?.(address);
+  const handleEdit = (): void => onEdit?.(address);
+  const handleDelete = (): void => onDelete?.(address);
   return <>{render({ address, onEdit: handleEdit, onDelete: handleDelete })}</>;
 }

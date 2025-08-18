@@ -9,7 +9,7 @@ interface SessionTimeoutProps {
   onClose: () => void;
 }
 
-export function SessionTimeout({ isOpen, onClose }: SessionTimeoutProps) {
+export function SessionTimeout({ isOpen, onClose }: SessionTimeoutProps): React.ReactElement {
   return (
     <HeadlessSessionTimeout
       isOpen={isOpen}

@@ -168,7 +168,7 @@ export function AvatarUpload(): React.ReactElement {
                       
                       {!imgSrc ? (
                         <div className="flex flex-col items-center justify-center gap-4 p-8 border-2 border-dashed rounded-lg">
-                          <Image className="h-10 w-10 text-muted-foreground" />
+                          <Image className="h-10 w-10 text-muted-foreground" alt="" />
                           <div className="text-center">
                             <p className="text-sm text-muted-foreground mb-2">
                               {t('profile.dragOrClick')}
@@ -191,7 +191,7 @@ export function AvatarUpload(): React.ReactElement {
                           >
                             <img
                               ref={imgRef}
-                              alt="Crop me"
+                              alt="Avatar preview for cropping"
                               src={imgSrc}
                               onLoad={onImageLoad}
                               style={{ maxHeight: '50vh', margin: '0 auto' }}

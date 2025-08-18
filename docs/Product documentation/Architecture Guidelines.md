@@ -175,6 +175,7 @@ function configureUserManagement(config: Partial<UserManagementConfig>) {
 - All components MUST be testable in isolation
 - All interfaces MUST have mock implementations for testing
 - Services MUST be testable with dependency injection
+- use as little mocking as possible, use real APIs and connections where they exist
 
 ## Practical Implementation Guide
 

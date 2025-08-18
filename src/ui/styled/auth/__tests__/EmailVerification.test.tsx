@@ -3,10 +3,10 @@ import userEvent from '@testing-library/user-event';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { EmailVerification } from '../EmailVerification';
 
-let state: any;
+let state: unknown;
 
 vi.mock('../../../headless/auth/EmailVerification', () => ({
-  default: ({ render }: any) => render(state)
+  default: ({ render }: { render: (state: unknown) => React.ReactNode }) => render(state)
 }));
 
 describe('EmailVerification styled component', () => {
@@ -19,8 +19,8 @@ describe('EmailVerification styled component', () => {
       isLoading: false,
       error: null,
       successMessage: null,
-      handleVerify: vi.fn((e: any) => e.preventDefault()),
-      handleResend: vi.fn((e: any) => e.preventDefault())
+      handleVerify: vi.fn((e: React.FormEvent) => e.preventDefault()),
+      handleResend: vi.fn((e: React.FormEvent) => e.preventDefault())
     };
   });
 

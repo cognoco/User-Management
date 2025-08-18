@@ -19,7 +19,7 @@ const mockPost = vi.mocked(api.post);
 const mockDelete = vi.mocked(api.delete);
 const mockPatch = vi.mocked(api.patch);
 
-function renderComponent() {
+function renderComponent(): ReturnType<typeof render> {
   return render(
     <TestWrapper authenticated>
       <DomainBasedOrgMatching organizationId="org1" />
@@ -54,7 +54,7 @@ describe('DomainBasedOrgMatching', () => {
   });
 
   it('shows skeleton while loading', async () => {
-    let resolve: (v: any) => void = () => {};
+    let resolve: (v: unknown) => void = () => {};
     mockGet.mockImplementationOnce(
       () => new Promise((r) => {
         resolve = r;

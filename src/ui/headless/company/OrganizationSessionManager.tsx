@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useOrganizationPolicies, useOrganizationMembers, useTerminateUserSessions } from '@/hooks/user/useOrganizationSession';
 import { OrganizationSecurityPolicy } from '@/types/organizations';
 
@@ -19,7 +19,7 @@ export interface OrganizationSessionManagerProps {
   }) => React.ReactNode;
 }
 
-export function OrganizationSessionManager({ orgId, render }: OrganizationSessionManagerProps) {
+export function OrganizationSessionManager({ orgId, render }: OrganizationSessionManagerProps): React.ReactElement => {
   const { policies, loading: policiesLoading, error: policiesError, fetchPolicies, updatePolicies } = useOrganizationPolicies(orgId);
   const { members, loading: membersLoading, error: membersError, refetch: refetchMembers } = useOrganizationMembers(orgId);
   const { terminateUserSessions, loading: terminateLoading, error: terminateError, count } = useTerminateUserSessions(orgId);
@@ -30,7 +30,7 @@ export function OrganizationSessionManager({ orgId, render }: OrganizationSessio
   useEffect(() => { if (policies) setEditPolicies({ ...policies }); }, [policies]);
   useEffect(() => { fetchPolicies(); refetchMembers(); }, [fetchPolicies, refetchMembers]);
 
-  const savePolicies = async () => {
+  const savePolicies = async (): Promise<void> => {
     if (!editPolicies) return;
     await updatePolicies(editPolicies);
     setSuccessMessage('Settings updated');
@@ -38,7 +38,7 @@ export function OrganizationSessionManager({ orgId, render }: OrganizationSessio
     fetchPolicies();
   };
 
-  const terminateSessions = async (userId: string) => {
+  const terminateSessions = async (userId: string): Promise<void> => {
     await terminateUserSessions(userId);
     setSuccessMessage(`${count || 0} sessions terminated`);
     setTimeout(() => setSuccessMessage(null), 2000);

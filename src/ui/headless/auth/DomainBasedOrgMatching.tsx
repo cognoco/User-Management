@@ -1,4 +1,4 @@
-import { ReactNode, useState, useEffect, FormEvent } from 'react';
+import React, { ReactNode, useState, useEffect, FormEvent } from 'react';
 import { useAuth } from '@/hooks/auth/useAuth';
 
 /**
@@ -125,7 +125,7 @@ export const DomainBasedOrgMatching = ({
   isLoading: externalIsLoading,
   error: externalError,
   children
-}: DomainBasedOrgMatchingProps) => {
+}: DomainBasedOrgMatchingProps): React.ReactElement => {
   // Get authentication hook
   const { matchOrganizationByDomain, isLoading: authIsLoading, error: authError } = useAuth();
   
@@ -147,7 +147,7 @@ export const DomainBasedOrgMatching = ({
   const formError = externalError !== undefined ? externalError : authError;
 
   // Validate email
-  const validateEmail = () => {
+  const validateEmail = (): boolean => {
     if (!emailValue.trim()) {
       setErrors({ ...errors, email: 'Email is required' });
       return false;
@@ -168,13 +168,13 @@ export const DomainBasedOrgMatching = ({
   const isValid = !errors.email && emailValue.trim() !== '';
 
   // Handle field blur
-  const handleBlur = () => {
+  const handleBlur = (): void => {
     setTouched({ email: true });
     validateEmail();
   };
 
   // Handle form submission
-  const handleSubmit = async (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent): Promise<void> => {
     e.preventDefault();
     
     // Reset form error
@@ -217,7 +217,7 @@ export const DomainBasedOrgMatching = ({
   };
 
   // Select an organization
-  const selectOrganization = (organizationId: string) => {
+  const selectOrganization = (organizationId: string): void => {
     const organization = matchedOrganizations.find(org => org.id === organizationId);
     if (organization) {
       // Redirect to organization SSO login or other action
@@ -226,7 +226,7 @@ export const DomainBasedOrgMatching = ({
   };
 
   // Continue without organization
-  const continueWithoutOrg = () => {
+  const continueWithoutOrg = (): void => {
     onNoMatch?.();
   };
 

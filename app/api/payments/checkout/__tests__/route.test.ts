@@ -1,11 +1,22 @@
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { NextRequest } from 'next/server';
+
+// Mock dependencies before imports
+vi.mock('@/lib/payments/stripe-enhanced', () => ({
+  createCheckoutSession: vi.fn(),
+  getCustomerByUserId: vi.fn(),
+  createOrUpdateCustomer: vi.fn(),
+  getStripe: vi.fn(),
+}));
+
+vi.mock('@/lib/auth', () => ({
+  getServerSession: vi.fn(),
+}));
+
+// Import after mocks
 import { POST, GET } from '../route';
 import { createCheckoutSession, getCustomerByUserId, createOrUpdateCustomer, getStripe } from '@/lib/payments/stripe-enhanced';
 import { getServerSession } from '@/lib/auth';
-
-// Mock dependencies
-jest.mock('@/lib/payments/stripe-enhanced');
-jest.mock('@/lib/auth');
 
 describe('/api/payments/checkout', () => {
   const mockSession = {
@@ -22,9 +33,9 @@ describe('/api/payments/checkout', () => {
   };
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    (getServerSession as jest.Mock).mockResolvedValue(mockSession);
-    (getCustomerByUserId as jest.Mock).mockResolvedValue(mockCustomer);
+    vi.clearAllMocks();
+    vi.mocked(getServerSession).mockResolvedValue(mockSession);
+    vi.mocked(getCustomerByUserId).mockResolvedValue(mockCustomer);
     process.env.NEXT_PUBLIC_APP_URL = 'http://localhost:3000';
   });
 
@@ -39,7 +50,7 @@ describe('/api/payments/checkout', () => {
         url: 'https://checkout.stripe.com/pay/cs_test',
       };
 
-      (createCheckoutSession as jest.Mock).mockResolvedValue(mockCheckoutSession);
+      vi.mocked(createCheckoutSession).mockResolvedValue(mockCheckoutSession);
 
       const request = new NextRequest('http://localhost/api/payments/checkout', {
         method: 'POST',
@@ -71,15 +82,15 @@ describe('/api/payments/checkout', () => {
     });
 
     it('should create customer if not exists', async () => {
-      (getCustomerByUserId as jest.Mock).mockResolvedValue(null);
-      (createOrUpdateCustomer as jest.Mock).mockResolvedValue(mockCustomer);
+      vi.mocked(getCustomerByUserId).mockResolvedValue(null);
+      vi.mocked(createOrUpdateCustomer).mockResolvedValue(mockCustomer);
 
       const mockCheckoutSession = {
         id: 'cs_test',
         url: 'https://checkout.stripe.com/pay/cs_test',
       };
 
-      (createCheckoutSession as jest.Mock).mockResolvedValue(mockCheckoutSession);
+      vi.mocked(createCheckoutSession).mockResolvedValue(mockCheckoutSession);
 
       const request = new NextRequest('http://localhost/api/payments/checkout', {
         method: 'POST',
@@ -99,7 +110,7 @@ describe('/api/payments/checkout', () => {
     });
 
     it('should return 401 if user is not authenticated', async () => {
-      (getServerSession as jest.Mock).mockResolvedValue(null);
+      vi.mocked(getServerSession).mockResolvedValue(null);
 
       const request = new NextRequest('http://localhost/api/payments/checkout', {
         method: 'POST',
@@ -134,7 +145,7 @@ describe('/api/payments/checkout', () => {
         url: 'https://checkout.stripe.com/pay/cs_test',
       };
 
-      (createCheckoutSession as jest.Mock).mockResolvedValue(mockCheckoutSession);
+      vi.mocked(createCheckoutSession).mockResolvedValue(mockCheckoutSession);
 
       const request = new NextRequest('http://localhost/api/payments/checkout', {
         method: 'POST',
@@ -157,7 +168,7 @@ describe('/api/payments/checkout', () => {
     });
 
     it('should handle errors gracefully', async () => {
-      (createCheckoutSession as jest.Mock).mockRejectedValue(new Error('Stripe error'));
+      vi.mocked(createCheckoutSession).mockRejectedValue(new Error('Stripe error'));
 
       const request = new NextRequest('http://localhost/api/payments/checkout', {
         method: 'POST',
@@ -179,7 +190,7 @@ describe('/api/payments/checkout', () => {
       const mockStripe = {
         checkout: {
           sessions: {
-            retrieve: jest.fn().mockResolvedValue({
+            retrieve: vi.fn().mockResolvedValue({
               id: 'cs_test',
               status: 'complete',
               payment_status: 'paid',
@@ -193,7 +204,7 @@ describe('/api/payments/checkout', () => {
         },
       };
 
-      (getStripe as jest.Mock).mockReturnValue(mockStripe);
+      vi.mocked(getStripe).mockReturnValue(mockStripe as any);
 
       const request = new NextRequest('http://localhost/api/payments/checkout?sessionId=cs_test');
 
@@ -212,7 +223,7 @@ describe('/api/payments/checkout', () => {
     });
 
     it('should return 401 if user is not authenticated', async () => {
-      (getServerSession as jest.Mock).mockResolvedValue(null);
+      vi.mocked(getServerSession).mockResolvedValue(null);
 
       const request = new NextRequest('http://localhost/api/payments/checkout?sessionId=cs_test');
 
@@ -237,14 +248,14 @@ describe('/api/payments/checkout', () => {
       const mockStripe = {
         checkout: {
           sessions: {
-            retrieve: jest.fn().mockResolvedValue({
+            retrieve: vi.fn().mockResolvedValue({
               customer: 'cus_different',
             }),
           },
         },
       };
 
-      (getStripe as jest.Mock).mockReturnValue(mockStripe);
+      vi.mocked(getStripe).mockReturnValue(mockStripe as any);
 
       const request = new NextRequest('http://localhost/api/payments/checkout?sessionId=cs_test');
 
@@ -259,12 +270,12 @@ describe('/api/payments/checkout', () => {
       const mockStripe = {
         checkout: {
           sessions: {
-            retrieve: jest.fn().mockRejectedValue(new Error('Stripe error')),
+            retrieve: vi.fn().mockRejectedValue(new Error('Stripe error')),
           },
         },
       };
 
-      (getStripe as jest.Mock).mockReturnValue(mockStripe);
+      vi.mocked(getStripe).mockReturnValue(mockStripe as any);
 
       const request = new NextRequest('http://localhost/api/payments/checkout?sessionId=cs_test');
 

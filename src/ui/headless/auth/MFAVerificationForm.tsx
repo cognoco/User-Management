@@ -5,7 +5,7 @@
  * It follows the headless UI pattern using render props to allow complete UI customization.
  */
 
-import { useState, FormEvent, useEffect } from 'react';
+import React, { useState, FormEvent, useEffect } from 'react';
 import { useAuth } from '@/hooks/auth/useAuth';
 import { z } from 'zod';
 
@@ -89,7 +89,7 @@ export function MFAVerificationForm({
   const formError = externalError !== undefined ? externalError : authError;
   
   // Validate verification code
-  const validateVerificationCode = () => {
+  const validateVerificationCode = (): boolean => {
     try {
       z.string()
         .min(6, 'Verification code must be at least 6 digits')
@@ -119,13 +119,13 @@ export function MFAVerificationForm({
   }, [isValid, onValidationChange]);
   
   // Handle field blur
-  const handleBlur = () => {
+  const handleBlur = (): void => {
     setTouched({ verificationCode: true });
     validateVerificationCode();
   };
   
   // Handle form submission
-  const handleSubmit = async (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent): Promise<void> => {
     e.preventDefault();
     
     // Reset form error
@@ -160,7 +160,7 @@ export function MFAVerificationForm({
   };
   
   // Handle use backup code
-  const handleUseBackupCode = () => {
+  const handleUseBackupCode = (): void => {
     onUseBackupCode?.();
   };
   

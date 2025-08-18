@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { CompanyProfile } from '@/types/company';
 import { api } from '@/lib/api/axios';
 
@@ -18,7 +18,7 @@ export interface DomainVerificationProps {
   }) => React.ReactNode;
 }
 
-export function DomainVerification({ profile, onVerificationChange, render }: DomainVerificationProps) {
+export function DomainVerification({ profile, onVerificationChange, render }: DomainVerificationProps): React.ReactElement => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<'idle' | 'pending' | 'verified' | 'error'>('idle');
@@ -44,7 +44,7 @@ export function DomainVerification({ profile, onVerificationChange, render }: Do
     }
   }, [profile]);
 
-  const initiate = async () => {
+  const initiate = async (): Promise<void> => {
     setIsLoading(true);
     setError(null);
     try {
@@ -61,7 +61,7 @@ export function DomainVerification({ profile, onVerificationChange, render }: Do
     }
   };
 
-  const check = async () => {
+  const check = async (): Promise<void> => {
     setIsLoading(true);
     setError(null);
     try {

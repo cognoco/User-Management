@@ -5,7 +5,7 @@
  * It follows the headless UI pattern using render props to allow complete UI customization.
  */
 
-import { useState, FormEvent, useEffect } from 'react';
+import React, { useState, FormEvent, useEffect } from 'react';
 import { useAuth } from '@/hooks/auth/useAuth';
 import { RegistrationPayload, registrationSchema as registerSchema } from '@/core/common/user-types';
 import { z } from 'zod';
@@ -118,7 +118,7 @@ export function RegistrationForm({
   const formError = externalError !== undefined ? externalError : authError;
   
   // Validate form
-  const validateForm = () => {
+  const validateForm = (): boolean => {
     try {
       registerSchema.parse({
         email: emailValue,
@@ -172,7 +172,7 @@ export function RegistrationForm({
   }, [isValid, onValidationChange]);
   
   // Handle field blur
-  const handleBlur = (field: 'email' | 'password' | 'confirmPassword' | 'firstName' | 'lastName' | 'acceptTerms') => {
+  const handleBlur = (field: 'email' | 'password' | 'confirmPassword' | 'firstName' | 'lastName' | 'acceptTerms'): void => {
     setTouched({ ...touched, [field]: true });
     
     // Validate the specific field
@@ -216,7 +216,7 @@ export function RegistrationForm({
   };
   
   // Handle form submission
-  const handleSubmit = async (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent): Promise<void> => {
     e.preventDefault();
     
     // Reset form error

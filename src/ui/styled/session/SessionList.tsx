@@ -11,7 +11,7 @@ export interface StyledSessionListProps {
   onTerminateAll: () => void;
 }
 
-export function SessionList(props: StyledSessionListProps) {
+export function SessionList(props: StyledSessionListProps): React.ReactElement {
   return (
     <HeadlessSessionList
       {...props}

@@ -143,7 +143,8 @@ export class DefaultNotificationHandler implements NotificationHandler {
     try {
       // In a real implementation, this would register the device with a push notification service
       // For this default implementation, we'll just store the user ID in local storage
-      localStorage.setItem('notification_user_id', userId);
+      // localStorage.setItem('notification_user_id', userId); // REMOVED: Security vulnerability
+      // User ID should be stored server-side, not in localStorage
       
       // In a real implementation, we would also register with a service worker
       if ('serviceWorker' in navigator) {
@@ -187,11 +188,12 @@ export class DefaultNotificationHandler implements NotificationHandler {
     try {
       // In a real implementation, this would unregister the device from a push notification service
       // For this default implementation, we'll just remove the user ID from local storage
-      const storedUserId = localStorage.getItem('notification_user_id');
+      // const storedUserId = localStorage.getItem('notification_user_id'); // REMOVED: Security vulnerability
+      // User ID verification should be done server-side
       
-      if (storedUserId === userId) {
-        localStorage.removeItem('notification_user_id');
-      }
+      // if (storedUserId === userId) {
+      //   localStorage.removeItem('notification_user_id');
+      // }
       
       // In a real implementation, we would also unregister from the service worker
       if ('serviceWorker' in navigator) {

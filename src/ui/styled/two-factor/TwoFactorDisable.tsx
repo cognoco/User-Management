@@ -4,7 +4,7 @@ import { Button } from '@/ui/primitives/button';
 import { Card } from '@/ui/primitives/card';
 import { TwoFactorDisable as HeadlessTwoFactorDisable } from '@/ui/headless/two-factor/TwoFactorDisable';
 
-export function TwoFactorDisable({ onSuccess, onCancel }: { onSuccess?: () => void; onCancel?: () => void }) {
+export function TwoFactorDisable({ onSuccess, onCancel }: { onSuccess?: () => void; onCancel?: () => void }): React.ReactElement {
   return (
     <HeadlessTwoFactorDisable onSuccess={onSuccess} onCancel={onCancel}>
       {({ code: value, setCode: setValue, submit, loading, error }) => (

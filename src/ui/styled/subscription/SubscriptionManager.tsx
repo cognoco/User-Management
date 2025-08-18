@@ -5,7 +5,7 @@ import { Alert } from '@/ui/primitives/alert';
 
 export type StyledSubscriptionManagerProps = Omit<SubscriptionManagerProps, 'render'>;
 
-export function SubscriptionManager(props: StyledSubscriptionManagerProps) {
+export function SubscriptionManager(props: StyledSubscriptionManagerProps): React.ReactElement {
   return (
     <HeadlessSubscriptionManager
       {...props}

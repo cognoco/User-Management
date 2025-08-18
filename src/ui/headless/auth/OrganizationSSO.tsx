@@ -1,4 +1,4 @@
-import { ReactNode, useState, useEffect, FormEvent } from 'react';
+import React, { ReactNode, useState, useEffect, FormEvent } from 'react';
 import { useAuth } from '@/hooks/auth/useAuth';
 
 /**
@@ -113,7 +113,7 @@ export const OrganizationSSO = ({
   isLoading: externalIsLoading,
   error: externalError,
   children
-}: OrganizationSSOProps) => {
+}: OrganizationSSOProps): React.ReactElement => {
   // Get authentication hook
   const { 
     getOrganizationSSOProviders, 
@@ -140,7 +140,7 @@ export const OrganizationSSO = ({
   const error = externalError !== undefined ? externalError : authError;
 
   // Load organization and SSO providers
-  const loadOrganizationAndProviders = async (orgId?: string, domain?: string) => {
+  const loadOrganizationAndProviders = async (orgId?: string, domain?: string): Promise<void> => {
     if (!orgId && !domain) return;
     
     setIsSubmitting(true);
@@ -183,7 +183,7 @@ export const OrganizationSSO = ({
   }, [organizationId, organizationDomain]);
 
   // Initiate SSO login with a specific provider
-  const initiateProviderLogin = async (providerId: string) => {
+  const initiateProviderLogin = async (providerId: string): Promise<void> => {
     if (!organization) return;
     
     setIsSubmitting(true);
@@ -209,7 +209,7 @@ export const OrganizationSSO = ({
   };
 
   // Handle form submission for domain-based organization lookup
-  const handleDomainSubmit = async (e: FormEvent) => {
+  const handleDomainSubmit = async (e: FormEvent): Promise<void> => {
     e.preventDefault();
     
     if (!emailDomain.trim()) return;

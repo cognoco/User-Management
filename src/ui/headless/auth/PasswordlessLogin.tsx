@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { api } from '@/lib/api/axios';
 
 export interface PasswordlessLoginProps {
@@ -14,13 +14,13 @@ export interface PasswordlessLoginProps {
   }) => React.ReactNode;
 }
 
-export function PasswordlessLogin({ render }: PasswordlessLoginProps) {
+export function PasswordlessLogin({ render }: PasswordlessLoginProps): React.ReactElement => {
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSendLink = async (e: React.FormEvent) => {
+  const handleSendLink = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);

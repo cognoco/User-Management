@@ -12,7 +12,7 @@ export function UserRoleAssignerStyled(props: Omit<UserRoleAssignerProps, 'rende
   return (
     <UserRoleAssigner
       {...props}
-      render={({ users, roles, search, selectUser, selectedUserId, assign, remove, effectivePermissions, isLoading, error }) => (
+      render={({ users, roles, search, selectUser, selectedUserId, assign, _remove, effectivePermissions, _isLoading, error }) => (
         <Card>
           <CardHeader>
             <CardTitle>{props.title || 'User Roles'}</CardTitle>

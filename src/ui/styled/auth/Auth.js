@@ -15,6 +15,7 @@ export default function Auth() {
   /**
    * @returns {boolean}
    */
+  /** @returns {boolean} */
   const validateInput = () => {
     // Email validation using regex
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -32,6 +33,11 @@ export default function Auth() {
     return true;
   };
 
+  /**
+   * @param {React.FormEvent} e
+   * @returns {Promise<void>}
+   */
+  /** @param {React.FormEvent} e @returns {Promise<void>} */
   const handleSignIn = async (e) => {
     e.preventDefault();
     if (!validateInput()) return;
@@ -55,6 +61,11 @@ export default function Auth() {
     }
   };
 
+  /**
+   * @param {React.FormEvent} e
+   * @returns {Promise<void>}
+   */
+  /** @param {React.FormEvent} e @returns {Promise<void>} */
   const handleSignUp = async (e) => {
     e.preventDefault();
     if (!validateInput()) return;

@@ -44,12 +44,17 @@ export default function SettingsPage() {
 
   useEffect(() => {
     // Show toast if redirected from OAuth linking
-    if (typeof window !== 'undefined' && sessionStorage.getItem('show_oauth_linked_toast')) {
-      toast({
-        title: 'Provider linked!',
+    // Using URL parameters instead of sessionStorage for security
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('oauth_linked') === 'true') {
+        toast({
+          title: 'Provider linked!',
         description: 'Your login provider was successfully linked to your account.',
       });
-      sessionStorage.removeItem('show_oauth_linked_toast');
+        // Clear the URL parameter after showing toast
+        window.history.replaceState({}, '', window.location.pathname);
+      }
     }
   }, []);
 

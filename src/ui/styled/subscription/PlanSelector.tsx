@@ -4,7 +4,7 @@ import { Alert } from '@/ui/primitives/alert';
 
 export type StyledPlanSelectorProps = Omit<PlanSelectorProps, 'render'>;
 
-export function PlanSelector(props: StyledPlanSelectorProps) {
+export function PlanSelector(props: StyledPlanSelectorProps): React.ReactElement {
   return (
     <HeadlessPlanSelector
       {...props}

@@ -4,7 +4,7 @@ import { Button } from '@/ui/primitives/button';
 import { Card } from '@/ui/primitives/card';
 import { TwoFactorVerify as HeadlessTwoFactorVerify } from '@/ui/headless/two-factor/TwoFactorVerify';
 
-export function TwoFactorVerify({ onSuccess }: { onSuccess?: () => void }) {
+export function TwoFactorVerify({ onSuccess }: { onSuccess?: () => void }): React.ReactElement {
   return (
     <HeadlessTwoFactorVerify onSuccess={onSuccess}>
       {({ code: value, setCode: setValue, submit, loading, error }) => (

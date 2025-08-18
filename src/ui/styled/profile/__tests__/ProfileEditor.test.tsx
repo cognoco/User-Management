@@ -305,7 +305,7 @@ describe('ProfileEditor', () => {
       return (
         <div>
           <div data-testid="avatar-container" onClick={handleOpenModal}>
-            <img src="https://example.com/avatar.jpg" alt="profile" />
+            <img src="https://example.com/avatar.jpg" alt="Profile avatar" />
           </div>
           <input data-testid="avatar-upload" type="file" onChange={handleFileChange} />
           
@@ -343,14 +343,14 @@ describe('ProfileEditor', () => {
                       onClick={() => handleAvatarSelect('avatar1')}
                       data-selected={selectedAvatarId === 'avatar1'}
                     >
-                      <img src="/assets/avatars/avatar1.png" alt="Default 1" />
+                      <img src="/assets/avatars/avatar1.png" alt="Default avatar option 1" />
                     </div>
                     <div 
                       data-testid="avatar-item-2" 
                       onClick={() => handleAvatarSelect('avatar2')}
                       data-selected={selectedAvatarId === 'avatar2'}
                     >
-                      <img src="/assets/avatars/avatar2.png" alt="Default 2" />
+                      <img src="/assets/avatars/avatar2.png" alt="Default avatar option 2" />
                     </div>
                   </div>
                   <button 

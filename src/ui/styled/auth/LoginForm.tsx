@@ -37,7 +37,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSubmit: customOnSubmit }) => {
   // Get all business logic from the hook
   const {
     onSubmit: businessLogicOnSubmit,
-    handleResendVerification,
+    // handleResendVerification, // Commented out as not currently used
     handleMfaSuccess,
     handleLoginSuccess,
     handleMfaCancel,
@@ -62,7 +62,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSubmit: customOnSubmit }) => {
         <WebAuthnLogin userId={''} onSuccess={() => handleLoginSuccess({})} />
         <MFAVerificationForm
           accessToken={tempAccessToken}
-          onSuccess={(user: any, token: string) => handleMfaSuccess(user, token)}
+          onSuccess={(user: unknown, token: string) => handleMfaSuccess(user, token)}
           onCancel={handleMfaCancel}
         />
       </>
@@ -84,7 +84,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSubmit: customOnSubmit }) => {
           rememberMeValue,
           setRememberMeValue,
           isSubmitting,
-          isValid,
+          // isValid, // Commented out as not currently used
           errors,
           touched,
           handleBlur,
@@ -217,7 +217,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSubmit: customOnSubmit }) => {
               </div>
 
               <div className="text-center text-sm">
-                Don't have an account?{' '}
+                Don&apos;t have an account?{' '}
                 <Link 
                   href="/auth/register" 
                   className="text-primary hover:underline"

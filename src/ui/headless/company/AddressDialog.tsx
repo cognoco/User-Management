@@ -24,14 +24,14 @@ export interface AddressDialogProps {
   render: (props: { form: ReturnType<typeof useForm<AddressFormData>>; isSubmitting: boolean; handleSubmit: () => Promise<void>; }) => React.ReactNode;
 }
 
-export function AddressDialog({ isOpen, onClose, onSave, initialData, render }: AddressDialogProps) {
+export function AddressDialog({ isOpen, onClose, onSave, initialData, render }: AddressDialogProps): React.ReactElement => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const form = useForm<AddressFormData>({
     resolver: zodResolver(addressSchema),
     defaultValues: initialData || { street: '', city: '', state: '', postalCode: '', country: '', isPrimary: false },
   });
 
-  const handleSubmit = async (data: AddressFormData) => {
+  const handleSubmit = async (data: AddressFormData): Promise<void> => {
     setIsSubmitting(true);
     try {
       await onSave(data);

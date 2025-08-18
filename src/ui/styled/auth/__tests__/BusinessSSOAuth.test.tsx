@@ -3,10 +3,10 @@ import userEvent from '@testing-library/user-event';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { BusinessSSOAuth } from '../BusinessSSOAuth';
 
-let state: any;
+let state: unknown;
 
 vi.mock('../../../headless/auth/BusinessSSOAuth', () => ({
-  BusinessSSOAuth: ({ children }: any) => children(state)
+  BusinessSSOAuth: ({ children }: { children: (state: unknown) => React.ReactNode }) => children(state)
 }));
 
 describe('BusinessSSOAuth styled component', () => {
@@ -14,7 +14,7 @@ describe('BusinessSSOAuth styled component', () => {
     state = {
       domainValue: '',
       setDomainValue: vi.fn((v: string) => { state.domainValue = v; }),
-      handleSubmit: vi.fn((e: any) => e.preventDefault()),
+      handleSubmit: vi.fn((e: React.FormEvent) => e.preventDefault()),
       isSubmitting: false,
       isValid: true,
       errors: {},

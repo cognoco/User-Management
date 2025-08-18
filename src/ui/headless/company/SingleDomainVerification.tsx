@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { CompanyDomain } from '@/types/company';
 import { api } from '@/lib/api/axios';
 
@@ -18,14 +18,14 @@ export interface SingleDomainVerificationProps {
   }) => React.ReactNode;
 }
 
-export function SingleDomainVerification({ domain, onVerificationComplete, render }: SingleDomainVerificationProps) {
+export function SingleDomainVerification({ domain, onVerificationComplete, render }: SingleDomainVerificationProps): React.ReactElement => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [verificationToken, setVerificationToken] = useState<string | null>(domain.verification_token || null);
   const [status, setStatus] = useState<'idle' | 'pending' | 'verified' | 'error'>(domain.is_verified ? 'verified' : (domain.verification_token ? 'pending' : 'idle'));
 
-  const initiate = async () => {
+  const initiate = async (): Promise<void> => {
     setIsLoading(true);
     setError(null);
     setSuccess(null);
@@ -42,7 +42,7 @@ export function SingleDomainVerification({ domain, onVerificationComplete, rende
     }
   };
 
-  const check = async () => {
+  const check = async (): Promise<void> => {
     setIsLoading(true);
     setError(null);
     setSuccess(null);

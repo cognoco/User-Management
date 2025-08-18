@@ -9,6 +9,7 @@ import { getApiAuthService } from '@/services/auth/factory';
 import { authConfig, isProduction } from './config';
 import { extractAuthToken, validateAuthToken } from './utils';
 import { debug, info, warn, error as logError } from '@/lib/utils/logger';
+import { getCookieConfig, COOKIE_NAMES, getNextCookieOptions } from './cookie-config';
 
 /**
  * Shape of the session object returned by helpers in this module.

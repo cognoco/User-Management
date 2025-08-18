@@ -9,7 +9,7 @@ import { Badge } from '@/ui/primitives/badge';
 
 export type StyledPaymentHistoryProps = Omit<PaymentHistoryProps, 'render'>;
 
-export function PaymentHistory(props: StyledPaymentHistoryProps) {
+export function PaymentHistory(props: StyledPaymentHistoryProps): React.ReactElement {
   return (
     <HeadlessPaymentHistory
       {...props}

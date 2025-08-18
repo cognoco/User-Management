@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -31,7 +31,7 @@ export interface NotificationPreferencesProps {
   }) => React.ReactNode;
 }
 
-export function NotificationPreferences({ companyId, render }: NotificationPreferencesProps) {
+export function NotificationPreferences({ companyId, render }: NotificationPreferencesProps): React.ReactElement => {
   const [preferences, setPreferences] = useState<CompanyNotificationPreference[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -42,7 +42,7 @@ export function NotificationPreferences({ companyId, render }: NotificationPrefe
 
   useEffect(() => { fetchPrefs(); }, [companyId]);
 
-  const fetchPrefs = async () => {
+  const fetchPrefs = async (): Promise<void> => {
     setIsLoading(true);
     try {
       const response = await api.get(`/api/company/notifications/preferences`);
@@ -63,7 +63,7 @@ export function NotificationPreferences({ companyId, render }: NotificationPrefe
     id: string | undefined,
     type: NotificationType,
     updates: Partial<CompanyNotificationPreference>
-  ) => {
+  ): Promise<void> => {
     setIsSaving(true);
     try {
       if (id) {
@@ -81,15 +81,15 @@ export function NotificationPreferences({ companyId, render }: NotificationPrefe
     }
   };
 
-  const handleToggleNotification = (id: string | undefined, type: NotificationType, enabled: boolean) => {
+  const handleToggleNotification = (id: string | undefined, type: NotificationType, enabled: boolean): void => {
     updatePreference(id, type, { enabled });
   };
 
-  const handleChannelChange = (id: string | undefined, type: NotificationType, channel: NotificationChannel) => {
+  const handleChannelChange = (id: string | undefined, type: NotificationType, channel: NotificationChannel): void => {
     updatePreference(id, type, { channel });
   };
 
-  const handleAddEmail = async () => {
+  const handleAddEmail = async (): Promise<void> => {
     const values = emailForm.getValues();
     setIsSaving(true);
     try {
@@ -101,7 +101,7 @@ export function NotificationPreferences({ companyId, render }: NotificationPrefe
     }
   };
 
-  const handleRemoveEmail = async (id: string) => {
+  const handleRemoveEmail = async (id: string): Promise<void> => {
     setIsSaving(true);
     try {
       await api.delete(`/api/company/notifications/recipients/${id}`);

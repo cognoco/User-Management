@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -41,7 +41,7 @@ interface DomainBasedOrgMatchingProps {
   organizationId: string;
 }
 
-export function DomainBasedOrgMatching({ organizationId }: DomainBasedOrgMatchingProps) {
+export function DomainBasedOrgMatching({ organizationId }: DomainBasedOrgMatchingProps): React.ReactElement {
   const { t } = useTranslation();
   const [domains, setDomains] = useState<Domain[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -59,25 +59,25 @@ export function DomainBasedOrgMatching({ organizationId }: DomainBasedOrgMatchin
   });
 
   // Fetch organization domains
-  useEffect(() => {
-    fetchDomains();
-  }, [organizationId]);
-
-  const fetchDomains = async () => {
+  const fetchDomains = useCallback(async (): Promise<void> => {
     try {
       setIsLoading(true);
       setError(null);
       
       const response = await api.get(`/api/organizations/${organizationId}/domains`);
       setDomains(response.data.domains);
-    } catch (error: any) {
-      setError(error.response?.data?.error || t('org.domains.fetchError'));
+    } catch (error: unknown) {
+      setError((error as any).response?.data?.error || t('org.domains.fetchError'));
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [organizationId, t]);
 
-  const onSubmit = async (values: DomainFormValues) => {
+  useEffect(() => {
+    fetchDomains();
+  }, [fetchDomains]);
+
+  const onSubmit = async (values: DomainFormValues): Promise<void> => {
     try {
       // Validate domain format before proceeding
       const result = domainSchema.safeParse(values);
@@ -94,14 +94,14 @@ export function DomainBasedOrgMatching({ organizationId }: DomainBasedOrgMatchin
       setSuccess(t('org.domains.addSuccess', { domain: values.domain }));
       form.reset();
       fetchDomains();
-    } catch (error: any) {
-      setError(error.response?.data?.error || t('org.domains.addError'));
+    } catch (error: unknown) {
+      setError((error as any).response?.data?.error || t('org.domains.addError'));
     } finally {
       setIsLoading(false);
     }
   };
 
-  const removeDomain = async (domainId: string) => {
+  const removeDomain = async (domainId: string): Promise<void> => {
     try {
       setIsLoading(true);
       setError(null);
@@ -110,14 +110,14 @@ export function DomainBasedOrgMatching({ organizationId }: DomainBasedOrgMatchin
       await api.delete(`/api/organizations/${organizationId}/domains/${domainId}`);
       setSuccess(t('org.domains.removeSuccess'));
       fetchDomains();
-    } catch (error: any) {
-      setError(error.response?.data?.error || t('org.domains.removeError'));
+    } catch (error: unknown) {
+      setError((error as any).response?.data?.error || t('org.domains.removeError'));
     } finally {
       setIsLoading(false);
     }
   };
 
-  const verifyDomain = async (domainId: string) => {
+  const verifyDomain = async (domainId: string): Promise<void> => {
     try {
       setVerificationInProgress(domainId);
       setError(null);
@@ -126,14 +126,14 @@ export function DomainBasedOrgMatching({ organizationId }: DomainBasedOrgMatchin
       await api.post(`/api/organizations/${organizationId}/domains/${domainId}/verify`);
       setSuccess(t('org.domains.verifySuccess'));
       fetchDomains();
-    } catch (error: any) {
-      setError(error.response?.data?.error || t('org.domains.verifyError'));
+    } catch (error: unknown) {
+      setError((error as any).response?.data?.error || t('org.domains.verifyError'));
     } finally {
       setVerificationInProgress(null);
     }
   };
 
-  const toggleDomainSetting = async (domainId: string, field: 'autoJoin' | 'enforceSSO', value: boolean) => {
+  const toggleDomainSetting = async (domainId: string, field: 'autoJoin' | 'enforceSSO', value: boolean): Promise<void> => {
     try {
       setIsLoading(true);
       setError(null);
@@ -146,8 +146,8 @@ export function DomainBasedOrgMatching({ organizationId }: DomainBasedOrgMatchin
       setDomains(domains.map(domain => 
         domain.id === domainId ? { ...domain, [field]: value } : domain
       ));
-    } catch (error: any) {
-      setError(error.response?.data?.error || t('org.domains.updateError'));
+    } catch (error: unknown) {
+      setError((error as any).response?.data?.error || t('org.domains.updateError'));
       // Refetch to restore correct state
       fetchDomains();
     } finally {

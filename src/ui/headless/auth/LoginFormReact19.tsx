@@ -1,4 +1,4 @@
-import { ReactNode, useState, useEffect, FormEvent, useTransition } from 'react';
+import React, { ReactNode, useState, useEffect, FormEvent, useTransition } from 'react';
 import { useAuth } from '@/hooks/auth/useAuth';
 import { LoginPayload, loginSchema } from '@/core/common/user-types';
 import { z } from 'zod';
@@ -127,7 +127,7 @@ export const LoginFormReact19 = ({
   error: externalError,
   onValidationChange,
   children
-}: LoginFormReact19Props) => {
+}: LoginFormReact19Props): React.ReactElement => {
   // Get authentication hook
   const { login, isLoading: authIsLoading, error: authError } = useAuth();
   
@@ -154,7 +154,7 @@ export const LoginFormReact19 = ({
   const formError = externalError !== undefined ? externalError : authError;
   
   // Validate form
-  const validateForm = () => {
+  const validateForm = (): boolean => {
     try {
       loginSchema.parse({
         email: emailValue,
@@ -185,7 +185,7 @@ export const LoginFormReact19 = ({
   }, [isValid, onValidationChange]);
   
   // Handle field blur
-  const handleBlur = (field: 'email' | 'password') => {
+  const handleBlur = (field: 'email' | 'password'): void => {
     setTouched({ ...touched, [field]: true });
     
     // Validate the specific field
@@ -211,7 +211,7 @@ export const LoginFormReact19 = ({
   };
   
   // Handle form submission
-  const handleSubmit = async (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent): Promise<void> => {
     e.preventDefault();
     
     // Reset form error

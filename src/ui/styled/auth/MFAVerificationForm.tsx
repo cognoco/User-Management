@@ -22,18 +22,18 @@ export function MFAVerificationForm({
   mfaMethod = 'totp',
   className,
   ...headlessProps
-}: StyledMFAVerificationFormProps) {
+}: StyledMFAVerificationFormProps): React.ReactElement {
   const [isUsingBackupCode, setIsUsingBackupCode] = useState(false);
   const [resendTimer, setResendTimer] = useState(0);
   const [resendMessage, setResendMessage] = useState<string | null>(null);
   const [rememberDevice, setRememberDevice] = useState(false);
 
-  const handleToggleBackupCode = () => {
+  const handleToggleBackupCode = (): void => {
     setIsUsingBackupCode((prev) => !prev);
   };
 
   // Resend code logic (not provided by headless component)
-  const handleResendCode = async () => {
+  const handleResendCode = async (): Promise<void> => {
     setResendMessage(null);
     setResendTimer(30); // 30 seconds cooldown
     try {
@@ -68,7 +68,7 @@ export function MFAVerificationForm({
         touched,
         handleBlur
       }) => (
-        <div className={`space-y-6 w-full max-w-md mx-auto ${className ?? ''}`}>
+        <div className={`space-y-6 w-full max-w-md mx-auto ${className || ''}`}>
           <div className="text-center">
             <h1 className="text-2xl font-bold">[i18n:auth.mfa.title]</h1>
             <p className="text-muted-foreground mt-2">

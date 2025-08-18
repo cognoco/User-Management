@@ -3,6 +3,7 @@ import { RetentionStatus, RetentionType } from '../database/schemas/retention';
 import { sendEmail } from '../email/sendEmail';
 import { addMonths, addDays, format, differenceInDays } from 'date-fns';
 import { getServerConfig } from '@/lib/config.server';
+import { info, error } from '@/lib/utils/logger';
 
 // Define inactivity thresholds (in months)
 const config = getServerConfig();
@@ -35,7 +36,7 @@ export class RetentionService {
    */
   async identifyInactiveAccounts() {
     try {
-      console.log('[RetentionService] Starting identification of inactive accounts...');
+      info('RetentionService', 'Starting identification of inactive accounts...');
       const startTime = Date.now();
       
       // Get all active users that have a last login date
@@ -48,7 +49,7 @@ export class RetentionService {
         throw new Error(`Error fetching users: ${error.message}`);
       }
       
-      console.log(`[RetentionService] Processing ${users.length} accounts...`);
+      info('RetentionService', `Processing ${users.length} accounts...`);
       
       // Process each user
       const now = new Date();
@@ -202,7 +203,7 @@ export class RetentionService {
             stats.markedForAnonymization++;
           }
         } catch (err) {
-          console.error(`[RetentionService] Error processing user ${user.id}:`, err);
+          error('RetentionService', `Error processing user ${user.id}: ${err}`);
           stats.errors++;
         }
       }
@@ -211,10 +212,10 @@ export class RetentionService {
       const executionTimeMs = Date.now() - startTime;
       await this.updateRetentionMetrics(executionTimeMs);
       
-      console.log(`[RetentionService] Completed with stats:`, stats);
+      info('RetentionService', `Completed with stats: ${JSON.stringify(stats)}`);
       return stats;
     } catch (error) {
-      console.error('[RetentionService] Failed to identify inactive accounts:', error);
+      error('RetentionService', ' Failed to identify inactive accounts:');
       throw error;
     }
   }
@@ -225,7 +226,7 @@ export class RetentionService {
    */
   async processAnonymization() {
     try {
-      console.log('[RetentionService] Starting anonymization process...');
+      info('RetentionService', ' Starting anonymization process...');
       
       // Get accounts marked for anonymization
       const { data: accounts, error } = await this.supabase
@@ -237,7 +238,7 @@ export class RetentionService {
         throw new Error(`Error fetching accounts for anonymization: ${error.message}`);
       }
       
-      console.log(`[RetentionService] Processing ${accounts?.length || 0} accounts for anonymization...`);
+      info(`[RetentionService] Processing ${accounts?.length || 0} accounts for anonymization...`);
       
       let processed = 0;
       let failed = 0;
@@ -264,15 +265,15 @@ export class RetentionService {
             
           processed++;
         } catch (err) {
-          console.error(`[RetentionService] Error anonymizing user ${account.user_id}:`, err);
+          error(`[RetentionService] Error anonymizing user ${account.user_id}:`, err);
           failed++;
         }
       }
       
-      console.log(`[RetentionService] Anonymization complete. Processed: ${processed}, Failed: ${failed}`);
+      info(`[RetentionService] Anonymization complete. Processed: ${processed}, Failed: ${failed}`);
       return { processed, failed };
     } catch (error) {
-      console.error('[RetentionService] Failed to process anonymization:', error);
+      error('RetentionService', ' Failed to process anonymization:');
       throw error;
     }
   }
@@ -333,7 +334,7 @@ export class RetentionService {
       
       return true;
     } catch (error) {
-      console.error(`[RetentionService] Failed to reactivate account ${userId}:`, error);
+      error(`[RetentionService] Failed to reactivate account ${userId}:`, error);
       throw error;
     }
   }
@@ -356,7 +357,7 @@ export class RetentionService {
       
       return data;
     } catch (error) {
-      console.error(`[RetentionService] Failed to get retention status for ${userId}:`, error);
+      error(`[RetentionService] Failed to get retention status for ${userId}:`, error);
       throw error;
     }
   }
@@ -379,7 +380,7 @@ export class RetentionService {
       
       return data || [];
     } catch (error) {
-      console.error('[RetentionService] Failed to get retention metrics:', error);
+      error('RetentionService', ' Failed to get retention metrics:');
       throw error;
     }
   }
@@ -437,7 +438,7 @@ export class RetentionService {
           .insert(metricsData);
       }
     } catch (error) {
-      console.error('[RetentionService] Failed to update retention metrics:', error);
+      error('RetentionService', ' Failed to update retention metrics:');
     }
   }
   
@@ -451,7 +452,7 @@ export class RetentionService {
       .eq('status', status);
     
     if (error) {
-      console.error(`Error getting count for status ${status}:`, error);
+      error(`Error getting count for status ${status}:`, error);
       return 0;
     }
     
@@ -468,7 +469,7 @@ export class RetentionService {
       .eq('retention_type', type);
     
     if (error) {
-      console.error(`Error getting count for type ${type}:`, error);
+      error(`Error getting count for type ${type}:`, error);
       return 0;
     }
     
@@ -514,7 +515,7 @@ export class RetentionService {
       
       return true;
     } catch (error) {
-      console.error(`[RetentionService] Failed to send inactivity warning to ${email}:`, error);
+      error(`[RetentionService] Failed to send inactivity warning to ${email}:`, error);
       return false;
     }
   }
@@ -557,7 +558,7 @@ export class RetentionService {
       
       return true;
     } catch (error) {
-      console.error(`[RetentionService] Failed to send approaching inactive notification to ${email}:`, error);
+      error(`[RetentionService] Failed to send approaching inactive notification to ${email}:`, error);
       return false;
     }
   }
@@ -598,7 +599,7 @@ export class RetentionService {
       
       return true;
     } catch (error) {
-      console.error(`[RetentionService] Failed to send inactive account notification to ${email}:`, error);
+      error(`[RetentionService] Failed to send inactive account notification to ${email}:`, error);
       return false;
     }
   }
@@ -620,7 +621,7 @@ export class RetentionService {
       
       return data.id;
     } catch (error) {
-      console.error(`[RetentionService] Failed to get user ID for email ${email}:`, error);
+      error(`[RetentionService] Failed to get user ID for email ${email}:`, error);
       return null;
     }
   }
