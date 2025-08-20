@@ -118,7 +118,8 @@ export class ErrorReporter {
   /* istanbul ignore next -- environment specific */
   private initializeBrowserReporting(): void {
     /* istanbul ignore next -- integration optional */
-    if ((window as any).Sentry && process.env.NEXT_PUBLIC_SENTRY_DSN) {
+    // Skip Sentry completely in development for performance
+    if ((window as any).Sentry && process.env.NEXT_PUBLIC_SENTRY_DSN && process.env.NODE_ENV === 'production') {
       try {
         (window as any).Sentry.init({
           dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
@@ -159,7 +160,8 @@ export class ErrorReporter {
   /* istanbul ignore next -- environment specific */
   private async initializeServerReporting(): Promise<void> {
     /* istanbul ignore next -- integration optional */
-    if (process.env.SENTRY_DSN) {
+    // Skip Sentry completely in development for performance
+    if (process.env.SENTRY_DSN && process.env.NODE_ENV === 'production') {
       try {
         // Wrap in runtime guard to avoid bundling if not present
         // eslint-disable-next-line @typescript-eslint/no-var-requires

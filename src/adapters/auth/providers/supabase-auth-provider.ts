@@ -43,8 +43,10 @@ export class SupabaseAuthProvider implements AuthDataProvider {
   private mfaService: DefaultMfaService;
 
   private log(...args: unknown[]): void {
-    // Basic logging helper for debugging
-    console.log('[SupabaseAuthProvider]', ...args);
+    // Basic logging helper for debugging (only in dev)
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[SupabaseAuthProvider]', ...args);
+    }
   }
 
   private logError(...args: unknown[]): void {

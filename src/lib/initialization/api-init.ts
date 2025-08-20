@@ -36,13 +36,17 @@ export function initializeApiServices(): void {
 
         // Initialize the service locator
         initializeServiceLocator(serviceContainer as ServiceContainer);
-        console.log('[API Init] Server-side API services initialized successfully');
+        if (process.env.NODE_ENV === 'development') {
+          console.log('[API Init] Server-side API services initialized successfully');
+        }
       } catch (factoryError) {
         console.error('[API Init] Factory import failed - likely has client dependencies:', factoryError);
         // Continue without service initialization - API routes will handle gracefully
       }
     } else {
-      console.log('[API Init] Client-side initialization not needed for API services');
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[API Init] Client-side initialization not needed for API services');
+      }
     }
     
     apiInitialized = true;

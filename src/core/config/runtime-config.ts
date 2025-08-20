@@ -16,6 +16,9 @@ export function loadConfigFromFile(filePath = 'user-management.config.ts'): Part
   try {
     const resolved = path.resolve(process.cwd(), filePath);
     if (fs.existsSync(resolved)) {
+      // Use dynamic import with webpack comment to suppress warning
+      // This is intentionally dynamic to allow runtime configuration
+      /* webpackIgnore: true */
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       const fileConfig = require(resolved) as Partial<RuntimeConfig>;
       return fileConfig;

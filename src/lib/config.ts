@@ -78,7 +78,10 @@ export function validateConfig() {
       console.error("CRITICAL: Production server is missing required environment variables!");
     }
   } else {
-    console.log("[config.ts] Required environment variables validated.");
+    // Suppress during build
+    if (process.env.NODE_ENV === 'development') {
+      console.log("[config.ts] Required environment variables validated.");
+    }
   }
 
   return missingVariables.length === 0;
@@ -89,5 +92,7 @@ if (!isTest) {
   validateConfig();
 }
 
-// Log the final API configuration being used at runtime
-console.log(`[config.ts] Runtime API configured with baseUrl: ${apiConfig.baseUrl}`);
+// Log the final API configuration being used at runtime (only in dev)
+if (process.env.NODE_ENV === 'development') {
+  console.log(`[config.ts] Runtime API configured with baseUrl: ${apiConfig.baseUrl}`);
+}

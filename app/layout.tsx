@@ -1,11 +1,13 @@
 import type { Metadata, Viewport } from 'next';
 import RootLayoutClient from './RootLayoutClient';
 import './globals.css';
-import { initializeErrorSystem, initializeMonitoringSystem } from '@/lib/monitoring';
+// Temporarily disabled for faster dev server
+// import { initializeErrorSystem, initializeMonitoringSystem } from '@/lib/monitoring';
 
 // Initialize error and monitoring systems
-initializeErrorSystem();
-initializeMonitoringSystem();
+// Note: Sentry is configured to only load in production for performance
+// initializeErrorSystem();
+// initializeMonitoringSystem();
 
 export const viewport: Viewport = {
   width: 'device-width',

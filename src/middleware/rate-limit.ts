@@ -13,9 +13,12 @@ if (redisConfig.enabled && redisConfig.url && redisConfig.token) {
     token: redisConfig.token,
   });
 } else {
-  console.warn(
-    'Rate limiting is disabled: Redis URL or Token not configured in environment variables.'
-  );
+  // Suppress warning during build
+  if (process.env.NODE_ENV === 'development') {
+    console.warn(
+      'Rate limiting is disabled: Redis URL or Token not configured in environment variables.'
+    );
+  }
 }
 
 /** Basic configuration for rate limiting logic */

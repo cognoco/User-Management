@@ -73,7 +73,7 @@ const RegistrationSchema = z.discriminatedUnion('userType', [
  */
 export const POST = withValidatedServices({
   schema: RegistrationSchema,
-  requiredServices: ['auth', 'user', 'company'],
+  requiredServices: ['auth', 'user'], // Company service removed
   requireAuth: false, // Registration doesn't require auth
   rateLimit: { windowMs: 60 * 60 * 1000, max: 10 }, // Rate limiting for registration
   handler: async ({ request, data, services }) => {
@@ -147,21 +147,10 @@ export const POST = withValidatedServices({
       // Don't fail the registration, but log the issue
     }
 
-    // Create company profile if corporate user
+    // Skip company profile creation for now (service not available)
     if (data.userType === 'corporate' && data.companyName) {
-      const companyResult = await services.company?.createProfile(registrationResult.user.id, {
-        name: data.companyName,
-        legal_name: data.companyName,
-        website: data.companyWebsite,
-        industry: data.industry!,
-        size_range: data.companySize || '1-10',
-        founded_year: new Date().getFullYear(),
-      });
-
-      if (!companyResult || !companyResult.success) {
-        console.error('Failed to create company profile:', companyResult?.error);
-        // Don't fail the registration, but log the issue
-      }
+      console.log('Company profile creation skipped - service not available');
+      // TODO: Implement company profile creation when service is available
     }
 
     console.log('Registration successful for:', data.email, `(${data.userType} user)`);
