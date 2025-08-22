@@ -6,7 +6,7 @@ const RadioGroupPrimitive = {
   Indicator: dynamic(() => import('@radix-ui/react-radio-group').then(m => m.Indicator), { ssr: false }) as any,
 } as const;
 import { Circle } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils/cn';
 
 const RadioGroup = React.forwardRef<
   React.ElementRef<typeof RadioGroupPrimitive.Root>,

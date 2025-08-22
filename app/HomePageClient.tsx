@@ -158,27 +158,24 @@ export default function HomePageClient() {
         >
           {isAuthenticated ? (
             <div className="flex gap-4 flex-wrap justify-center">
-              <Link href="/dashboard">
-                <Button size="lg">{t('home.dashboard', 'Dashboard')}</Button>
-              </Link>
-              <Link href="/account/profile">
-                <Button size="lg" variant="outline">{t('home.viewProfile', 'View Profile')}</Button>
-              </Link>
-              <Link href="/organizations">
-                <Button size="lg" variant="outline">{t('home.organizations', 'Organizations')}</Button>
-              </Link>
+              <Button size="lg" asChild>
+                <Link href="/dashboard">{t('home.dashboard', 'Dashboard')}</Link>
+              </Button>
+              <Button size="lg" variant="outline" asChild>
+                <Link href="/account/profile">{t('home.viewProfile', 'View Profile')}</Link>
+              </Button>
+              <Button size="lg" variant="outline" asChild>
+                <Link href="/organizations">{t('home.organizations', 'Organizations')}</Link>
+              </Button>
             </div>
           ) : (
             <div className="flex gap-4 flex-wrap justify-center">
-              <Link href="/auth/register">
-                <Button size="lg">{t('home.getStarted', 'Get Started')}</Button>
-              </Link>
-              <Link href="/auth/login">
-                <Button size="lg" variant="outline">{t('home.signIn', 'Sign In')}</Button>
-              </Link>
-              <Link href="/auth/forgot-password">
-                <Button size="lg" variant="ghost">{t('home.forgotPassword', 'Forgot Password?')}</Button>
-              </Link>
+              <Button size="lg" asChild>
+                <Link href="/auth/register">{t('home.getStarted', 'Get Started')}</Link>
+              </Button>
+              <Button size="lg" variant="outline" asChild>
+                <Link href="/auth/login">{t('home.signIn', 'Sign In')}</Link>
+              </Button>
             </div>
           )}
         </Hero>
@@ -342,21 +339,21 @@ export default function HomePageClient() {
               </p>
               {isAuthenticated ? (
                 <div className="flex gap-4 justify-center flex-wrap">
-                  <Link href="/dashboard">
-                    <Button size="lg">Go to Dashboard</Button>
-                  </Link>
-                  <Link href="/organizations">
-                    <Button size="lg" variant="outline">Manage Organizations</Button>
-                  </Link>
+                  <Button size="lg" asChild>
+                    <Link href="/dashboard">Go to Dashboard</Link>
+                  </Button>
+                  <Button size="lg" variant="outline" asChild>
+                    <Link href="/organizations">Manage Organizations</Link>
+                  </Button>
                 </div>
               ) : (
                 <div className="flex gap-4 justify-center flex-wrap">
-                  <Link href="/auth/register">
-                    <Button size="lg">Create Account</Button>
-                  </Link>
-                  <Link href="/auth/login">
-                    <Button size="lg" variant="outline">Sign In</Button>
-                  </Link>
+                  <Button size="lg" asChild>
+                    <Link href="/auth/register">Create Account</Link>
+                  </Button>
+                  <Button size="lg" variant="outline" asChild>
+                    <Link href="/auth/login">Sign In</Link>
+                  </Button>
                 </div>
               )}
             </CardContent>

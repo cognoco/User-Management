@@ -8,7 +8,7 @@ const PopoverPrimitive = {
   Content: dynamic(() => import('@radix-ui/react-popover').then(m => m.Content), { ssr: false }) as any,
 } as const;
 
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils/cn';
 
 const Popover = PopoverPrimitive.Root;
 

@@ -1,0 +1,60 @@
+{
+  "rules": {
+    "no-restricted-syntax": [
+      "error",
+      {
+        "selector": "ExportAllDeclaration",
+        "message": "Barrel exports (export * from '...') are not allowed. They cause massive import chains and slow compilation. Use named exports instead."
+      },
+      {
+        "selector": "Program > ExportAllDeclaration:first-child",
+        "message": "Index files with barrel exports are discouraged. Consider using direct imports from specific files instead."
+      }
+    ],
+    "import/no-internal-modules": [
+      "warn",
+      {
+        "allow": [
+          "**/index",
+          "@/core/common/*",
+          "@/ui/primitives/*",
+          "@/ui/styled/*",
+          "@/ui/headless/*",
+          "@/lib/utils/*",
+          "@/services/*",
+          "@/adapters/*"
+        ]
+      }
+    ],
+    "import/no-cycle": [
+      "error",
+      {
+        "maxDepth": 3,
+        "ignoreExternal": true
+      }
+    ],
+    "import/no-useless-path-segments": [
+      "error",
+      {
+        "noUselessIndex": true
+      }
+    ]
+  },
+  "overrides": [
+    {
+      "files": ["**/index.ts", "**/index.tsx"],
+      "rules": {
+        "import/prefer-default-export": "off",
+        "import/no-default-export": "off"
+      }
+    }
+  ],
+  "settings": {
+    "import/resolver": {
+      "typescript": {
+        "alwaysTryTypes": true,
+        "project": "./tsconfig.json"
+      }
+    }
+  }
+}

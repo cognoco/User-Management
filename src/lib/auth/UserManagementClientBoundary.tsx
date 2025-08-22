@@ -9,7 +9,7 @@ import {
 import { initializeCsrf } from "@/lib/api/csrf";
 import { AuthService } from "@/core/auth/interfaces";
 import { getApiAuthService } from "@/services/auth/factory";
-import { User } from "@/core/auth/models";
+import { User } from '@/core/common/user-types';
 // Toast temporarily disabled to unblock production build; can re-enable with dynamic import
 // const Toaster = dynamic(() => import('react-hot-toast').then(m => m.Toaster), { ssr: false });
 // const toastPromise = import('react-hot-toast');

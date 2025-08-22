@@ -15,7 +15,7 @@ import { MFAVerificationForm } from './MFAVerificationForm';
 import { WebAuthnLogin } from '@/ui/styled/auth/WebAuthnLogin';
 import { LoginForm as HeadlessLoginForm } from '@/ui/headless/auth/LoginForm';
 import Link from 'next/link';
-import type { LoginPayload } from '@/core/auth/models';
+import { LoginPayload } from '@/core/common/user-types';
 
 interface LoginFormProps {
   onSubmit?: (credentials: LoginPayload) => Promise<void>;

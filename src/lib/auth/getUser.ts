@@ -1,4 +1,4 @@
-import type { User } from '@/core/auth/models';
+import { User } from '@/core/common/user-types';
 import { getApiAuthService } from '@/services/auth/factory';
 
 /**

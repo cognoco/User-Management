@@ -8,7 +8,7 @@ const ScrollAreaPrimitive = {
   ScrollAreaThumb: dynamic(() => import('@radix-ui/react-scroll-area').then(m => m.ScrollAreaThumb), { ssr: false }) as any,
 } as const;
 
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils/cn';
 
 const ScrollArea = React.forwardRef<
   React.ElementRef<typeof ScrollAreaPrimitive.Root>,

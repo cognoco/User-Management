@@ -73,7 +73,7 @@ const RegistrationSchema = z.discriminatedUnion('userType', [
  */
 export const POST = withValidatedServices({
   schema: RegistrationSchema,
-  requiredServices: ['auth', 'user'], // Company service removed
+  requiredServices: ['auth', 'user', 'company'],
   requireAuth: false, // Registration doesn't require auth
   rateLimit: { windowMs: 60 * 60 * 1000, max: 10 }, // Rate limiting for registration
   handler: async ({ request, data, services }) => {

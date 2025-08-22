@@ -24,7 +24,7 @@ const SelectPrimitive = {
   Separator: dynamic(() => import('@radix-ui/react-select').then(m => m.Separator), { ssr: false }) as any,
 } as const;
 
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils/cn';
 
 const Select = SelectPrimitive.Root;
 

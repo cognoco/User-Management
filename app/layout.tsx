@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import RootLayoutClient from './RootLayoutClient';
 import './globals.css';
-// Temporarily disabled for faster dev server
+// Temporarily disabled monitoring to improve compilation performance and memory usage
 // import { initializeErrorSystem, initializeMonitoringSystem } from '@/lib/monitoring';
 
 // Initialize error and monitoring systems

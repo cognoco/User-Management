@@ -1,6 +1,6 @@
 import { Button, type ButtonProps } from './button';
 import { Spinner } from './spinner';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils/cn';
 
 export interface LoadingButtonProps extends ButtonProps {
   isLoading?: boolean;

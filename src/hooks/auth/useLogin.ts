@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { AuthService } from '@/core/auth/interfaces';
-import { LoginPayload, AuthResult } from '@/core/auth/models';
+import { LoginPayload, AuthResult } from '@/core/common/user-types';
 import { UserManagementConfiguration } from '@/core/config';
 
 export interface UseLogin {

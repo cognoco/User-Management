@@ -5,7 +5,7 @@ const CheckboxPrimitive = {
   Indicator: dynamic(() => import('@radix-ui/react-checkbox').then(m => m.Indicator), { ssr: false }) as any,
 };
 const CheckIcon = dynamic(() => import('@radix-ui/react-icons').then(m => m.CheckIcon), { ssr: false }) as any;
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils/cn';
 
 // Simple implementation without any state management to avoid issues
 const Checkbox = React.forwardRef<

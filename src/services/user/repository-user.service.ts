@@ -7,7 +7,7 @@
  * throwing synchronous errors to keep consumers simple.
  */
 import type { AuthService } from '@/core/auth/interfaces';
-import type { LoginPayload, RegistrationPayload, AuthResult } from '@/core/auth/models';
+import { LoginPayload, RegistrationPayload, AuthResult } from '@/core/common/user-types';
 import type { IUserRepository } from '@/repositories/interfaces/IUserRepository';
 import type { User, CreateUserDto } from '@/types/user';
 

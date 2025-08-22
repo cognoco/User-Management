@@ -5,14 +5,7 @@ import type {
   OAuthUserProfile,
   OAuthProvider as ProviderId,
 } from '@/types/oauth';
-import type {
-  AuthResult,
-  LoginPayload,
-  RegistrationPayload,
-  MFASetupResponse,
-  MFAVerifyResponse,
-  User,
-} from '@/core/auth/models';
+import { AuthResult, LoginPayload, RegistrationPayload, User } from '@/core/common/user-types';
 
 /**
  * Extended authentication provider interface with OAuth specific operations.

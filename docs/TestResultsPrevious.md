@@ -1,6 +1,6 @@
 # Test Results
 
-**Passed Test Files:** 260  |  **Failed Test Files:** 205  |  **Skipped/Timeout Test Files:** 5
+**Passed Test Files:** 281  |  **Failed Test Files:** 186  |  **Skipped/Timeout Test Files:** 4
 
 ## Passing Test Files
 
@@ -39,6 +39,8 @@
 - app\api\auth\verify-reset-token\__tests__\route.test.ts
 - app\api\company\addresses\__tests__\route.test.ts
 - app\api\company\domains\__tests__\route.test.ts
+- app\api\company\verify-domain\check\__tests__\route.test.ts
+- app\api\company\verify-domain\initiate\__tests__\route.test.ts
 - app\api\health\__tests__\route.test.ts
 - app\api\openapi\__tests__\route.test.ts
 - app\api\profile\__tests__\route.test.ts
@@ -84,6 +86,8 @@
 - src\hooks\admin\__tests__\useSavedSearches.test.tsx
 - src\hooks\api-keys\__tests__\useApiKeys.test.tsx
 - src\hooks\audit\__tests__\useAuditLogs.test.tsx
+- src\hooks\auth\__tests__\useAuth.integration.test.ts
+- src\hooks\auth\__tests__\useAuth.test.ts
 - src\hooks\auth\__tests__\useLogin.test.ts
 - src\hooks\core\__tests__\useApi.test.ts
 - src\hooks\csrf\__tests__\useCsrf.test.tsx
@@ -164,6 +168,7 @@
 - src\repositories\__tests__\supabase-user.repository.test.ts
 - src\services\admin\__tests__\default-admin.service.test.ts
 - src\services\auth\__tests__\auth.store.test.ts
+- src\services\auth\__tests__\factory.fixed.test.ts
 - src\services\auth\__tests__\factory.minimal.test.ts
 - src\services\auth\__tests__\factory.test.ts
 - src\services\auth\__tests__\mfa-handler.test.ts
@@ -200,12 +205,28 @@
 - src\services\webhooks\__tests__\webhook-service.test.ts
 - src\tests\integration\account-settings-flow.test.tsx
 - src\tests\integration\admin-users-flow.test.tsx
+- src\tests\integration\api-error-messages.simplified.test.tsx
+- src\tests\integration\change-password.integration.test.tsx
 - src\tests\integration\collaboration-flow.test.tsx
 - src\tests\integration\connected-accounts.integration.test.tsx
 - src\tests\integration\dashboard-view-flow.test.tsx
+- src\tests\integration\empty-states.simplified.test.tsx
+- src\tests\integration\form-validation-errors-isolated.test.tsx
+- src\tests\integration\mfa-phase4.integration.test.ts
 - src\tests\integration\minimal.smoke.test.tsx
+- src\tests\integration\notification-delivery.integration.test.tsx
+- src\tests\integration\notification-flow.test.tsx
+- src\tests\integration\notification-preferences.integration.test.tsx
+- src\tests\integration\oauth-buttons.integration.test.tsx
 - src\tests\integration\organization-security-policy.integration.test.tsx
+- src\tests\integration\password-reset-flow.test.tsx
+- src\tests\integration\registration-flow.integration.test.tsx
+- src\tests\smoke\app.smoke.test.tsx
 - src\tests\smoke\billing.smoke.test.tsx
+- src\tests\smoke\login.smoke.test.tsx
+- src\tests\smoke\mfa-functions-exist.test.ts
+- src\tests\smoke\profile.smoke.test.tsx
+- src\tests\smoke\registration.smoke.test.tsx
 - src\tests\ui\DuplicateUIElements.test.tsx
 - src\tests\unit\mfa-service.test.ts
 - src\tests\utils\error-simulator.test.ts
@@ -284,8 +305,6 @@
 - app\api\company\profile\__tests__\route.test.ts
 - app\api\company\validate\__tests__\route.test.ts
 - app\api\company\validate\registration\__tests__\route.test.ts
-- app\api\company\verify-domain\check\__tests__\route.test.ts
-- app\api\company\verify-domain\initiate\__tests__\route.test.ts
 - app\api\organizations\[orgId]\__tests__\route.test.ts
 - app\api\organizations\[orgId]\members\__tests__\route.test.ts
 - app\api\organizations\[orgId]\sso\[idpType]\config\__tests__\route.test.ts
@@ -330,6 +349,7 @@
 - app\settings\sessions\__tests__\page.test.tsx
 - src\adapters\auth\__tests__\supabase-auth-provider.test.ts
 - src\adapters\database\factory\__tests__\database-factory.test.ts
+- src\components\ui\__tests__\QueryError.test.tsx
 - src\components\ui\errors\__tests__\ErrorDisplay.test.tsx
 - src\core\auth\__tests__\business-policies.test.tsx
 - src\core\common\__tests__\errors.test.ts
@@ -337,9 +357,6 @@
 - src\core\platform\__tests__\browser.spec.ts
 - src\core\platform\__tests__\platform.spec.ts
 - src\hooks\__tests__\useOptimistic.test.tsx
-- src\hooks\auth\__tests__\useAuth.integration.test.ts
-- src\hooks\auth\__tests__\useAuth.test.ts
-- src\hooks\auth\__tests__\useAuth.test.tsx
 - src\hooks\session\__tests__\useSession.test.tsx
 - src\hooks\team\__tests__\useTeamInvite.test.tsx
 - src\hooks\user\__tests__\useProfile.test.tsx
@@ -386,7 +403,6 @@
 - src\services\api-keys\__tests__\factory.test.ts
 - src\services\audit\__tests__\factory.test.ts
 - src\services\auth\__tests__\business-sso.test.tsx
-- src\services\auth\__tests__\factory.fixed.test.ts
 - src\services\auth\__tests__\refresh-token.service.test.ts
 - src\services\common\__tests__\service-error-handler.test.ts
 - src\services\company\__tests__\companyService.test.ts
@@ -403,23 +419,14 @@
 - src\tests\integration\account-switching-flow.test.tsx
 - src\tests\integration\api-error-messages.test.tsx
 - src\tests\integration\backup.integration.test.tsx
-- src\tests\integration\change-password.integration.test.tsx
 - src\tests\integration\data-management-flow.test.tsx
 - src\tests\integration\empty-states.test.tsx
 - src\tests\integration\error-recovery-flow.test.tsx
 - src\tests\integration\export-import-flow.test.tsx
 - src\tests\integration\feedback-submission-flow.test.tsx
 - src\tests\integration\file-upload-flow.test.tsx
-- src\tests\integration\form-validation-errors-isolated.test.tsx
 - src\tests\integration\form-validation-errors.test.tsx
 - src\tests\integration\login-mfa.integration.test.tsx
-- src\tests\integration\mfa-phase4.integration.test.ts
-- src\tests\integration\notification-delivery.integration.test.tsx
-- src\tests\integration\notification-flow.test.tsx
-- src\tests\integration\notification-preferences.integration.test.tsx
-- src\tests\integration\oauth-buttons.integration.test.tsx
-- src\tests\integration\password-reset-flow.test.tsx
-- src\tests\integration\registration-flow.integration.test.tsx
 - src\tests\integration\search-filter-flow.test.tsx
 - src\tests\integration\session-management.integration.test.tsx
 - src\tests\integration\social-sharing-flow.test.tsx
@@ -427,11 +434,6 @@
 - src\tests\integration\supabase-integration.test.ts
 - src\tests\integration\user-auth-flow.test.tsx
 - src\tests\integration\user-preferences-flow.test.tsx
-- src\tests\smoke\app.smoke.test.tsx
-- src\tests\smoke\login.smoke.test.tsx
-- src\tests\smoke\mfa-functions-exist.test.ts
-- src\tests\smoke\profile.smoke.test.tsx
-- src\tests\smoke\registration.smoke.test.tsx
 - src\ui\headless\admin\__tests__\UserRoleAssigner.test.tsx
 - src\ui\headless\audit\__tests__\BusinessFormErrorHandling.test.tsx
 - src\ui\headless\auth\__tests__\login-form.test.tsx
@@ -475,7 +477,6 @@
 
 ## Skipped/Timeout Test Files
 
-- src\components\ui\__tests__\QueryError.test.tsx (TIMEOUT)
 - src\tests\integration\theme-settings-flow.test.tsx (TIMEOUT)
 - src\ui\styled\auth\__tests__\OrganizationSSO.test.tsx (TIMEOUT)
 - src\ui\styled\profile\__tests__\ProfileEditor.test.tsx (TIMEOUT)

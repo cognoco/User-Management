@@ -5,14 +5,7 @@
  */
 
 import { useAuth } from '@/hooks/auth/useAuth';
-import type {
-  LoginPayload,
-  RegistrationPayload,
-  User,
-  AuthResult,
-  MFASetupResponse,
-  MFAVerifyResponse
-} from '@/core/auth/models';
+import { LoginPayload, RegistrationPayload, User, AuthResult } from '@/core/common/user-types';
 
 console.log('[DEPRECATED] auth.store.ts is being used. Please migrate to useAuth hook from @/hooks/auth/useAuth');
 

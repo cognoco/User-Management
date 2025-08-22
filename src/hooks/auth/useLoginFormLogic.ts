@@ -26,7 +26,7 @@ const safeUseSectionErrors = (_section: string): SectionError[] => [];
 const safeAddError = (_e: any) => {};
 const safeClearErrors = (_s: string) => {};
 
-import type { LoginPayload } from '@/core/auth/models';
+import { LoginPayload } from '@/core/common/user-types';
 
 export interface UseLoginFormLogicReturn {
   // The main onSubmit handler for the headless component

@@ -16,7 +16,7 @@ import { SubscriptionProviderConfig, SubscriptionTier } from '@/types/subscripti
 import { CorporateUserConfig, UserType } from '@/types/user-type';
 import { OAuthModuleConfig } from '@/types/oauth';
 // import { initializeCsrf } from '@/lib/api/axios'; // Removed unused import
-// import { LoginPayload, AuthResult } from '@/core/auth/models'; // Commented out
+// import { LoginPayload, AuthResult } from '@/core/common/user-types'; // Commented out
 import { PaletteProvider } from '@/ui/primitives/PaletteProvider';
 import { initializeNotifications } from '../services/notification.service';
 import { notificationPreferencesService } from '../services/notification-preferences.service';

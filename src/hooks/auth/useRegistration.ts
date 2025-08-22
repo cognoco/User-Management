@@ -7,7 +7,7 @@
 
 import { useState, useCallback } from 'react';
 import { AuthService } from '@/core/auth/interfaces';
-import { RegistrationPayload, AuthResult } from '@/core/auth/models';
+import { RegistrationPayload, AuthResult } from '@/core/common/user-types';
 import { UserManagementConfiguration } from '@/core/config';
 
 /**

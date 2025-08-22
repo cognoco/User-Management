@@ -28,7 +28,8 @@ import {
   InvalidRefreshTokenError,
   TokenRefreshError,
 } from '@/core/common/errors';
-import { saveRefreshToken, rotateRefreshToken } from '@/lib/auth/refresh-token-store';
+// Temporarily disabled - requires DATABASE_URL configuration
+// import { saveRefreshToken, rotateRefreshToken } from '@/lib/auth/refresh-token-store';
 
 import type { IAuthDataProvider as AuthDataProvider } from '../interfaces';
 
@@ -139,9 +140,10 @@ export class SupabaseAuthProvider implements AuthDataProvider {
       }
       
       this.currentSession = data.session;
-      if (data.session?.refresh_token && data.session.user?.id) {
-        await saveRefreshToken(data.session.user.id, data.session.refresh_token);
-      }
+      // Supabase handles refresh tokens internally, no need to store them separately
+      // if (data.session?.refresh_token && data.session.user?.id) {
+      //   await saveRefreshToken(data.session.user.id, data.session.refresh_token);
+      // }
       return {
         success: true,
         user: this.mapSupabaseUser(data.user)
@@ -237,9 +239,10 @@ export class SupabaseAuthProvider implements AuthDataProvider {
       }
       
       this.currentSession = data.session;
-      if (data.session?.refresh_token && data.user?.id) {
-        await saveRefreshToken(data.user.id, data.session.refresh_token);
-      }
+      // Supabase handles refresh tokens internally, no need to store them separately
+      // if (data.session?.refresh_token && data.user?.id) {
+      //   await saveRefreshToken(data.user.id, data.session.refresh_token);
+      // }
       return {
         success: true,
         user: this.mapSupabaseUser(data.user)
@@ -649,13 +652,14 @@ export class SupabaseAuthProvider implements AuthDataProvider {
         throw new TokenRefreshError('No session returned');
       }
       this.currentSession = data.session;
-      if (oldToken && data.session.refresh_token && userId) {
-        try {
-          await rotateRefreshToken(userId, oldToken, data.session.refresh_token);
-        } catch (err) {
-          this.logError('refresh token rotation failed', err);
-        }
-      }
+      // Supabase handles refresh token rotation internally
+      // if (oldToken && data.session.refresh_token && userId) {
+      //   try {
+      //     await rotateRefreshToken(userId, oldToken, data.session.refresh_token);
+      //   } catch (err) {
+      //     this.logError('refresh token rotation failed', err);
+      //   }
+      // }
       return {
         accessToken: data.session.access_token,
         refreshToken: data.session.refresh_token ?? '',
