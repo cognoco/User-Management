@@ -16,7 +16,7 @@ import { useOrgSsoConfig } from '@/hooks/sso/useOrgSsoConfig';
 import { Skeleton } from '@/ui/primitives/skeleton';
 import { CopyButton } from '@/ui/primitives/copy-button'; // Assuming you have this component
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/ui/primitives/tabs';
-import { isValidUrl } from '@/lib/utils'; // Assuming a utility function to validate URLs
+import { isValidUrl } from '@/lib/utils/isValidUrl';
 
 // SAML Schema
 const samlSchema = z.object({
