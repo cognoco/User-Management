@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, useCallback } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import '@/lib/i18n';
 
@@ -13,24 +13,63 @@ import { Label } from '@/ui/primitives/label';
 import { Alert, AlertDescription, AlertTitle } from '@/ui/primitives/alert';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/ui/primitives/card';
 
+interface PasswordRequirement {
+  text: string;
+  valid: boolean;
+}
+
+function getPasswordRequirements(pwd: string): PasswordRequirement[] {
+  return [
+    { text: 'At least 8 characters', valid: pwd.length >= 8 },
+    { text: 'At least one uppercase letter', valid: /[A-Z]/.test(pwd) },
+    { text: 'At least one lowercase letter', valid: /[a-z]/.test(pwd) },
+    { text: 'At least one number', valid: /\d/.test(pwd) },
+    { text: 'At least one special character', valid: /[^A-Za-z0-9]/.test(pwd) },
+  ];
+}
+
+function getPasswordStrength(pwd: string): 'weak' | 'medium' | 'strong' {
+  const reqs = getPasswordRequirements(pwd);
+  const validCount = reqs.filter(r => r.valid).length;
+  if (validCount >= 5) return 'strong';
+  if (validCount >= 3) return 'medium';
+  return 'weak';
+}
+
 export default function UpdatePasswordPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { t } = useTranslation();
   const [success, setSuccess] = useState<string | null>(null);
+
+  // Local state for form fields (not provided by usePasswordReset)
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [isTokenValid, setIsTokenValid] = useState<boolean | null>(null);
+  
+  // Verify token from URL on mount
+  useEffect(() => {
+    const token = searchParams.get('token');
+    // Token presence is treated as valid — server will reject if invalid
+    setIsTokenValid(!!token);
+  }, [searchParams]);
+
+  // Derived password state
+  const passwordRequirements = getPasswordRequirements(password);
+  const passwordStrength = getPasswordStrength(password);
+
+  const validatePasswords = useCallback((showErrors = true): boolean => {
+    void showErrors;
+    if (!password || password.length < 8) return false;
+    if (password !== confirmPassword) return false;
+    return passwordRequirements.every(r => r.valid);
+  }, [password, confirmPassword, passwordRequirements]);
   
   // Use our hook from the new architecture
   const { 
     updatePassword,
-    isTokenValid,
     isLoading,
     error,
-    password,
-    setPassword,
-    confirmPassword,
-    setConfirmPassword,
-    passwordRequirements,
-    passwordStrength,
-    validatePasswords
   } = usePasswordReset();
 
   // Handle form submission
@@ -42,8 +81,9 @@ export default function UpdatePasswordPage() {
       return;
     }
     
-    // Use our hook's updatePassword method
-    const result = await updatePassword(password);
+    // For token-based reset, old password is not required — pass empty string
+    // The server validates via the reset token in the URL
+    const result = await updatePassword('', password);
     
     if (result.success) {
       setSuccess('Password updated successfully! Redirecting to login...');
@@ -119,7 +159,7 @@ export default function UpdatePasswordPage() {
                 
                 {/* Password requirements */}
                 <ul className="text-xs mt-2 space-y-1">
-                  {passwordRequirements.map((req) => (
+                  {passwordRequirements.map((req: PasswordRequirement) => (
                     <li key={req.text} className="flex items-center">
                       <span className={req.valid ? 'text-green-500' : 'text-gray-500'}>
                         {req.valid ? '✓' : '○'} {req.text}

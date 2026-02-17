@@ -3,22 +3,34 @@
  *
  * Provides settings data and update handlers via render props.
  */
-import { useEffect } from 'react';
 import { useSettingsStore } from '@/lib/stores/settings.store';
 
 export interface SettingsPanelProps {
   render: (props: {
-    settings: any;
+    settings: {
+      theme: 'light' | 'dark' | 'system';
+      language: string;
+      notifications: { email: boolean; push: boolean; sms: boolean };
+      privacy: { showProfile: boolean; showActivity: boolean };
+    };
     isLoading: boolean;
     error: string | null;
-    updateSettings: (s: any) => Promise<void>;
+    updateSettings: (s: Partial<{
+      theme: 'light' | 'dark' | 'system';
+      language: string;
+    }>) => void;
   }) => React.ReactNode;
 }
 
 export function SettingsPanel({ render }: SettingsPanelProps) {
-  const { settings, isLoading, error, fetchSettings, updateSettings } = useSettingsStore();
+  const { theme, language, notifications, privacy, setTheme, setLanguage } = useSettingsStore();
 
-  useEffect(() => { fetchSettings(); }, [fetchSettings]);
+  const settings = { theme, language, notifications, privacy };
 
-  return <>{render({ settings, isLoading, error, updateSettings })}</>;
+  const updateSettings = (s: Partial<{ theme: 'light' | 'dark' | 'system'; language: string }>) => {
+    if (s.theme) setTheme(s.theme);
+    if (s.language) setLanguage(s.language);
+  };
+
+  return <>{render({ settings, isLoading: false, error: null, updateSettings })}</>;
 }

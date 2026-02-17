@@ -33,7 +33,7 @@ export const authOptions: Record<string, never> = {};
  * Create a Supabase client configured with the current request cookies.
  */
 export function getSupabaseServerClient(): SupabaseClient {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
 
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,

@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { Skeleton } from '@/ui/primitives/skeleton';
 import { Alert, AlertDescription } from '@/ui/primitives/alert';
 
@@ -7,7 +8,7 @@ import { RoleManager } from '@/ui/styled/permission/RoleManager';
 import { useRoles } from '@/hooks/team/useRoles';
 import { usePermissions } from '@/hooks/permission/usePermissions';
 
-export default function RolesManagementPageClient(): JSX.Element {
+export default function RolesManagementPageClient(): React.ReactElement {
   const {
     roles,
     isLoading: rolesLoading,
@@ -15,13 +16,12 @@ export default function RolesManagementPageClient(): JSX.Element {
     createRole,
     updateRole,
     deleteRole,
-    selectedRole,
-    setSelectedRole
+    currentRole: selectedRole,
+    setCurrentRole: setSelectedRole
   } = useRoles();
 
   const {
     permissions,
-    permissionCategories,
     isLoading: permissionsLoading,
     error: permissionsError
   } = usePermissions();
@@ -51,12 +51,11 @@ export default function RolesManagementPageClient(): JSX.Element {
         <RoleManager
           roles={roles || []}
           permissions={permissions || []}
-          permissionCategories={permissionCategories || []}
           selectedRole={selectedRole}
           onSelectRole={setSelectedRole}
-          onCreateRole={createRole}
-          onUpdateRole={updateRole}
-          onDeleteRole={deleteRole}
+          onCreateRole={async (data) => { await createRole(data); }}
+          onUpdateRole={async (id, data) => { await updateRole(id, data); }}
+          onDeleteRole={async (id) => { await deleteRole(id); }}
         />
       )}
     </div>

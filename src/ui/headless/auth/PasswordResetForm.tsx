@@ -88,8 +88,8 @@ export function PasswordResetForm({
   
   // Use external state if provided, otherwise use internal state
   const isLoading = externalIsLoading !== undefined ? externalIsLoading : authIsLoading || isSubmitting;
-  const formError = externalError !== undefined ? externalError : authError;
-  const formSuccessMessage = externalSuccessMessage !== undefined ? externalSuccessMessage : authSuccessMessage;
+  const formError = externalError !== undefined ? externalError : (authError ?? undefined);
+  const formSuccessMessage: string | undefined = externalSuccessMessage !== undefined ? externalSuccessMessage : (authSuccessMessage ?? undefined);
   
   // Validate email
   const validateEmail = () => {

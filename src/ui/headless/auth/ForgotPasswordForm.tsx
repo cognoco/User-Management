@@ -65,7 +65,7 @@ export function ForgotPasswordForm({
   render
 }: ForgotPasswordFormProps) {
   // Get authentication hook
-  const { forgotPassword, isLoading: authIsLoading, error: authError } = useAuth();
+  const { resetPassword: forgotPassword, isLoading: authIsLoading, error: authError } = useAuth();
   
   // Form state
   const [emailValue, setEmailValue] = useState(initialEmail);
@@ -81,7 +81,7 @@ export function ForgotPasswordForm({
   
   // Use external state if provided, otherwise use internal state
   const isLoading = externalIsLoading !== undefined ? externalIsLoading : authIsLoading || isSubmitting;
-  const formError = externalError !== undefined ? externalError : authError;
+  const formError = externalError !== undefined ? externalError : (authError ?? undefined);
   
   // Validate email
   const validateEmail = () => {

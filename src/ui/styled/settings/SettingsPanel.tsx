@@ -9,17 +9,25 @@ import { Alert } from '@/ui/primitives/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/ui/primitives/tabs';
 import { getPlatformClasses } from '@/hooks/utils/usePlatformStyles';
 import { useUserManagement } from '@/lib/auth/UserManagementProvider';
-import { Platform } from '@/types/platform';
 import { ProviderManagementPanel } from '@/ui/styled/auth/ProviderManagementPanel';
 
 export function SettingsPanel() {
   const { t } = useTranslation();
-  const { settings, isLoading, error, fetchSettings, updateSettings } = useSettingsStore();
+  const { theme, language, notifications, privacy, setTheme, setLanguage, updateNotifications, updatePrivacy } = useSettingsStore();
+  const settings = { theme, language, notifications, privacy };
+  const isLoading = false;
+  const error = null;
+  const updateSettings = (s: Record<string, unknown>) => {
+    if (s.theme) setTheme(s.theme as 'light' | 'dark' | 'system');
+    if (s.language) setLanguage(s.language as string);
+    if (s.notifications) updateNotifications(s.notifications as Partial<typeof notifications>);
+    if (s.privacy) updatePrivacy(s.privacy as Partial<typeof privacy>);
+  };
   const { platform, isNative } = useUserManagement();
 
   useEffect(() => {
-    fetchSettings();
-  }, [fetchSettings]);
+    // Settings are already loaded from store
+  }, []);
 
   const containerClasses = getPlatformClasses({
     base: "container mx-auto py-8",
@@ -144,7 +152,7 @@ export function SettingsPanel() {
                   />
                 </div>
 
-                {platform === Platform.MOBILE && (
+                {isNative && (
                   <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
                       <Label>{t('settings.preferences.mobileNotifications')}</Label>
@@ -153,7 +161,7 @@ export function SettingsPanel() {
                       </p>
                     </div>
                     <Switch
-                      checked={settings.notifications.mobile}
+                      checked={(settings.notifications as any).mobile ?? settings.notifications.push}
                       onCheckedChange={(checked: boolean) =>
                         updateSettings({
                           notifications: { ...settings.notifications, mobile: checked }
@@ -171,7 +179,7 @@ export function SettingsPanel() {
                     </p>
                   </div>
                   <Switch
-                    checked={settings.notifications.marketing}
+                    checked={(settings.notifications as any).marketing ?? false}
                     onCheckedChange={(checked: boolean) =>
                       updateSettings({
                         notifications: { ...settings.notifications, marketing: checked }
@@ -188,8 +196,8 @@ export function SettingsPanel() {
                 <div className="space-y-2">
                   <Label>{t('settings.preferences.profileVisibility')}</Label>
                   <Select
-                    value={settings.privacy.profileVisibility}
-                    onValueChange={(value: 'public' | 'private' | 'friends') =>
+                    value={(settings.privacy as any).profileVisibility ?? (settings.privacy.showProfile ? 'public' : 'private')}
+                    onValueChange={(value: string) =>
                       updateSettings({
                         privacy: { ...settings.privacy, profileVisibility: value }
                       })
@@ -214,7 +222,7 @@ export function SettingsPanel() {
                     </p>
                   </div>
                   <Switch
-                    checked={settings.privacy.showOnlineStatus}
+                    checked={(settings.privacy as any).showOnlineStatus ?? settings.privacy.showActivity}
                     onCheckedChange={(checked: boolean) =>
                       updateSettings({
                         privacy: { ...settings.privacy, showOnlineStatus: checked }

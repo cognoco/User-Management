@@ -8,5 +8,4 @@ import type { UserProfile } from '../../user/models';
  * This simply extends the existing {@link IUserRepository}
  * to make it part of the generic database interface collection.
  */
-export interface UserDatabaseInterface
-  extends BaseDatabaseInterface<UserProfile>, IUserRepository {}
+export interface UserDatabaseInterface extends IUserRepository {}

@@ -154,7 +154,7 @@ export class RoleHierarchyService {
     const inheritedPermissions = new Set<string>();
     permissionsResults.forEach(result => {
       if (result.data) {
-        result.data.forEach(p => inheritedPermissions.add(p.permission));
+        result.data.forEach((p: any) => inheritedPermissions.add(p.permission));
       }
     });
     
@@ -171,7 +171,7 @@ export class RoleHierarchyService {
       .select('permission')
       .eq('role_id', roleId);
     
-    const directPerms = directPermissions?.map(p => p.permission) || [];
+    const directPerms = directPermissions?.map((p: any) => p.permission) || [];
     
     // Get inherited permissions
     const inheritedPerms = await this.getInheritedPermissions(roleId);

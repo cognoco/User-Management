@@ -3,7 +3,7 @@ import { useDataExport } from '@/hooks/gdpr/useDataExport';
 
 export interface DataExportRequestProps {
   render: (props: {
-    requestExport: () => Promise<void>;
+    requestExport: () => Promise<string | null>;
     isLoading: boolean;
     error: string | null;
     downloadUrl: string | null;

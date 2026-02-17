@@ -22,7 +22,7 @@ import {
   PermissionEventHandler,
   PermissionEvent,
 } from "@/core/permission/events";
-import type { PermissionDataProvider } from "@/core/permission/IPermissionDataProvider";
+import type { IPermissionDataProvider as PermissionDataProvider } from "@/core/permission/IPermissionDataProvider";
 import { translateError } from "@/lib/utils/error";
 import { TypedEventEmitter } from "@/lib/utils/typed-event-emitter";
 import { permissionCacheService } from './permission-cache.service';
@@ -94,7 +94,7 @@ export class DefaultPermissionService
         const userRoles = await this.getUserRoles(userId);
         for (const userRole of userRoles) {
           const perms = await this.roleService.getEffectivePermissions(userRole.roleId);
-          if (perms.includes(permission)) {
+          if ((perms as string[]).includes(permission as string)) {
             return true;
           }
         }
@@ -385,7 +385,7 @@ await logPermissionChange({
         targetId: userId,
         after: userRole
       });
-      DefaultPermissionService.roleCache.delete(userId);
+      
       permissionCacheService.clearUser(userId);
 
       return userRole;
@@ -431,7 +431,7 @@ await logPermissionChange({
         targetId: userId,
         before: { roleId }
       });
-      DefaultPermissionService.roleCache.delete(userId);
+      
       permissionCacheService.clearUser(userId);
 
       return true;

@@ -22,7 +22,7 @@ export class SupabaseSessionProvider implements ISessionDataProvider {
   }
 
   async listUserSessions(userId: string): Promise<SessionInfo[]> {
-    const { data, error } = await this.supabase.auth.admin.listUserSessions(userId);
+    const { data, error } = await (this.supabase.auth.admin as any).listUserSessions(userId);
     if (error) {
       throw new Error(error.message);
     }
@@ -61,7 +61,7 @@ export class SupabaseSessionProvider implements ISessionDataProvider {
   }
 
   async deleteUserSession(userId: string, sessionId: string): Promise<SessionDeletionResult> {
-    const { error } = await this.supabase.auth.admin.deleteUserSession(userId, sessionId);
+    const { error } = await (this.supabase.auth.admin as any).deleteUserSession(userId, sessionId);
     if (error) {
       return { success: false, error: error.message };
     }

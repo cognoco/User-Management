@@ -39,7 +39,7 @@ export function getApiResourceRelationshipService(
 
   if (!resourceRelationshipServiceInstance) {
     // Check ServiceContainer first (respects host app overrides)
-    resourceRelationshipServiceInstance = getServiceContainer().resourceRelationship;
+    resourceRelationshipServiceInstance = getServiceContainer().resourceRelationship ?? null;
     
     // Fall back to adapter registry
     if (!resourceRelationshipServiceInstance) {

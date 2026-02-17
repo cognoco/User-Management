@@ -118,7 +118,7 @@ export async function hasPasswordExpired(
   
   if (error || !data?.last_password_change) return false;
   
-  const lastPasswordChange = new Date(data.last_password_change);
+  const lastPasswordChange = new Date((data as any).last_password_change);
   const now = new Date();
   
   // Calculate expiry date

@@ -13,8 +13,8 @@ import Link from 'next/link';
 import { Spinner } from '@/ui/primitives/spinner';
 import {
   LoginFormReact19 as HeadlessLoginFormReact19,
-  type LoginPayload
 } from '@/ui/headless/auth/LoginFormReact19';
+import type { LoginPayload } from '@/types/auth';
 
 export function LoginFormReact19() {
   const [apiError, setApiError] = useState<string | null>(null);

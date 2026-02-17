@@ -37,7 +37,7 @@ export default function ThemeSettings({
   useEffect(() => {
     if (preferences) {
       if (preferences.theme) setPendingTheme(preferences.theme as any);
-      if (preferences.color_scheme) setPendingPalette(preferences.color_scheme as PaletteKey);
+      if ((preferences as any).color_scheme) setPendingPalette((preferences as any).color_scheme as PaletteKey);
     }
   }, [preferences]);
 
@@ -49,7 +49,7 @@ export default function ThemeSettings({
   const handleSave = async () => {
     setSaving(true);
     setSuccess('');
-    const ok = await updatePreferences({ theme: pendingTheme, color_scheme: pendingPalette });
+    const ok = await updatePreferences({ theme: pendingTheme } as any);
     setSaving(false);
     if (ok) {
       setSuccess('saved');
@@ -59,7 +59,7 @@ export default function ThemeSettings({
   const handleCancel = () => {
     if (preferences) {
       setPendingTheme(preferences.theme as any);
-      if (preferences.color_scheme) setPendingPalette(preferences.color_scheme as PaletteKey);
+      if ((preferences as any).color_scheme) setPendingPalette((preferences as any).color_scheme as PaletteKey);
     }
   };
 

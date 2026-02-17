@@ -5,7 +5,8 @@
  */
 import { useEffect } from 'react';
 import { useConnectedAccountsStore } from '@/lib/stores/connected-accounts.store';
-import type { ConnectedAccount, OAuthProvider } from '@/types/connected-accounts';
+import type { ConnectedAccount } from '@/types/connected-accounts';
+import type { OAuthProvider } from '@/types/oauth';
 
 export interface ConnectedAccountsProps {
   render: (props: {
@@ -21,8 +22,8 @@ export function ConnectedAccounts({ render }: ConnectedAccountsProps) {
   const {
     accounts,
     fetchConnectedAccounts,
-    linkAccount,
-    unlinkAccount,
+    connectAccount: linkAccount,
+    disconnectAccount: unlinkAccount,
     isLoading,
     error,
   } = useConnectedAccountsStore();

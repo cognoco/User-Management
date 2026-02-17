@@ -127,14 +127,16 @@ export class SupabaseUserProvider implements IUserDataProvider {
       return {
         theme: 'light',
         language: 'en',
-        notifications: {
-          email: true,
-          push: true,
-          inApp: true
+        emailNotifications: {
+          marketing: false,
+          securityAlerts: true,
+          accountUpdates: true,
+          teamInvitations: true,
         },
-        timezone: 'UTC',
-        dateFormat: 'MM/DD/YYYY',
-        timeFormat: '12h'
+        pushNotifications: {
+          enabled: true,
+          events: [],
+        },
       };
     }
     
@@ -156,7 +158,8 @@ export class SupabaseUserProvider implements IUserDataProvider {
           user_id: userId,
           theme: preferences.theme,
           language: preferences.language,
-          notifications: preferences.notifications,
+          push_notifications: preferences.pushNotifications,
+          email_notifications: preferences.emailNotifications,
           timezone: preferences.timezone,
           date_format: preferences.dateFormat,
           time_format: preferences.timeFormat,
@@ -268,7 +271,7 @@ export class SupabaseUserProvider implements IUserDataProvider {
       }
       
       // Update the user's profile to remove the avatar URL
-      await this.updateUserProfile(userId, { avatarUrl: null });
+      await this.updateUserProfile(userId, { avatarUrl: undefined });
       
       return {
         success: true
@@ -314,12 +317,17 @@ export class SupabaseUserProvider implements IUserDataProvider {
       return {
         success: true,
         visibility: {
+          email: data.email_visible ? 'public' : 'private',
+          fullName: data.name_visible ? 'public' : 'private',
+          profilePicture: 'public',
+          companyInfo: 'private',
+          lastLogin: 'private',
           emailVisible: data.email_visible,
           nameVisible: data.name_visible,
           bioVisible: data.bio_visible,
           locationVisible: data.location_visible,
-          websiteVisible: data.website_visible
-        }
+          websiteVisible: data.website_visible,
+        } as ProfileVisibility
       };
     } catch (error: any) {
       return {
@@ -357,8 +365,10 @@ export class SupabaseUserProvider implements IUserDataProvider {
       }
       
       // Apply pagination
-      const from = params.page * params.pageSize;
-      const to = from + params.pageSize - 1;
+      const page = params.page ?? 0;
+      const pageSize = params.pageSize ?? 20;
+      const from = page * pageSize;
+      const to = from + pageSize - 1;
       
       query = query.range(from, to);
       
@@ -377,29 +387,24 @@ export class SupabaseUserProvider implements IUserDataProvider {
       }
       
       const totalCount = count || 0;
-      const totalPages = Math.ceil(totalCount / params.pageSize);
+      const totalPages = Math.ceil(totalCount / pageSize);
       
       const users = data.map(this.mapDbProfileToUserProfile);
       
       return {
         users,
-        pagination: {
-          page: params.page,
-          pageSize: params.pageSize,
-          totalCount,
-          totalPages
-        }
+        total: totalCount,
+        page,
+        limit: pageSize,
+        totalPages,
       };
     } catch (error: any) {
       return {
         users: [],
-        pagination: {
-          page: params.page,
-          pageSize: params.pageSize,
-          totalCount: 0,
-          totalPages: 0
-        },
-        error: error.message || 'An error occurred while searching users'
+        total: 0,
+        page: params.page ?? 0,
+        limit: params.pageSize ?? 20,
+        totalPages: 0,
       };
     }
   }
@@ -559,22 +564,17 @@ export class SupabaseUserProvider implements IUserDataProvider {
    */
   private mapDbProfileToUserProfile(dbProfile: any): UserProfile {
     return {
-      userId: dbProfile.user_id,
+      id: dbProfile.user_id || dbProfile.id,
       email: dbProfile.email,
       firstName: dbProfile.first_name,
       lastName: dbProfile.last_name,
-      displayName: dbProfile.display_name,
-      bio: dbProfile.bio,
-      location: dbProfile.location,
-      website: dbProfile.website,
+      fullName: dbProfile.display_name || [dbProfile.first_name, dbProfile.last_name].filter(Boolean).join(' ') || undefined,
       avatarUrl: dbProfile.avatar_url,
-      isActive: dbProfile.is_active,
-      accountType: dbProfile.account_type,
-      accountData: dbProfile.account_data,
-      createdAt: new Date(dbProfile.created_at),
-      updatedAt: new Date(dbProfile.updated_at),
-      deactivatedAt: dbProfile.deactivated_at ? new Date(dbProfile.deactivated_at) : null,
-      deactivationReason: dbProfile.deactivation_reason
+      isActive: dbProfile.is_active ?? true,
+      isVerified: dbProfile.is_verified ?? false,
+      userType: dbProfile.account_type || 'private',
+      createdAt: dbProfile.created_at ? new Date(dbProfile.created_at).toISOString() : undefined,
+      updatedAt: dbProfile.updated_at ? new Date(dbProfile.updated_at).toISOString() : undefined,
     };
   }
   
@@ -586,12 +586,23 @@ export class SupabaseUserProvider implements IUserDataProvider {
    */
   private mapDbPreferencesToUserPreferences(dbPreferences: any): UserPreferences {
     return {
-      theme: dbPreferences.theme,
-      language: dbPreferences.language,
-      notifications: dbPreferences.notifications,
-      timezone: dbPreferences.timezone,
-      dateFormat: dbPreferences.date_format,
-      timeFormat: dbPreferences.time_format
+      theme: dbPreferences.theme || 'light',
+      language: dbPreferences.language || 'en',
+      emailNotifications: dbPreferences.email_notifications || {
+        marketing: false,
+        securityAlerts: true,
+        accountUpdates: true,
+        teamInvitations: true,
+      },
+      pushNotifications: dbPreferences.push_notifications || {
+        enabled: true,
+        events: [],
+      },
+      additionalSettings: {
+        timezone: dbPreferences.timezone,
+        dateFormat: dbPreferences.date_format,
+        timeFormat: dbPreferences.time_format,
+      },
     };
   }
 }

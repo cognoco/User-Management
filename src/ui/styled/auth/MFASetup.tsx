@@ -37,6 +37,13 @@ export interface StyledMFASetupProps extends Omit<MFASetupProps, 'render'> {
   className?: string;
 }
 
+// Default available MFA methods
+const DEFAULT_MFA_METHODS = [
+  { id: 'totp', name: 'Authenticator App', description: 'Use an authenticator app like Google Authenticator' },
+  { id: 'email', name: 'Email', description: 'Receive codes via email' },
+  { id: 'sms', name: 'SMS', description: 'Receive codes via text message' },
+];
+
 export function MFASetup({
   title = 'Set Up Two-Factor Authentication',
   description = 'Add an extra layer of security to your account',
@@ -44,25 +51,40 @@ export function MFASetup({
   className,
   ...headlessProps
 }: StyledMFASetupProps) {
+  const [selectedMethod, setSelectedMethod] = React.useState('totp');
+  const availableMethods = DEFAULT_MFA_METHODS;
+
+  const handleBackupCodeDownload = (codes: string[]) => {
+    const content = codes.join('\n');
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'backup-codes.txt';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleBackupCodeCopy = (codes: string[]) => {
+    navigator.clipboard.writeText(codes.join('\n'));
+  };
+
   return (
     <HeadlessMFASetup
       {...headlessProps}
       render={({
-        handleSubmit,
+        setupState,
+        handleVerifyCode: handleSubmit,
         verificationCode,
         setVerificationCode,
-        selectedMethod,
-        setSelectedMethod,
-        availableMethods,
-        qrCodeUrl,
-        secretKey,
-        isSubmitting,
-        isSuccess,
+        qrCode: qrCodeUrl,
+        secret: secretKey,
+        isLoading: isSubmitting,
         errors,
         backupCodes,
-        handleBackupCodeDownload,
-        handleBackupCodeCopy
-      }) => (
+      }) => {
+        const isSuccess = setupState === 'complete';
+        return (
         <Card className={className}>
           <CardHeader>
             <CardTitle>{title}</CardTitle>
@@ -97,14 +119,14 @@ export function MFASetup({
                     <div className="flex space-x-2">
                       <Button 
                         variant="outline" 
-                        onClick={handleBackupCodeDownload}
+                        onClick={() => backupCodes && handleBackupCodeDownload(backupCodes)}
                         className="text-sm"
                       >
                         Download Codes
                       </Button>
                       <Button 
                         variant="outline" 
-                        onClick={handleBackupCodeCopy}
+                        onClick={() => backupCodes && handleBackupCodeCopy(backupCodes)}
                         className="text-sm"
                       >
                         Copy Codes
@@ -122,7 +144,7 @@ export function MFASetup({
                     onValueChange={setSelectedMethod}
                     className="space-y-2"
                   >
-                    {availableMethods.map((method) => (
+                    {availableMethods.map((method: { id: string; name: string; description: string }) => (
                       <div key={method.id} className="flex items-center space-x-2">
                         <RadioGroupItem value={method.id} id={method.id} />
                         <Label htmlFor={method.id} className="font-normal">
@@ -228,7 +250,8 @@ export function MFASetup({
           
           {footer && <CardFooter>{footer}</CardFooter>}
         </Card>
-      )}
+        );
+      }}
     />
   );
 }

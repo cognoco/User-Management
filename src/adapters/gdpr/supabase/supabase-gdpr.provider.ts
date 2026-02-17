@@ -51,19 +51,20 @@ export class SupabaseGdprProvider implements IGdprDataProvider {
   /** @inheritdoc */
   async generateUserExport(userId: string): Promise<UserDataExport | null> {
     const { data, error } = await this.supabase.auth.admin.getUserById(userId);
-    if (error || !data) {
+    if (error || !data?.user) {
       return null;
     }
 
+    const user = data.user;
     const exportData = {
-      userId: data.id,
-      email: data.email,
-      createdAt: data.created_at,
-      lastSignInAt: data.last_sign_in_at,
+      userId: user.id,
+      email: user.email,
+      createdAt: user.created_at,
+      lastSignInAt: user.last_sign_in_at,
     } as Record<string, any>;
 
-    const filename = `user_data_export_${data.id}_${Date.now()}.json`;
-    return { userId: data.id, filename, data: exportData };
+    const filename = `user_data_export_${user.id}_${Date.now()}.json`;
+    return { userId: user.id, filename, data: exportData };
   }
 
   /** @inheritdoc */

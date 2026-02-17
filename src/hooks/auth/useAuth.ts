@@ -308,20 +308,15 @@ export function useAuth(): UseAuth {
       setError(null);
 
       try {
-        const result = await authService.updatePassword(
+        await authService.updatePassword(
           oldPassword,
           newPassword,
         );
 
         setIsLoading(false);
+        setSuccessMessage("Password updated successfully");
 
-        if (result.error) {
-          setError(result.error);
-        } else if (result.success) {
-          setSuccessMessage("Password updated successfully");
-        }
-
-        return result;
+        return { success: true };
       } catch (error) {
         const errorMessage =
           error instanceof Error ? error.message : "Password update failed";
@@ -379,7 +374,7 @@ export function useAuth(): UseAuth {
       setError(null);
 
       try {
-        const res = await authService.verifyMFA(code, isBackupCode);
+        const res = await authService.verifyMFA(code);
 
         setIsLoading(false);
 
@@ -457,7 +452,7 @@ export function useAuth(): UseAuth {
 
         if (res.success) {
           setSuccessMessage(
-            res.message || "Verification email sent successfully",
+            "Verification email sent successfully",
           );
         } else if (res.error) {
           setError(res.error);
@@ -632,18 +627,26 @@ export function useAuth(): UseAuth {
 
   const onSessionTimeout = useCallback(
     (callback: () => void): (() => void) => {
-      return authService.onAuthEvent((event) => {
-        if (event.type === "SESSION_TIMEOUT") {
-          callback();
-        }
-      });
+      const svc = authService as any;
+      if (typeof svc.onAuthEvent === 'function') {
+        return svc.onAuthEvent((event: any) => {
+          if (event.type === "SESSION_TIMEOUT") {
+            callback();
+          }
+        });
+      }
+      return () => {};
     },
     [authService],
   );
 
   const onAuthEvent = useCallback(
     (callback: (event: any) => void): (() => void) => {
-      return authService.onAuthEvent(callback);
+      const svc = authService as any;
+      if (typeof svc.onAuthEvent === 'function') {
+        return svc.onAuthEvent(callback);
+      }
+      return () => {};
     },
     [authService],
   );

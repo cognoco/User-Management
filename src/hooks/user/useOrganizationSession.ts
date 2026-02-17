@@ -101,9 +101,9 @@ export function useTerminateUserSessions(orgId: string) {
     setCount(null);
     const { data, error } = await supabase.rpc('terminate_user_sessions', { user_id: userId, organization_id: orgId });
     if (error) setError(error.message);
-    setCount(data?.count || 0);
+    setCount((data as any)?.count || 0);
     setLoading(false);
-    return { count: data?.count || 0, error };
+    return { count: (data as any)?.count || 0, error };
   }, [orgId]);
 
   return { terminateUserSessions, loading, error, count };

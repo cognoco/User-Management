@@ -14,6 +14,7 @@ import type {
   PermissionAssignment,
   RoleCreationPayload,
   RoleUpdatePayload,
+  ResourcePermission,
 } from "./models";
 import type { PermissionEventHandler } from "./events";
 

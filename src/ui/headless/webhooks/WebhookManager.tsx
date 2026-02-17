@@ -34,17 +34,17 @@ export function WebhookManager({ userId, children }: WebhookManagerProps) {
   }, [fetchWebhooks]);
 
   const create = async (payload: WebhookCreatePayload) => {
-    await (createWebhook.mutateAsync ? createWebhook.mutateAsync(payload) : createWebhook(payload));
+    await createWebhook.mutateAsync(payload);
     await fetchWebhooks();
   };
 
   const update = async (id: string, payload: WebhookUpdatePayload) => {
-    await (updateWebhook.mutateAsync ? updateWebhook.mutateAsync({ id, ...payload }) : updateWebhook({ id, ...payload }));
+    await updateWebhook.mutateAsync({ id, ...payload });
     await fetchWebhooks();
   };
 
   const remove = async (id: string) => {
-    await (deleteWebhook.mutateAsync ? deleteWebhook.mutateAsync(id) : deleteWebhook(id));
+    await deleteWebhook.mutateAsync(id);
     await fetchWebhooks();
   };
 

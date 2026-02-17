@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/auth/useAuth';
-import type { PermissionValues } from '@/core/permission/models';
+import type { Permission } from '@/core/permission/models';
 
-export function usePermission(permission: PermissionValues | PermissionValues[]) {
+export function usePermission(permission: Permission | Permission[]) {
   const { user } = useAuth();
   const [hasPermission, setHasPermission] = useState(false);
   const [loading, setLoading] = useState(true);

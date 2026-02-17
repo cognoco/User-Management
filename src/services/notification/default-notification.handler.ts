@@ -76,7 +76,7 @@ export class DefaultNotificationHandler implements NotificationHandler {
     
     try {
       // Create notification options
-      const options: NotificationOptions = {
+      const options: NotificationOptions & Record<string, any> = {
         body: payload.message,
         icon: '/logo.png', // Default icon
         badge: '/badge.png', // Default badge

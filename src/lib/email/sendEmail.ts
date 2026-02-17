@@ -5,7 +5,7 @@ export async function sendEmail({ to, subject, html, options }: EmailParams): Pr
   // Email sending is only available on server side
   if (typeof window !== 'undefined') {
     console.warn('Email sending attempted on client side - skipping');
-    return { success: false, error: 'Email sending not available on client side' };
+    return { success: false, provider: 'none', error: 'Email sending not available on client side' };
   }
   
   const provider = options?.provider || process.env.EMAIL_PROVIDER || 'nodemailer';

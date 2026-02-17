@@ -1,5 +1,6 @@
 import { ReactNode, useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/auth/useAuth';
+import { api } from '@/lib/api/axios';
 
 /**
  * Headless OAuthCallback component that handles behavior only
@@ -102,7 +103,14 @@ export const OAuthCallback = ({
   children
 }: OAuthCallbackProps) => {
   // Get authentication hook
-  const { handleOAuthCallback, isLoading: authIsLoading, error: authError } = useAuth();
+  const { isLoading: authIsLoading, error: authError } = useAuth();
+
+  // OAuth callback handler (not yet in useAuth)
+  const handleOAuthCallback = async (params: { code: string; state: string; provider: string; callbackUrl?: string }) => {
+    const res = await api.post('/auth/oauth/callback', params);
+    const data = res.data as { success: boolean; user?: { id: string; email: string; name?: string; avatarUrl?: string; provider: string }; userData?: { id: string; email: string; name?: string; avatarUrl?: string; provider: string }; error?: string };
+    return { ...data, userData: data.userData ?? data.user };
+  };
   
   // State
   const [status, setStatus] = useState<'loading' | 'success' | 'error' | 'canceled'>('loading');
@@ -117,7 +125,7 @@ export const OAuthCallback = ({
 
   // Use external state if provided, otherwise use internal state
   const isLoading = externalIsLoading !== undefined ? externalIsLoading : authIsLoading || isSubmitting;
-  const error = externalError !== undefined ? externalError : authError;
+  const error = externalError !== undefined ? externalError : (authError ?? undefined);
 
   // Handle OAuth callback
   const processOAuthCallback = async () => {

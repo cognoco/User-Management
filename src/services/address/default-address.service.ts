@@ -67,14 +67,16 @@ export class DefaultAddressService implements AddressService {
 
   /** @inheritdoc */
   async getAddresses(userId: string): Promise<Address[]> {
-    const list = await this.provider.getAddresses(userId);
-    return list.map(a => this.mapToAddress(a));
+    const result = await this.provider.getAddresses(userId);
+    const list = Array.isArray(result) ? result : (result as any).addresses ?? [];
+    return list.map((a: any) => this.mapToAddress(a));
   }
 
   /** @inheritdoc */
   async getAddress(id: string, userId: string): Promise<Address> {
-    const list = await this.provider.getAddresses(userId);
-    const found = list.find(a => a.id === id);
+    const result = await this.provider.getAddresses(userId);
+    const list = Array.isArray(result) ? result : (result as any).addresses ?? [];
+    const found = list.find((a: any) => a.id === id);
     if (!found) {
       throw new Error('Address not found');
     }

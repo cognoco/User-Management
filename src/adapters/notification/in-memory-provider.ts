@@ -240,9 +240,7 @@ export class InMemoryNotificationProvider implements INotificationDataProvider {
       sentAt: notif.sentAt,
       deliveredAt: notif.deliveredAt,
       readAt: notif.readAt,
-      error: notif.error,
-      attempts: notif.attempts,
-      nextRetry: notif.nextRetry,
+      // error, attempts, nextRetry are not in Notification interface
     };
   }
 

@@ -1,5 +1,6 @@
 import { ReactNode, useState, useEffect, FormEvent } from 'react';
 import { useAuth } from '@/hooks/auth/useAuth';
+import { api } from '@/lib/api/axios';
 
 /**
  * Headless OrganizationSSO component that handles behavior only
@@ -114,14 +115,25 @@ export const OrganizationSSO = ({
   error: externalError,
   children
 }: OrganizationSSOProps) => {
-  // Get authentication hook
-  const { 
-    getOrganizationSSOProviders, 
-    getOrganizationByDomain,
-    initiateOrganizationSSO,
-    isLoading: authIsLoading, 
-    error: authError 
-  } = useAuth();
+  // Get authentication hook — only use what exists in UseAuth
+  const { isLoading: authIsLoading, error: authError } = useAuth();
+
+  // Org SSO API helpers (not yet in useAuth)
+  const getOrganizationSSOProviders = async (orgId: string) => {
+    const res = await api.get(`/organizations/${orgId}/sso/providers`);
+    return res.data;
+  };
+
+  const getOrganizationByDomain = async (domain: string) => {
+    const res = await api.get(`/organizations/by-domain/${domain}`);
+    return res.data;
+  };
+
+  const initiateOrganizationSSO = async (params: { organizationId: string; providerId: string }) => {
+    const { organizationId: orgId, providerId } = params;
+    const res = await api.post(`/organizations/${orgId}/sso/initiate`, { providerId });
+    return res.data;
+  };
   
   // State
   const [organization, setOrganization] = useState<{
@@ -137,7 +149,7 @@ export const OrganizationSSO = ({
 
   // Use external state if provided, otherwise use internal state
   const isLoading = externalIsLoading !== undefined ? externalIsLoading : authIsLoading || isSubmitting;
-  const error = externalError !== undefined ? externalError : authError;
+  const error = externalError !== undefined ? externalError : (authError ?? undefined);
 
   // Load organization and SSO providers
   const loadOrganizationAndProviders = async (orgId?: string, domain?: string) => {

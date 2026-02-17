@@ -22,7 +22,7 @@ export function createCsrfProvider(config?: {
     return createDefaultCsrfProvider();
   }
   if (config.type === 'supabase') {
-    return createSupabaseCsrfProvider(config.options || {});
+    return createSupabaseCsrfProvider((config.options || {}) as { supabaseUrl: string; supabaseKey: string; [key: string]: any });
   }
   throw new Error(`Unsupported CSRF provider type: ${config.type}`);
 }

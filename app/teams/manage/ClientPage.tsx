@@ -21,20 +21,20 @@ export default function TeamManagementPageClient() {
   // Use our hooks from the new architecture
   const {
     teams,
-    selectedTeam,
-    setSelectedTeam,
+    currentTeam: selectedTeam,
+    setCurrentTeam: setSelectedTeam,
     isLoading: teamsLoading,
     error: teamsError
   } = useTeams();
   
   const {
     members,
-    addMember,
-    removeMember,
-    updateMemberRole,
+    addTeamMember: addMember,
+    removeTeamMember: removeMember,
+    updateTeamMember: updateMemberRole,
     isLoading: membersLoading,
     error: membersError
-  } = useTeamMembers(teamId);
+  } = useTeamMembers(teamId || '');
   
   // Combine loading and error states
   const isLoading = teamsLoading || membersLoading;
@@ -109,10 +109,8 @@ export default function TeamManagementPageClient() {
           
           <TeamMemberManager
             teamId={selectedTeam.id}
-            members={members || []}
-            onAddMember={addMember}
-            onRemoveMember={removeMember}
-            onUpdateMemberRole={updateMemberRole}
+            onRemoveMember={async (userId: string) => { await removeMember(userId); }}
+            onUpdateMember={async (userId: string, data: { role: string }) => { await updateMemberRole(userId, data); }}
             footer={
               <div className="flex justify-between w-full">
                 <Button

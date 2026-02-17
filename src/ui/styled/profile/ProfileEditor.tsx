@@ -29,7 +29,7 @@ export function ProfileEditor() {
         location: (profile as any).location ?? '',
         website: profile.website ?? ''
       });
-      setAvatarPreview((profile as any).avatarUrl ?? profile.avatar_url ?? null);
+      setAvatarPreview((profile as any).avatarUrl ?? profile.avatarUrl ?? null);
     }
   }, [profile]);
 
@@ -61,7 +61,7 @@ export function ProfileEditor() {
       const canvas = cropperRef.current.getCroppedCanvas();
       canvas.toBlob(async (blob) => {
         if (blob) {
-          await uploadAvatar(blob);
+          await uploadAvatar(new File([blob], 'avatar.jpg', { type: blob.type }));
           setAvatarPreview(canvas.toDataURL());
         }
       });

@@ -35,13 +35,15 @@ export function initializeMonitoringSystem(config: MonitoringConfig = {}): void 
     }
   }
 
-  telemetry.addAlertNotifier(alert => {
-    const error = new ApplicationError(
-      alert.errorType as any,
-      alert.message,
-      alert.severity === 'critical' ? 500 : 400,
-    );
-    manager.registerError(error);
+  telemetry.addAlertNotifier({
+    notify(alert) {
+      const error = new ApplicationError(
+        alert.errorType as any,
+        alert.message,
+        alert.severity === 'critical' ? 500 : 400,
+      );
+      manager.registerError(error);
+    }
   });
 }
 

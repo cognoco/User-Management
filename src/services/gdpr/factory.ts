@@ -37,7 +37,7 @@ export function getApiGdprService(options: GdprServiceOptions = {}): GdprService
     gdprServiceInstance = new DefaultGdprService(gdprDataProvider);
   }
 
-  return gdprServiceInstance;
+  return gdprServiceInstance!;
 }
 
 /**

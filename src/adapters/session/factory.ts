@@ -19,7 +19,7 @@ export function createSessionProvider(config: {
 }): ISessionDataProvider {
   switch (config.type) {
     case 'supabase':
-      return createSupabaseSessionProvider(config.options);
+      return createSupabaseSessionProvider(config.options as { supabaseUrl: string; supabaseKey: string; [key: string]: any });
     default:
       throw new Error(`Unsupported session provider type: ${config.type}`);
   }

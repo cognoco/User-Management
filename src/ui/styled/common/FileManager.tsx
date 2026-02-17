@@ -245,7 +245,7 @@ const FileManager: React.FC<FileManagerProps> = ({
                         type="button"
                         className="text-primary font-medium hover:underline"
                         onClick={() => handleNavigate(file.name.replace(/\/$/, ''))}
-                        aria-label={t('fileManager.openFolder', { folder: file.name }, 'Open folder {{folder}}')}
+                        aria-label={t('fileManager.openFolder', { folder: file.name, defaultValue: 'Open folder {{folder}}' })}
                       >
                         {file.name}
                       </button>
@@ -264,7 +264,7 @@ const FileManager: React.FC<FileManagerProps> = ({
                         rel="noopener noreferrer"
                         className="ml-2 text-primary underline"
                         role="link"
-                        aria-label={t('fileManager.download', { file: file.name }, 'Download {{file}}')}
+                        aria-label={t('fileManager.download', { file: file.name, defaultValue: 'Download {{file}}' })}
                       >
                         {t('fileManager.download', 'Download')}
                       </a>
@@ -272,7 +272,7 @@ const FileManager: React.FC<FileManagerProps> = ({
                         type="button"
                         size="sm"
                         variant="ghost"
-                        aria-label={t('fileManager.rename', { file: file.name }, 'Rename {{file}}')}
+                        aria-label={t('fileManager.rename', { file: file.name, defaultValue: 'Rename {{file}}' })}
                         onClick={() => setRenameDialog({ open: true, file })}
                       >
                         {t('fileManager.rename', 'Rename')}
@@ -281,7 +281,7 @@ const FileManager: React.FC<FileManagerProps> = ({
                         type="button"
                         size="sm"
                         variant="destructive"
-                        aria-label={t('fileManager.delete', { file: file.name }, 'Delete {{file}}')}
+                        aria-label={t('fileManager.delete', { file: file.name, defaultValue: 'Delete {{file}}' })}
                         onClick={() => setDeleteDialog({ open: true, file })}
                       >
                         {t('fileManager.delete', 'Delete')}
@@ -300,7 +300,7 @@ const FileManager: React.FC<FileManagerProps> = ({
           <AlertDialogHeader>
             <AlertDialogTitle>{t('fileManager.confirmDelete', 'Confirm Deletion')}</AlertDialogTitle>
           </AlertDialogHeader>
-          <div>{t('fileManager.confirmDeleteMessage', { file: deleteDialog.file?.name }, { defaultValue: 'Are you sure you want to delete {{file}}?' })}</div>
+          <div>{t('fileManager.confirmDeleteMessage', { file: deleteDialog.file?.name, defaultValue: 'Are you sure you want to delete {{file}}?' })}</div>
           <AlertDialogFooter>
             <AlertDialogCancel asChild>
               <Button type="button" variant="outline">{t('common.cancel', 'Cancel')}</Button>

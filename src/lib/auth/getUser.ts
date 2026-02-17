@@ -56,14 +56,12 @@ export async function getUser(): Promise<User | null> {
     console.log('[DEV/TEST] Returning mock user');
     return {
       id: 'mock-user-id',
-      name: 'Mock Admin',
+      firstName: 'Mock',
+      lastName: 'Admin',
       email: 'admin@example.com',
-      role: 'ADMIN',
-      emailVerified: true,
-      image: null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    } as any;
   }
   
   const now = Date.now();

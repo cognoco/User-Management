@@ -32,16 +32,16 @@ export function TeamInviteDialog({ teamId, children }: TeamInviteDialogProps) {
     }
   }, [teamId, fetchTeamInvitations]);
 
-  const invitationsWithExpiry = teamInvitations.map((inv) => ({
+  const invitationsWithExpiry: (typeof teamInvitations[0] & { isExpired: boolean })[] = teamInvitations.map((inv) => ({
     ...inv,
-    isExpired: inv.status === InvitationStatus.EXPIRED || (inv.expiresAt && new Date(inv.expiresAt) < new Date())
+    isExpired: Boolean(inv.status === InvitationStatus.EXPIRED || (inv.expiresAt && new Date(inv.expiresAt) < new Date()))
   }));
 
   return children({
     invitations: invitationsWithExpiry,
-    resend: resendInvitation,
-    cancel: cancelInvitation,
-    refresh: () => fetchTeamInvitations(teamId),
+    resend: async (id: string) => { await resendInvitation(id); },
+    cancel: async (id: string) => { await cancelInvitation(id); },
+    refresh: async () => { await fetchTeamInvitations(teamId); },
     isLoading,
     error
   });

@@ -3,6 +3,7 @@ import {
   ErrorCode,
   SERVER_ERROR,
   AUTH_ERROR,
+  RELATIONSHIP_ERROR,
 } from "./error-codes";
 import type { ErrorSeverity } from "./error-code-registry";
 

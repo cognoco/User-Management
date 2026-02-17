@@ -7,6 +7,7 @@
 
 import { useState } from 'react';
 import { useAuth } from '@/hooks/auth/useAuth';
+import { api } from '@/lib/api/axios';
 
 export interface BackupCodesDisplayProps {
   /**
@@ -70,7 +71,12 @@ export function BackupCodesDisplay({
   render
 }: BackupCodesDisplayProps) {
   // Get authentication hook
-  const { generateBackupCodes, isLoading: authIsLoading, error: authError } = useAuth();
+  const { isLoading: authIsLoading, error: authError } = useAuth();
+  const generateBackupCodes = async (): Promise<string[]> => {
+    const res = await api.post('/auth/mfa/backup-codes/regenerate');
+    const data = res.data as { success: boolean; backupCodes?: string[] };
+    return data.backupCodes ?? [];
+  };
   
   // State
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -92,11 +98,7 @@ export function BackupCodesDisplay({
         onGenerateNewCodes();
       } else {
         // Use default auth hook
-        const result = await generateBackupCodes();
-        
-        if (result.error) {
-          setError(result.error);
-        }
+        await generateBackupCodes();
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to generate new backup codes';

@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withRouteAuth, type RouteAuthContext, type RouteAuthOptions } from './auth';
 import { createAuthApiError } from './auth-errors';
 import { createErrorResponse } from '@/lib/api/common/response-formatter';
-import { isPermission, type Permission } from '@/lib/rbac/roles';
+import { isPermission } from '@/lib/rbac/roles';
+import type { Permission } from '@/core/permission/models';
 
 export interface ResourcePermissionOptions<TParams = any> {
   permission: string;
@@ -16,7 +17,7 @@ export function withResourcePermission<TParams = any>(
   return (req: NextRequest, ctx: { params: TParams }) => {
     const routeOptions: RouteAuthOptions = {};
     if (isPermission(options.permission)) {
-      routeOptions.requiredPermissions = [options.permission as Permission];
+      routeOptions.requiredPermissions = [options.permission as unknown as Permission];
     }
 
     return withRouteAuth(async (r, authCtx) => {

@@ -65,7 +65,7 @@ export function validateSupabaseAuthConfig(
   ];
 
   if (typeof window === 'undefined') {
-    required.push({ name: 'SUPABASE_SERVICE_ROLE_KEY', value: config.serviceRoleKey });
+    required.push({ name: 'SUPABASE_SERVICE_ROLE_KEY', value: config.serviceRoleKey ?? '' });
   }
 
   const missing = required.filter(v => !v.value).map(v => v.name);

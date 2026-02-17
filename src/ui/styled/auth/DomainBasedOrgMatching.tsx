@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useForm } from 'react-hook-form';
+import { useForm, Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '@/ui/primitives/button';
@@ -50,7 +50,7 @@ export function DomainBasedOrgMatching({ organizationId }: DomainBasedOrgMatchin
   const [verificationInProgress, setVerificationInProgress] = useState<string | null>(null);
 
   const form = useForm<DomainFormValues>({
-    resolver: zodResolver(domainSchema),
+    resolver: zodResolver(domainSchema) as Resolver<DomainFormValues>,
     defaultValues: {
       domain: '',
       autoJoin: true,

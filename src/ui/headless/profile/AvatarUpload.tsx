@@ -15,8 +15,8 @@ import {
 } from '@/lib/utils/file-upload';
 
 export interface AvatarUploadRenderProps {
-  fileInputRef: React.RefObject<HTMLInputElement>;
-  imgRef: React.RefObject<HTMLImageElement>;
+  fileInputRef: React.RefObject<HTMLInputElement | null>;
+  imgRef: React.RefObject<HTMLImageElement | null>;
   imgSrc: string;
   crop: Crop | undefined;
   completedCrop: PixelCrop | undefined;
@@ -53,7 +53,7 @@ export function AvatarUpload({ children }: AvatarUploadProps) {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (!isValidImage(file, ALLOWED_IMAGE_TYPES, MAX_FILE_SIZE)) {
+    if (!isValidImage(file)) {
       setError('Invalid file');
       return;
     }
@@ -77,7 +77,7 @@ export function AvatarUpload({ children }: AvatarUploadProps) {
     try {
       const blob = await getCroppedImgBlob(imgRef.current, completedCrop);
       if (!blob) throw new Error('Failed to process image');
-      await uploadAvatar(blob);
+      await uploadAvatar(new File([blob], 'avatar.jpg', { type: blob.type }));
       clear();
     } catch (e: any) {
       setError(e.message);

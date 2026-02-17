@@ -16,7 +16,7 @@ export function createStorageProvider(config: {
 }): StorageAdapter {
   switch (config.type) {
     case 'supabase':
-      return createSupabaseStorageAdapter(config.options);
+      return createSupabaseStorageAdapter(config.options as any);
     default:
       throw new Error(`Unsupported storage provider type: ${config.type}`);
   }

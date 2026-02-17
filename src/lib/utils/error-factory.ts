@@ -45,7 +45,10 @@ function getLocalizedMessage(
 ): string | undefined {
   // Try first with formatErrorMessage function if available
   if (typeof formatErrorMessage === 'function') {
-    const msg = formatErrorMessage(code, params || {}, locale);
+    const stringParams: Record<string, string> = Object.fromEntries(
+      Object.entries(params || {}).map(([k, v]) => [k, String(v)])
+    );
+    const msg = formatErrorMessage(code, stringParams, locale as LanguageCode);
     if (msg !== `errors.${code}`) {
       return msg;
     }
@@ -121,12 +124,9 @@ export function createAuthenticationError(
 ) {
   let msg = message;
   if (!msg) {
-    msg = getLocalizedMessage(AUTH_ERROR_CODES.UNAUTHORIZED, locale);
+    msg = getLocalizedMessage(AUTH_ERROR_CODES.UNAUTHORIZED, locale) ?? 'Authentication required.';
   }
   /* c8 ignore next */
-  if (!msg) {
-    msg = 'Authentication required.';
-  }
   return createError(AUTH_ERROR_CODES.UNAUTHORIZED, msg, undefined, cause, 401);
 }
 
@@ -139,8 +139,8 @@ export function createNotFoundError(
   cause?: unknown,
   locale: LanguageCode = 'en'
 ) {
-  const code = USER_ERROR_CODES.NOT_FOUND;
-const defaultMsg = `${resourceType} ${resourceId} not found`;
+  const code = USER_ERROR_CODES.NOT_FOUND as ErrorCode;
+  const defaultMsg = `${resourceType} ${resourceId} not found`;
   const msg = getLocalizedMessage(code, locale, { resourceType, resourceId }) || defaultMsg;
   return createError(code, msg, { resourceType, resourceId }, cause, 404);
 }

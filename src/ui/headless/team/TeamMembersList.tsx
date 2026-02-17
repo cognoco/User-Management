@@ -59,7 +59,7 @@ export function TeamMembersList({ teamId, onUpdateRole, onRemove, children }: Te
     members: filtered,
     updateRole,
     removeMember,
-    refresh: fetchTeamMembers,
+    refresh: async () => { await fetchTeamMembers(); },
     isLoading,
     error,
     filter,

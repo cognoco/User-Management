@@ -23,7 +23,7 @@ import {
   TeamSearchResult
 } from '@/core/team/models';
 import { TeamEventType } from '@/core/team/events';
-import type { TeamDataProvider } from '@/core/team/ITeamDataProvider';
+import type { ITeamDataProvider as TeamDataProvider } from '@/core/team/ITeamDataProvider';
 import { translateError } from '@/lib/utils/error';
 import { TypedEventEmitter } from '@/lib/utils/typed-event-emitter';
 import { MemoryCache } from '@/lib/cache';
@@ -71,7 +71,6 @@ export class DefaultTeamService
       const result = await this.teamDataProvider.createTeam(ownerId, teamData);
 
       if (!result.success || !result.team) {
-        DefaultTeamService.teamCache.delete(teamId);
         return result;
       }
 
@@ -115,7 +114,7 @@ export class DefaultTeamService
         method: 'getTeam',
         resourceType: 'team',
         resourceId: teamId,
-      }, ERROR_CODES.NOT_FOUND);
+      }, ERROR_CODES.TEAM_NOT_FOUND);
       DefaultTeamService.teamCache.delete(teamId);
       throw err;
     }
@@ -265,7 +264,7 @@ export class DefaultTeamService
    */
   async addTeamMember(teamId: string, userId: string, role: string): Promise<TeamMemberResult> {
     try {
-      const license = await prisma.teamLicense.findUnique({
+      const license = await (prisma as any).team_licenses.findUnique({
         where: { id: teamId },
         select: { usedSeats: true, totalSeats: true },
       });
@@ -297,7 +296,7 @@ export class DefaultTeamService
         addedBy: team?.ownerId || userId // If we can't get the team, assume the user added themselves
       });
 
-      await prisma.teamLicense.update({
+      await (prisma as any).team_licenses.update({
         where: { id: teamId },
         data: { usedSeats: { increment: 1 } },
       });
@@ -482,7 +481,7 @@ export class DefaultTeamService
    */
   async inviteToTeam(teamId: string, invitationData: TeamInvitationPayload): Promise<TeamInvitationResult> {
     try {
-      const license = await prisma.teamLicense.findUnique({
+      const license = await (prisma as any).team_licenses.findUnique({
         where: { id: teamId },
         select: { usedSeats: true, totalSeats: true },
       });
@@ -520,7 +519,7 @@ export class DefaultTeamService
         invitedBy: team.ownerId // Assuming the owner is sending the invitation
       });
 
-      await prisma.teamLicense.update({
+      await (prisma as any).team_licenses.update({
         where: { id: teamId },
         data: { usedSeats: { increment: 1 } },
       });

@@ -1,12 +1,13 @@
-import type { IStorageService } from '../../core/storage/interfaces';
+import type { FileStorageService } from '../../core/storage/services';
 import { DefaultFileStorageService } from './DefaultFileStorageService';
 import { AdapterRegistry } from '../../adapters/registry';
+import type { StorageAdapter } from '../../core/storage/interfaces';
 
-export function createStorageService(): IStorageService {
-  const adapter = AdapterRegistry.getInstance().getAdapter('storage');
+export function createStorageService(): FileStorageService {
+  const adapter = AdapterRegistry.getInstance().getAdapter<StorageAdapter>('storage');
   return new DefaultFileStorageService(adapter);
 }
 
-export function getStorageService(): IStorageService {
+export function getStorageService(): FileStorageService {
   return createStorageService();
 }

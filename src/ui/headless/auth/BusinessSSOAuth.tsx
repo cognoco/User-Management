@@ -1,5 +1,6 @@
 import { ReactNode, useState, useEffect, FormEvent } from 'react';
 import { useAuth } from '@/hooks/auth/useAuth';
+import { api } from '@/lib/api/axios';
 
 /**
  * Headless BusinessSSOAuth component that handles behavior only
@@ -107,7 +108,11 @@ export const BusinessSSOAuth = ({
   children
 }: BusinessSSOAuthProps) => {
   // Get authentication hook
-  const { businessSSOAuth, isLoading: authIsLoading, error: authError } = useAuth();
+  const { isLoading: authIsLoading, error: authError } = useAuth();
+  const businessSSOAuth = async (params: { domain?: string; email?: string; organizationId?: string; providerId?: string }): Promise<{ success: boolean; redirectUrl?: string; providers?: { id: string; name: string }[]; userData?: { id: string; email: string; name?: string }; error?: string }> => {
+    const res = await api.post('/auth/sso/business', params);
+    return res.data;
+  };
   
   // Form state
   const [domainValue, setDomainValue] = useState(initialDomain);
@@ -122,12 +127,12 @@ export const BusinessSSOAuth = ({
   const [availableProviders, setAvailableProviders] = useState<Array<{
     id: string;
     name: string;
-    logoUrl: string;
+    logoUrl?: string;
   }>>([]);
 
   // Use external state if provided, otherwise use internal state
   const isLoading = externalIsLoading !== undefined ? externalIsLoading : authIsLoading || isSubmitting;
-  const formError = externalError !== undefined ? externalError : authError;
+  const formError = externalError !== undefined ? externalError : (authError ?? undefined);
 
   // Validate domain
   const validateDomain = () => {
@@ -207,7 +212,7 @@ export const BusinessSSOAuth = ({
       });
       
       if (result.success && result.userData) {
-        onSuccess?.(result.userData);
+        onSuccess?.({ email: result.userData.email, name: result.userData.name ?? '', userId: result.userData.id });
       } else if (result.error) {
         setErrors({ ...errors, form: result.error });
         onError?.(result.error);

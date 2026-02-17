@@ -8,6 +8,6 @@ export function cn(...inputs: ClassValue[]) {
 export * from './error'
 export * from './typed-event-emitter'
 export * from './error-factory'
-export * from './error-translator'
+export { translateApiError } from './error-translator'
 export * from './circuit-breaker'
 export * from './retry'

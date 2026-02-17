@@ -33,7 +33,7 @@ export function createAuthService(config: AuthServiceConfig): AuthService {
   return new DefaultAuthService(
     config.authDataProvider,
     config.storage ?? new BrowserAuthStorage()
-  );
+  ) as unknown as AuthService;
 }
 
 /**

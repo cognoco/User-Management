@@ -31,10 +31,19 @@ export function useAuditLogs(
   const [page, setPage] = useState(initialPage);
   const [pageSize] = useState(initialPageSize);
 
+  const query = {
+    page,
+    limit: pageSize,
+    userId: filters.userId,
+    action: filters.action,
+    startDate: filters.startDate?.toISOString(),
+    endDate: filters.endDate?.toISOString(),
+    search: filters.search,
+  };
+
   const { data, isLoading, error } = useQuery({
     queryKey: ['auditLogs', filters, page, pageSize],
-    queryFn: () => service.getLogs(filters, page, pageSize),
-    keepPreviousData: true
+    queryFn: () => service.getLogs(query),
   });
 
   const setFilter = (key: keyof AuditLogFilters, value: unknown) => {
@@ -43,11 +52,11 @@ export function useAuditLogs(
   };
 
   const exportLogs = (format?: 'csv' | 'json' | 'xlsx' | 'pdf') =>
-    service.exportLogs({ ...filters, format });
+    service.exportLogs({ ...query, format });
 
   return {
-    logs: data?.logs ?? [],
-    total: data?.total ?? 0,
+    logs: (data?.logs ?? []) as unknown as AuditLog[],
+    total: data?.count ?? 0,
     isLoading,
     error,
     page,

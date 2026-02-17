@@ -1,5 +1,6 @@
 import { ReactNode, useState, useEffect, FormEvent } from 'react';
 import { useAuth } from '@/hooks/auth/useAuth';
+import { api } from '@/lib/api/axios';
 
 /**
  * Headless ProviderManagementPanel component that handles behavior only
@@ -145,17 +146,40 @@ export const ProviderManagementPanel = ({
   error: externalError,
   children
 }: ProviderManagementPanelProps) => {
-  // Get authentication hook
-  const { 
-    getUserAuthProviders, 
-    getAvailableAuthProviders, 
-    linkAuthProvider,
-    unlinkAuthProvider,
-    setPrimaryAuthProvider,
-    verifyProviderEmail,
-    isLoading: authIsLoading, 
-    error: authError 
-  } = useAuth();
+  // Get authentication hook — only use what exists in UseAuth
+  const { isLoading: authIsLoading, error: authError } = useAuth();
+
+  // Provider management API helpers (not yet in useAuth)
+  const getUserAuthProviders = async (uid?: string): Promise<AuthProvider[]> => {
+    const path = uid ? `/users/${uid}/auth-providers` : '/auth/providers/linked';
+    const res = await api.get(path);
+    return res.data;
+  };
+
+  const getAvailableAuthProviders = async (): Promise<Array<{ id: string; name: string; icon?: string; canLink: boolean }>> => {
+    const res = await api.get('/auth/providers/available');
+    return res.data;
+  };
+
+  const linkAuthProvider = async (params: { userId?: string; providerId: string; action: string }): Promise<{ success: boolean; redirectUrl?: string; error?: string }> => {
+    const res = await api.post('/auth/providers/link', params);
+    return res.data;
+  };
+
+  const unlinkAuthProvider = async (params: { userId?: string; providerId: string }): Promise<{ success: boolean; error?: string }> => {
+    const res = await api.delete('/auth/providers/link', { data: params });
+    return res.data;
+  };
+
+  const setPrimaryAuthProvider = async (params: { userId?: string; providerId: string }): Promise<{ success: boolean; error?: string }> => {
+    const res = await api.put('/auth/providers/primary', params);
+    return res.data;
+  };
+
+  const verifyProviderEmail = async (params: { userId?: string; providerId: string; email: string }): Promise<{ success: boolean; error?: string }> => {
+    const res = await api.post('/auth/providers/verify-email', params);
+    return res.data;
+  };
   
   // State
   const [linkedProviders, setLinkedProviders] = useState<AuthProvider[]>([]);
@@ -176,7 +200,7 @@ export const ProviderManagementPanel = ({
 
   // Use external state if provided, otherwise use internal state
   const isLoading = externalIsLoading !== undefined ? externalIsLoading : authIsLoading || isSubmitting;
-  const error = externalError !== undefined ? externalError : authError;
+  const error = externalError !== undefined ? externalError : (authError ?? undefined);
 
   // Load authentication providers
   const loadAuthProviders = async () => {

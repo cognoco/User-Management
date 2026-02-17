@@ -86,7 +86,7 @@ export function MFAVerificationForm({
   
   // Use external state if provided, otherwise use internal state
   const isLoading = externalIsLoading !== undefined ? externalIsLoading : authIsLoading || isSubmitting;
-  const formError = externalError !== undefined ? externalError : authError;
+  const formError = externalError !== undefined ? externalError : (authError ?? undefined);
   
   // Validate verification code
   const validateVerificationCode = () => {
@@ -144,7 +144,7 @@ export function MFAVerificationForm({
     setIsSubmitting(true);
     
     try {
-      const result = await verifyMFA(sessionId, verificationCode);
+      const result = await verifyMFA(verificationCode, false);
       
       if (result.success) {
         onSuccess?.();

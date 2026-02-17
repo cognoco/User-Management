@@ -30,7 +30,7 @@ export function handleServiceError<T>(
   context: ErrorContext,
   defaultErrorCode: string = ERROR_CODES.INTERNAL_ERROR,
 ): { success: false; error: ApplicationError } {
-  const enhanced = enhanceError(error, context);
+  const enhanced = enhanceError(error);
   const code = (enhanced as any).code || defaultErrorCode;
   const appError =
     enhanced instanceof ApplicationError
@@ -75,9 +75,9 @@ export async function validateAndExecute<T, V>(
 ): Promise<T | { success: false; error: ApplicationError }> {
   const parsed = schema.safeParse(data);
   if (!parsed.success) {
-    const err = createValidationError(parsed.error.flatten().fieldErrors);
-    logServiceError(err, context);
-    return { success: false, error: err };
+    const err = createValidationError(parsed.error.flatten().fieldErrors as unknown as Record<string, string>);
+    logServiceError(err as any, context);
+    return { success: false, error: err as any };
   }
   try {
     return await fn(parsed.data);

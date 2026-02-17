@@ -151,7 +151,7 @@ export const LoginFormReact19 = ({
   
   // Use external state if provided, otherwise use internal state
   const isLoading = externalIsLoading !== undefined ? externalIsLoading : authIsLoading || isSubmitting;
-  const formError = externalError !== undefined ? externalError : authError;
+  const formError = externalError !== undefined ? externalError : (authError ?? undefined);
   
   // Validate form
   const validateForm = () => {
@@ -246,7 +246,7 @@ export const LoginFormReact19 = ({
           await onSubmit(credentials);
         } else {
           // Use default auth hook
-          const result = await login(credentials);
+          const result = await login(credentials.email, credentials.password, credentials.rememberMe);
           
           if (result.error) {
             setErrors({ ...errors, form: result.error });

@@ -110,10 +110,10 @@ export async function sendCompanyNotification(options: NotificationOptions) {
     // For now, we'll update the status directly
     
     // Process email notifications
-    const emailNotifications = notifications.filter(n => n.channel === 'email');
+    const emailNotifications = (notifications as any[]).filter((n: any) => n.channel === 'email');
     if (emailNotifications.length > 0) {
-      const recipientsMap = new Map(recipients.map(r => [r.id, r]));
-      for (const notif of emailNotifications) {
+      const recipientsMap = new Map((recipients as any[]).map((r: any) => [r.id, r]));
+      for (const notif of emailNotifications as any[]) {
         const recipient = recipientsMap.get(notif.recipient_id);
         if (!recipient) {
           continue;
@@ -167,7 +167,7 @@ export async function sendCompanyNotification(options: NotificationOptions) {
     }
     
     // Process in-app notifications
-    const inAppNotifications = notifications.filter(n => n.channel === 'in_app');
+    const inAppNotifications = (notifications as any[]).filter((n: any) => n.channel === 'in_app');
     if (inAppNotifications.length > 0) {
       // In-app notifications are already stored in the database
       // They would be displayed to users when they log in
@@ -175,7 +175,7 @@ export async function sendCompanyNotification(options: NotificationOptions) {
       
       // Update status to "delivered" for all in-app notifications
       const now = new Date().toISOString();
-      const inAppIds = inAppNotifications.map(n => n.id);
+      const inAppIds = inAppNotifications.map((n: any) => n.id);
       
       await supabase
         .from('company_notification_logs')

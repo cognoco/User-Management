@@ -1,8 +1,8 @@
 import React, { createContext, useContext } from 'react';
-import type { SsoProvider, SsoConnection } from '@/types/sso';
+import type { SsoProvider as SsoProviderType, SsoConnection } from '@/types/sso';
 
 export interface SsoService {
-  listProviders: () => Promise<SsoProvider[]>;
+  listProviders: () => Promise<SsoProviderType[]>;
   listConnections: () => Promise<SsoConnection[]>;
   connect: (providerId: string) => Promise<SsoConnection>;
   disconnect: (connectionId: string) => Promise<void>;

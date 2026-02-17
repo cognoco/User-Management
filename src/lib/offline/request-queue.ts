@@ -78,7 +78,7 @@ export async function queueRequest(endpoint: string, options: RequestOptions): P
     dependencies,
     timestamp: Date.now(),
     attempts: 0,
-    maxAttempts: options.maxRetries ?? 3
+    maxAttempts: (options as any).maxRetries ?? 3
   };
   
   // Replace existing request with same endpoint + method in memory queue

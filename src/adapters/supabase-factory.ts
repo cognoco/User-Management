@@ -35,7 +35,7 @@ import { createSupabaseConsentProvider } from './consent/factory';
 import { createSupabaseSessionProvider } from './session/factory';
 import { createSupabaseSsoProvider } from './sso/factory';
 import { createSupabaseOAuthProvider } from './oauth/factory';
-import type { OAuthDataProvider } from './oauth';
+import type { IOAuthDataProvider as OAuthDataProvider } from './oauth';
 import { createSupabaseSubscriptionProvider } from './subscription/factory';
 import { createSupabaseCompanyNotificationProvider } from './company-notification/factory';
 import { createSupabaseWebhookProvider } from './webhooks';
@@ -89,21 +89,21 @@ export class SupabaseAdapterFactory implements AdapterFactory {
    * Create a Supabase user provider
    */
   createUserProvider(): UserDataProvider {
-    return createSupabaseUserProvider(this.options);
+    return createSupabaseUserProvider(this.options.supabaseUrl, this.options.supabaseKey);
   }
 
   /**
    * Create a Supabase admin provider
    */
   createAdminProvider(): IAdminDataProvider {
-    return createSupabaseAdminProvider(this.options);
+    return createSupabaseAdminProvider(this.options.supabaseUrl, this.options.supabaseKey);
   }
 
   /**
    * Create a Supabase team provider
    */
   createTeamProvider(): TeamDataProvider {
-    return createSupabaseTeamProvider(this.options);
+    return createSupabaseTeamProvider(this.options.supabaseUrl, this.options.supabaseKey);
   }
 
   /**
@@ -117,7 +117,7 @@ export class SupabaseAdapterFactory implements AdapterFactory {
    * Create a Supabase permission provider
    */
   createPermissionProvider(): PermissionDataProvider {
-    return createSupabasePermissionProvider(this.options);
+    return createSupabasePermissionProvider(this.options.supabaseUrl, this.options.supabaseKey);
   }
 
   /**
@@ -153,7 +153,7 @@ export class SupabaseAdapterFactory implements AdapterFactory {
    * Create a Supabase SSO provider
    */
   createSsoProvider(): SsoDataProvider {
-    return createSupabaseSsoProvider(this.options);
+    return createSupabaseSsoProvider(this.options.supabaseUrl, this.options.supabaseKey);
   }
 
   /**

@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useTranslation } from 'react-i18next';
@@ -44,7 +44,7 @@ export function ProfileCompletion() {
   const { updateProfile, updateSettings, uploadAvatar } = useUserStore();
   
   const form = useForm<ProfileFormData>({
-    resolver: zodResolver(profileSchema),
+    resolver: zodResolver(profileSchema) as Resolver<ProfileFormData>,
     defaultValues: {
       settings: {
         theme: 'light',

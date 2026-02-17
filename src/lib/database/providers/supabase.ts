@@ -9,7 +9,9 @@ export class SupabaseProvider implements DatabaseProvider {
     if (!config.connectionString) {
       throw new Error('Supabase connection string is required');
     }
-    this.client = createClient(config.connectionString);
+    const connStr = config.connectionString || '';
+    const [url, key] = connStr.split('|');
+    this.client = createClient(url || connStr, key || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '');
   }
 
   // User operations

@@ -1,5 +1,13 @@
 import { supabase } from '@/lib/supabase';
-import type { Permission, PermissionGroup, Role, ResourcePermission } from '@/types/rbac';
+import type { Permission, Role, ResourcePermission } from '@/types/rbac';
+
+// PermissionGroup is not in rbac.ts - define locally
+interface PermissionGroup {
+  id: string;
+  name: string;
+  description?: string;
+  permissions?: Permission[];
+}
 import { createRoleHierarchyService } from '@/lib/services/roleHierarchy.service';
 
 const roleHierarchyService = createRoleHierarchyService();
@@ -70,7 +78,7 @@ export class PermissionService {
     if (directError) throw directError;
 
     // Recursive function to get parent role permissions
-    const getParentPerms = async (parentId?: string): Promise<Permission[]> => {
+    const getParentPerms = async (parentId?: string): Promise<any[]> => {
       if (!parentId) return [];
 
       const { data: parentPerms, error: parentError } = await supabase
@@ -100,14 +108,14 @@ export class PermissionService {
     const inheritedPerms = await getParentPerms(role.parent_role_id);
 
     // Combine direct and inherited permissions, removing duplicates
-    const allPermissions = [
-      ...(directPerms?.map(p => p.permissions) || []),
+    const allPermissions: any[] = [
+      ...(directPerms?.map((p: any) => p.permissions) || []),
       ...inheritedPerms
     ];
 
     // Remove duplicates by permission ID
     const uniquePerms = Object.values(
-      allPermissions.reduce((acc, perm) => {
+      allPermissions.reduce((acc: Record<string, any>, perm: any) => {
         if (perm && perm.id) {
           acc[perm.id] = perm;
         }

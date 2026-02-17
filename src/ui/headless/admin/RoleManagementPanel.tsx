@@ -45,13 +45,8 @@ export interface RoleManagementPanelProps {
 }
 
 export function RoleManagementPanel({ users, children }: RoleManagementPanelProps) {
-  // React 19 compatibility - Use individual selectors
-  const roles = useRBACStore(state => state.roles);
-  const userRoles = useRBACStore(state => state.userRoles);
-  const isLoading = useRBACStore(state => state.isLoading);
-  const error = useRBACStore(state => state.error);
-  const assignRole = useRBACStore(state => state.assignRole);
-  const removeRole = useRBACStore(state => state.removeRole);
+  // useRBACStore is a custom hook returning the full RBAC state — not a Zustand store
+  const { roles, userRoles, isLoading, error, assignRole, removeRole } = useRBACStore();
 
   // Helper to get role assignments for a user
   const getUserRoleAssignments = (userId: string | number): UserRoleSchema[] =>

@@ -1,5 +1,6 @@
 import { ReactNode, useState, useEffect, FormEvent } from 'react';
 import { useAuth } from '@/hooks/auth/useAuth';
+import { api } from '@/lib/api/axios';
 
 /**
  * Headless DomainBasedOrgMatching component that handles behavior only
@@ -127,7 +128,12 @@ export const DomainBasedOrgMatching = ({
   children
 }: DomainBasedOrgMatchingProps) => {
   // Get authentication hook
-  const { matchOrganizationByDomain, isLoading: authIsLoading, error: authError } = useAuth();
+  const { isLoading: authIsLoading, error: authError } = useAuth();
+  const matchOrganizationByDomain = async (domain: string): Promise<Organization[]> => {
+    const res = await api.get(`/organizations/by-domain/${domain}`);
+    const data = Array.isArray(res.data) ? res.data : [res.data].filter(Boolean);
+    return data.map((org: any) => ({ id: org.id, name: org.name, domain: org.domain, logoUrl: org.logoUrl, ssoEnabled: org.ssoEnabled ?? false }));
+  };
   
   // Form state
   const [emailValue, setEmailValue] = useState(initialEmail);
@@ -144,7 +150,7 @@ export const DomainBasedOrgMatching = ({
 
   // Use external state if provided, otherwise use internal state
   const isLoading = externalIsLoading !== undefined ? externalIsLoading : authIsLoading || isSubmitting;
-  const formError = externalError !== undefined ? externalError : authError;
+  const formError = externalError !== undefined ? externalError : (authError ?? undefined);
 
   // Validate email
   const validateEmail = () => {

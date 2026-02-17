@@ -1,7 +1,8 @@
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/auth/useAuth';
 import { useRBACStore } from '@/lib/stores/rbac.store';
+import type { Role, Permission } from '@/types/rbac';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -17,7 +18,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   requiredPermissions = [],
   redirectPath = '/auth/login',
   accessDeniedComponent,
-}): React.JSX.Element => {
+}): React.ReactElement | null => {
   const router = useRouter();
   
   // Update to use individual selectors for React 19 compatibility
@@ -25,11 +26,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const authLoading = useAuth().isLoading;
   const user = useAuth().user;
   
-  // Update to use individual selectors for RBAC store
-  const hasRole = useRBACStore(state => state.hasRole);
-  const hasPermission = useRBACStore(state => state.hasPermission);
-  const fetchUserRoles = useRBACStore(state => state.fetchUserRoles);
-  const rbacLoading = useRBACStore(state => state.isLoading);
+  // useRBACStore is a custom hook returning the full RBAC state — not a Zustand store
+  const { hasRole, hasPermission, fetchUserRoles, isLoading: rbacLoading } = useRBACStore();
 
   useEffect(() => {
     if (user) {
@@ -50,9 +48,9 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   // Check roles if required
   if (requiredRoles.length > 0) {
-    const hasRequiredRole = requiredRoles.some(role => hasRole(role));
+    const hasRequiredRole = requiredRoles.some(role => hasRole(role as Role));
     if (!hasRequiredRole) {
-      return accessDeniedComponent || (
+      return (accessDeniedComponent as React.ReactElement | null) ?? (
         <div className="text-center p-4">
           Access denied: Insufficient role permissions
         </div>
@@ -63,10 +61,10 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   // Check permissions if required
   if (requiredPermissions.length > 0) {
     const hasRequiredPermissions = requiredPermissions.every(permission =>
-      hasPermission(permission)
+      hasPermission(permission as Permission)
     );
     if (!hasRequiredPermissions) {
-      return accessDeniedComponent || (
+      return (accessDeniedComponent as React.ReactElement | null) ?? (
         <div className="text-center p-4">
           Access denied: Insufficient permissions
         </div>

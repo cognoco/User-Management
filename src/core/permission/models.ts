@@ -219,14 +219,11 @@ export const DefaultRoleDefinitions: RolePermissionMap = {
     PermissionValues.VIEW_TEAM_MEMBERS,
     PermissionValues.MANAGE_BILLING,
     PermissionValues.MANAGE_SUBSCRIPTIONS,
-    PermissionValues.VIEW_INVOICES,
-    PermissionValues.UPDATE_SUBSCRIPTION,
     PermissionValues.VIEW_PROJECTS,
   ],
   
   MEMBER: [
     PermissionValues.VIEW_TEAM_MEMBERS,
-    PermissionValues.VIEW_INVOICES,
     PermissionValues.VIEW_PROJECTS,
     PermissionValues.EDIT_PROJECT,
     PermissionValues.CREATE_PROJECT,

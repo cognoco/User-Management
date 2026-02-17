@@ -29,21 +29,21 @@ export const useAuthStore = () => {
     isAuthenticated: auth.isAuthenticated,
     error: auth.error,
     successMessage: auth.successMessage,
-    rateLimitInfo: auth.rateLimitInfo,
+    rateLimitInfo: null, // Not available in new useAuth
     mfaEnabled: auth.mfaEnabled || false,
     mfaSecret: auth.mfaSecret,
     mfaQrCode: auth.mfaQrCode,
     mfaBackupCodes: auth.mfaBackupCodes,
 
-    setLoading: (isLoading: boolean) => auth.setLoading(isLoading),
+    setLoading: (_isLoading: boolean) => { /* no-op - managed by useAuth internally */ },
 
-    handleSessionTimeout: () => auth.handleSessionTimeout(),
+    handleSessionTimeout: () => auth.onSessionTimeout(() => {}),
     
     refreshToken: async () => auth.refreshToken(),
 
     login: async (data: LoginPayload): Promise<AuthResult> => {
       console.log('[DEPRECATED] Using auth.store login - please migrate to useAuth');
-      return auth.login(data);
+      return auth.login(data.email, data.password);
     },
 
     logout: async () => {
@@ -57,7 +57,7 @@ export const useAuthStore = () => {
     },
 
     clearError: () => auth.clearError(),
-    clearSuccessMessage: () => auth.clearSuccessMessage(),
+    clearSuccessMessage: () => auth.clearSuccess(),
     setUser: (user: User | null) => auth.setUser(user),
     setToken: (token: string | null) => auth.setToken(token),
 
@@ -81,20 +81,17 @@ export const useAuthStore = () => {
       return auth.resetPassword(email);
     },
 
-
-    updatePassword: async (oldPassword: string, newPassword: string): Promise<void> => {
+    updatePassword: async (oldPassword: string, newPassword: string): Promise<{ success: boolean; error?: string }> => {
       console.log('[DEPRECATED] Using auth.store updatePassword - please migrate to useAuth');
       return auth.updatePassword(oldPassword, newPassword);
     },
 
-
-    verifyEmail: async (token: string): Promise<void> => {
+    verifyEmail: async (token: string): Promise<{ success: boolean; error?: string }> => {
       console.log('[DEPRECATED] Using auth.store verifyEmail - please migrate to useAuth');
       return auth.verifyEmail(token);
     },
 
-
-    deleteAccount: async (password?: string): Promise<void> => {
+    deleteAccount: async (password?: string): Promise<{ success: boolean; error?: string }> => {
       console.log('[DEPRECATED] Using auth.store deleteAccount - please migrate to useAuth');
       return auth.deleteAccount(password);
     }

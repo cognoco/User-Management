@@ -8,7 +8,7 @@ import { Button } from '@/ui/primitives/button';
 import { Alert } from '@/ui/primitives/alert';
 import { Checkbox } from '@/ui/primitives/checkbox';
 import { Progress } from '@/ui/primitives/progress';
-import { HeadlessMultiStepRegistration } from '@/ui/headless/registration/MultiStepRegistration';
+import { MultiStepRegistration as HeadlessMultiStepRegistration } from '@/ui/headless/registration/MultiStepRegistration';
 
 const registrationSchema = z.object({
   email: z.string().email(),
@@ -71,7 +71,14 @@ export function MultiStepRegistration(): React.ReactElement {
     <HeadlessMultiStepRegistration
       steps={steps}
       onComplete={handleComplete}
-      render={({ currentStep, next, back, setValue, values, handleSubmit }) => {
+      render={({ currentStep, next, back, setValue, values, handleSubmit }: {
+        currentStep: number;
+        next: () => void;
+        back: () => void;
+        setValue: (key: string, value: unknown) => void;
+        values: Record<string, unknown>;
+        handleSubmit: (e: React.FormEvent) => void;
+      }) => {
         // Update local state when currentStep changes
         if (currentStep !== currentStepState) {
           setCurrentStepState(currentStep);
@@ -90,7 +97,7 @@ export function MultiStepRegistration(): React.ReactElement {
                       id="email"
                       type="email"
                       ref={firstFieldRef}
-                      value={values.email || ''}
+                      value={(values.email as string | undefined) || ''}
                       onChange={(e) => setValue('email', e.target.value)}
                     />
                     {validationErrors.email && (
@@ -103,7 +110,7 @@ export function MultiStepRegistration(): React.ReactElement {
                     <Input
                       id="password"
                       type="password"
-                      value={values.password || ''}
+                      value={(values.password as string | undefined) || ''}
                       onChange={(e) => setValue('password', e.target.value)}
                     />
                     {validationErrors.password && (
@@ -121,7 +128,7 @@ export function MultiStepRegistration(): React.ReactElement {
                     <Input
                       id="name"
                       ref={firstFieldRef}
-                      value={values.name || ''}
+                      value={(values.name as string | undefined) || ''}
                       onChange={(e) => setValue('name', e.target.value)}
                     />
                     {validationErrors.name && (
@@ -133,7 +140,7 @@ export function MultiStepRegistration(): React.ReactElement {
                     <Label htmlFor="phone">Phone Number</Label>
                     <Input
                       id="phone"
-                      value={values.phone || ''}
+                      value={(values.phone as string | undefined) || ''}
                       onChange={(e) => setValue('phone', e.target.value)}
                     />
                     {validationErrors.phone && (
@@ -165,7 +172,7 @@ export function MultiStepRegistration(): React.ReactElement {
                   <div className="flex items-center space-x-2">
                     <Checkbox
                       id="terms"
-                      checked={values.acceptTerms || false}
+                      checked={(values.acceptTerms as boolean | undefined) || false}
                       onCheckedChange={(checked) => setValue('acceptTerms', checked)}
                     />
                     <Label htmlFor="terms">

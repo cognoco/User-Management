@@ -31,7 +31,7 @@ export class MockRepository<T extends { id: string }> implements BaseDatabaseInt
 
   async update(id: string, data: Partial<T>): Promise<T | DatabaseError> {
     const index = this.items.findIndex((i) => i.id === id);
-    if (index === -1) return { code: 'mock/not_found', message: 'Item not found' };
+    if (index === -1) return { code: 'mock/not_found', message: 'Item not found' } as unknown as DatabaseError;
     this.items[index] = { ...this.items[index], ...data } as T;
     return this.items[index];
   }
@@ -39,7 +39,7 @@ export class MockRepository<T extends { id: string }> implements BaseDatabaseInt
   async delete(id: string): Promise<{ success: boolean; error?: DatabaseError }> {
     const index = this.items.findIndex((i) => i.id === id);
     if (index === -1) {
-      return { success: false, error: { code: 'mock/not_found', message: 'Item not found' } };
+      return { success: false, error: { code: 'mock/not_found', message: 'Item not found' } as unknown as DatabaseError };
     }
     this.items.splice(index, 1);
     return { success: true };

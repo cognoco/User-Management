@@ -17,7 +17,9 @@ export class DefaultApiKeysService implements ApiKeyService {
   /** @inheritdoc */
   async listApiKeys(userId: string): Promise<ApiKey[]> {
     await ensureSubscriptionTier(userId, SubscriptionTier.PREMIUM);
-    return this.provider.listApiKeys(userId);
+    const result = await this.provider.listApiKeys(userId);
+    // Provider returns ApiKeyListResult, service interface expects ApiKey[]
+    return (result as any).apiKeys ?? (result as any) ?? [];
   }
 
   /** @inheritdoc */
@@ -52,8 +54,9 @@ export class DefaultApiKeysService implements ApiKeyService {
     try {
       await ensureSubscriptionTier(userId, SubscriptionTier.PREMIUM);
       const prefix = getKeyPrefix(apiKey);
-      const keys = await this.provider.listApiKeys(userId);
-      const match = keys.find(k => k.prefix === prefix && !k.isRevoked);
+      const keysResult = await this.provider.listApiKeys(userId);
+      const keys: ApiKey[] = (keysResult as any).apiKeys ?? (keysResult as any) ?? [];
+      const match = keys.find((k: ApiKey) => k.prefix === prefix && !k.isRevoked);
       if (!match) {
         return { valid: false, error: 'API key not found' };
       }

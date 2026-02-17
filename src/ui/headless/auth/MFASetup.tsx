@@ -6,7 +6,7 @@
  */
 
 import { useState, FormEvent, useEffect } from 'react';
-import { useAuth } from '@/hooks/auth/useMFA';
+import { useAuth } from '@/hooks/auth/useAuth';
 import { MFASetupResponse, MFAVerifyResponse } from '@/core/auth/models';
 import { z } from 'zod';
 
@@ -83,7 +83,7 @@ export function MFASetup({
   
   // Use external state if provided, otherwise use internal state
   const isLoading = externalIsLoading !== undefined ? externalIsLoading : mfaIsLoading || isSubmitting;
-  const formError = externalError !== undefined ? externalError : mfaError;
+  const formError: string | undefined = externalError !== undefined ? externalError : (mfaError ?? undefined);
   
   // Validate verification code
   const validateVerificationCode = () => {

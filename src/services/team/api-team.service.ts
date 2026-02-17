@@ -1,79 +1,84 @@
 // API-based TeamService implementation for client-side use
 import { TeamService } from '@/core/team/interfaces';
-import { Team, TeamMember, TeamInvite, CreateTeamPayload, UpdateTeamPayload } from '@/core/team/models';
+import {
+  Team,
+  TeamMember,
+  TeamInvitation,
+  TeamCreatePayload,
+  TeamUpdatePayload,
+  TeamMemberUpdatePayload,
+  TeamInvitationPayload,
+  TeamResult,
+  TeamMemberResult,
+  TeamInvitationResult,
+  TeamSearchParams,
+  TeamSearchResult,
+} from '@/core/team/models';
 
 /** Client-side {@link TeamService} communicating with `/api/team` endpoints. */
 export class ApiTeamService implements TeamService {
   /**
-   * Fetch all teams visible to the current user.
+   * Create a new team.
    */
-  async getTeams(): Promise<Team[]> {
-    const res = await fetch('/api/team', { credentials: 'include' });
-    if (!res.ok) throw new Error('Failed to fetch teams');
-    return res.json();
+  async createTeam(ownerId: string, teamData: TeamCreatePayload): Promise<TeamResult> {
+    const res = await fetch('/api/team', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ownerId, ...teamData }),
+      credentials: 'include',
+    });
+    if (!res.ok) return { success: false, error: 'Failed to create team' };
+    const team = await res.json();
+    return { success: true, team };
   }
 
   /**
-   * Fetch a team by its ID.
-   *
-   * @param teamId - Identifier of the team
+   * Get a team by its ID.
    */
-  async getTeamById(teamId: string): Promise<Team | null> {
+  async getTeam(teamId: string): Promise<Team | null> {
     const res = await fetch(`/api/team/${teamId}`, { credentials: 'include' });
     if (!res.ok) return null;
     return res.json();
   }
 
   /**
-   * Create a new team.
-   *
-   * @param payload - Data for the new team
-   */
-  async createTeam(payload: CreateTeamPayload): Promise<Team> {
-    const res = await fetch('/api/team', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-      credentials: 'include',
-    });
-    if (!res.ok) throw new Error('Failed to create team');
-    return res.json();
-  }
-
-  /**
    * Update an existing team.
-   *
-   * @param teamId - Team identifier
-   * @param payload - Updated fields
    */
-  async updateTeam(teamId: string, payload: UpdateTeamPayload): Promise<Team> {
+  async updateTeam(teamId: string, teamData: TeamUpdatePayload): Promise<TeamResult> {
     const res = await fetch(`/api/team/${teamId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(teamData),
       credentials: 'include',
     });
-    if (!res.ok) throw new Error('Failed to update team');
-    return res.json();
+    if (!res.ok) return { success: false, error: 'Failed to update team' };
+    const team = await res.json();
+    return { success: true, team };
   }
 
   /**
    * Delete a team by ID.
-   *
-   * @param teamId - Team identifier
    */
-  async deleteTeam(teamId: string): Promise<void> {
+  async deleteTeam(teamId: string): Promise<{ success: boolean; error?: string }> {
     const res = await fetch(`/api/team/${teamId}`, {
       method: 'DELETE',
       credentials: 'include',
     });
-    if (!res.ok) throw new Error('Failed to delete team');
+    if (!res.ok) return { success: false, error: 'Failed to delete team' };
+    return { success: true };
+  }
+
+  /**
+   * Get all teams that a user belongs to.
+   */
+  async getUserTeams(userId: string): Promise<Team[]> {
+    const res = await fetch(`/api/team?userId=${userId}`, { credentials: 'include' });
+    if (!res.ok) throw new Error('Failed to fetch user teams');
+    return res.json();
   }
 
   /**
    * Get all members belonging to a team.
-   *
-   * @param teamId - Team identifier
    */
   async getTeamMembers(teamId: string): Promise<TeamMember[]> {
     const res = await fetch(`/api/team/${teamId}/members`, { credentials: 'include' });
@@ -83,76 +88,171 @@ export class ApiTeamService implements TeamService {
 
   /**
    * Add a user to a team.
-   *
-   * @param teamId - Target team
-   * @param userId - User to add
    */
-  async addTeamMember(teamId: string, userId: string): Promise<TeamMember> {
+  async addTeamMember(teamId: string, userId: string, role: string): Promise<TeamMemberResult> {
     const res = await fetch(`/api/team/${teamId}/members`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId }),
+      body: JSON.stringify({ userId, role }),
       credentials: 'include',
     });
-    if (!res.ok) throw new Error('Failed to add team member');
-    return res.json();
+    if (!res.ok) return { success: false, error: 'Failed to add team member' };
+    const member = await res.json();
+    return { success: true, member };
+  }
+
+  /**
+   * Update a team member's role.
+   */
+  async updateTeamMember(teamId: string, userId: string, updateData: TeamMemberUpdatePayload): Promise<TeamMemberResult> {
+    const res = await fetch(`/api/team/${teamId}/members/${userId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updateData),
+      credentials: 'include',
+    });
+    if (!res.ok) return { success: false, error: 'Failed to update team member' };
+    const member = await res.json();
+    return { success: true, member };
   }
 
   /**
    * Remove a member from a team.
-   *
-   * @param teamId - Team ID
-   * @param userId - User ID to remove
    */
-  async removeTeamMember(teamId: string, userId: string): Promise<void> {
+  async removeTeamMember(teamId: string, userId: string): Promise<{ success: boolean; error?: string }> {
     const res = await fetch(`/api/team/${teamId}/members/${userId}`, {
       method: 'DELETE',
       credentials: 'include',
     });
-    if (!res.ok) throw new Error('Failed to remove team member');
+    if (!res.ok) return { success: false, error: 'Failed to remove team member' };
+    return { success: true };
+  }
+
+  /**
+   * Transfer team ownership to another user.
+   */
+  async transferOwnership(teamId: string, newOwnerId: string): Promise<TeamResult> {
+    const res = await fetch(`/api/team/${teamId}/transfer`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ newOwnerId }),
+      credentials: 'include',
+    });
+    if (!res.ok) return { success: false, error: 'Failed to transfer ownership' };
+    const team = await res.json();
+    return { success: true, team };
   }
 
   /**
    * Invite a user to join a team.
-   *
-   * @param teamId - Team identifier
-   * @param email - Email of the invitee
    */
-  async inviteToTeam(teamId: string, email: string): Promise<TeamInvite> {
+  async inviteToTeam(teamId: string, invitationData: TeamInvitationPayload): Promise<TeamInvitationResult> {
     const res = await fetch(`/api/team/${teamId}/invites`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email }),
+      body: JSON.stringify(invitationData),
       credentials: 'include',
     });
-    if (!res.ok) throw new Error('Failed to invite to team');
+    if (!res.ok) return { success: false, error: 'Failed to invite to team' };
+    const invitation = await res.json();
+    return { success: true, invitation };
+  }
+
+  /**
+   * Get all pending invitations for a team.
+   */
+  async getTeamInvitations(teamId: string): Promise<TeamInvitation[]> {
+    const res = await fetch(`/api/team/${teamId}/invites`, { credentials: 'include' });
+    if (!res.ok) throw new Error('Failed to fetch team invitations');
+    return res.json();
+  }
+
+  /**
+   * Get all invitations for a user (by email).
+   */
+  async getUserInvitations(email: string): Promise<TeamInvitation[]> {
+    const res = await fetch(`/api/team/invites?email=${encodeURIComponent(email)}`, { credentials: 'include' });
+    if (!res.ok) throw new Error('Failed to fetch user invitations');
     return res.json();
   }
 
   /**
    * Accept a team invitation.
-   *
-   * @param inviteId - Invitation identifier
    */
-  async acceptTeamInvite(inviteId: string): Promise<void> {
-    const res = await fetch(`/api/team/invites/${inviteId}/accept`, {
+  async acceptInvitation(invitationId: string, userId: string): Promise<TeamMemberResult> {
+    const res = await fetch(`/api/team/invites/${invitationId}/accept`, {
       method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId }),
       credentials: 'include',
     });
-    if (!res.ok) throw new Error('Failed to accept invite');
+    if (!res.ok) return { success: false, error: 'Failed to accept invite' };
+    const member = await res.json();
+    return { success: true, member };
   }
 
   /**
    * Decline a team invitation.
-   *
-   * @param inviteId - Invitation identifier
    */
-  async declineTeamInvite(inviteId: string): Promise<void> {
-    const res = await fetch(`/api/team/invites/${inviteId}/decline`, {
+  async declineInvitation(invitationId: string): Promise<{ success: boolean; error?: string }> {
+    const res = await fetch(`/api/team/invites/${invitationId}/decline`, {
       method: 'POST',
       credentials: 'include',
     });
-    if (!res.ok) throw new Error('Failed to decline invite');
+    if (!res.ok) return { success: false, error: 'Failed to decline invite' };
+    return { success: true };
+  }
+
+  /**
+   * Cancel a pending invitation.
+   */
+  async cancelInvitation(invitationId: string): Promise<{ success: boolean; error?: string }> {
+    const res = await fetch(`/api/team/invites/${invitationId}`, {
+      method: 'DELETE',
+      credentials: 'include',
+    });
+    if (!res.ok) return { success: false, error: 'Failed to cancel invite' };
+    return { success: true };
+  }
+
+  /**
+   * Search for teams based on search parameters.
+   */
+  async searchTeams(params: TeamSearchParams): Promise<TeamSearchResult> {
+    const query = new URLSearchParams(params as Record<string, string>).toString();
+    const res = await fetch(`/api/team/search?${query}`, { credentials: 'include' });
+    if (!res.ok) throw new Error('Failed to search teams');
+    return res.json();
+  }
+
+  /**
+   * Check if a user is a member of a team.
+   */
+  async isTeamMember(teamId: string, userId: string): Promise<boolean> {
+    const res = await fetch(`/api/team/${teamId}/members/${userId}`, { credentials: 'include' });
+    return res.ok;
+  }
+
+  /**
+   * Check if a user has a specific role in a team.
+   */
+  async hasTeamRole(teamId: string, userId: string, role: string): Promise<boolean> {
+    const res = await fetch(`/api/team/${teamId}/members/${userId}/role?role=${role}`, { credentials: 'include' });
+    return res.ok;
+  }
+
+  /**
+   * Subscribe to team changes (no-op in API implementation).
+   */
+  onTeamChanged(_callback: (team: Team) => void): () => void {
+    return () => {};
+  }
+
+  /**
+   * Subscribe to team membership changes (no-op in API implementation).
+   */
+  onTeamMembershipChanged(_callback: (teamId: string, members: TeamMember[]) => void): () => void {
+    return () => {};
   }
 }
 

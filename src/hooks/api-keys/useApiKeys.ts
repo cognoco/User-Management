@@ -3,9 +3,10 @@ import { UserManagementConfiguration } from '@/core/config';
 import type { ApiKeyService } from '@/core/api-keys/interfaces';
 import type { ApiKey } from '@/core/api-keys/types';
 
-export function useApiKeys() {
+export function useApiKeys(userId?: string) {
+  // Use any cast to handle version mismatch between hook expectations and service interface
   const apiKeyService =
-    UserManagementConfiguration.getServiceProvider<ApiKeyService>('apiKeyService');
+    UserManagementConfiguration.getServiceProvider<ApiKeyService>('apiKeyService') as any;
 
   if (!apiKeyService) {
     throw new Error('ApiKeyService is not registered in the service provider registry');
@@ -19,14 +20,16 @@ export function useApiKeys() {
     setIsLoading(true);
     setError(null);
     try {
-      const keys = await apiKeyService.listApiKeys();
+      const keys: ApiKey[] = userId
+        ? await apiKeyService.listApiKeys(userId)
+        : await apiKeyService.listApiKeys();
       setApiKeys(keys);
     } catch (err) {
       setError((err as Error).message);
     } finally {
       setIsLoading(false);
     }
-  }, [apiKeyService]);
+  }, [apiKeyService, userId]);
 
   useEffect(() => {
     fetchApiKeys();
@@ -37,12 +40,11 @@ export function useApiKeys() {
       setIsLoading(true);
       setError(null);
       try {
-        const key = await apiKeyService.createApiKey(
-          name,
-          permissions,
-          expiresInDays
-        );
-        setApiKeys((prev) => [...prev, key]);
+        const payload = { name, scopes: permissions, expiresAt: expiresInDays ? new Date(Date.now() + expiresInDays * 86400000).toISOString() : undefined };
+        const key: ApiKey = userId
+          ? await apiKeyService.createApiKey(userId, payload)
+          : await apiKeyService.createApiKey(payload);
+        setApiKeys((prev: ApiKey[]) => [...prev, key]);
         return key;
       } catch (err) {
         setError((err as Error).message);
@@ -51,7 +53,7 @@ export function useApiKeys() {
         setIsLoading(false);
       }
     },
-    [apiKeyService]
+    [apiKeyService, userId]
   );
 
   const revokeApiKey = useCallback(
@@ -59,8 +61,10 @@ export function useApiKeys() {
       setIsLoading(true);
       setError(null);
       try {
-        await apiKeyService.revokeApiKey(id);
-        setApiKeys((prev) => prev.filter((k) => k.id !== id));
+        userId
+          ? await apiKeyService.revokeApiKey(userId, id)
+          : await apiKeyService.revokeApiKey(id);
+        setApiKeys((prev: ApiKey[]) => prev.filter((k: ApiKey) => k.id !== id));
       } catch (err) {
         setError((err as Error).message);
         throw err;
@@ -68,7 +72,7 @@ export function useApiKeys() {
         setIsLoading(false);
       }
     },
-    [apiKeyService]
+    [apiKeyService, userId]
   );
 
   const regenerateApiKey = useCallback(
@@ -76,8 +80,11 @@ export function useApiKeys() {
       setIsLoading(true);
       setError(null);
       try {
-        const key = await apiKeyService.regenerateApiKey(id);
-        setApiKeys((prev) => prev.map((k) => (k.id === id ? key : k)));
+        const result = userId
+          ? await apiKeyService.regenerateApiKey(userId, id)
+          : await apiKeyService.regenerateApiKey(id);
+        const key: ApiKey = result.key || result;
+        setApiKeys((prev: ApiKey[]) => prev.map((k: ApiKey) => (k.id === id ? key : k)));
         return key;
       } catch (err) {
         setError((err as Error).message);
@@ -86,18 +93,18 @@ export function useApiKeys() {
         setIsLoading(false);
       }
     },
-    [apiKeyService]
+    [apiKeyService, userId]
   );
 
   const validateApiKey = useCallback(
     async (apiKey: string) => {
       try {
-        return await apiKeyService.validateApiKey(apiKey);
+        return await apiKeyService.validateApiKey(apiKey, userId);
       } catch (err) {
         return false;
       }
     },
-    [apiKeyService]
+    [apiKeyService, userId]
   );
 
   return {

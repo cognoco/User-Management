@@ -103,14 +103,14 @@ export function isRole(value: string): value is RoleType {
  * Get permissions for a specific role
  */
 export function getPermissionsForRole(role: RoleType): Permission[] {
-  return RoleDefinition[role].permissions;
+  return RoleDefinition[role].permissions as unknown as Permission[];
 }
 
 /**
  * Check if a role has a specific permission
  */
 export function hasRolePermission(role: RoleType, permission: Permission): boolean {
-  return RoleDefinition[role].permissions.includes(permission);
+  return (RoleDefinition[role].permissions as readonly string[]).includes(permission);
 }
 
 /**

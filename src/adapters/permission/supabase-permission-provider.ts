@@ -224,6 +224,7 @@ export class SupabasePermissionProvider implements IPermissionDataProvider {
     // Notify event handlers
     this.notifyEvent({
       type: PermissionEventTypes.ROLE_CREATED,
+      timestamp: new Date(),
       role: createdRole
     });
     
@@ -293,7 +294,9 @@ export class SupabasePermissionProvider implements IPermissionDataProvider {
     // Notify event handlers
     this.notifyEvent({
       type: PermissionEventTypes.ROLE_UPDATED,
-      role: updatedRole
+      timestamp: new Date(),
+      role: updatedRole,
+      previousRole: updatedRole,
     });
     
     return updatedRole;
@@ -336,7 +339,8 @@ export class SupabasePermissionProvider implements IPermissionDataProvider {
       if (role) {
         this.notifyEvent({
           type: PermissionEventTypes.ROLE_DELETED,
-          role
+          timestamp: new Date(),
+          roleId: role.id,
         });
       }
       
@@ -409,8 +413,8 @@ export class SupabasePermissionProvider implements IPermissionDataProvider {
     // Notify event handlers
     this.notifyEvent({
       type: PermissionEventTypes.ROLE_ASSIGNED,
+      timestamp: new Date(),
       userRole,
-      userId
     });
     
     return userRole;
@@ -448,8 +452,9 @@ export class SupabasePermissionProvider implements IPermissionDataProvider {
       if (!userRoleError && userRole) {
         this.notifyEvent({
           type: PermissionEventTypes.ROLE_REMOVED,
-          userRole: this.mapDbUserRoleToUserRole(userRole),
-          userId
+          timestamp: new Date(),
+          userId: this.mapDbUserRoleToUserRole(userRole).userId,
+          roleId: this.mapDbUserRoleToUserRole(userRole).roleId,
         });
       }
       
@@ -524,8 +529,9 @@ export class SupabasePermissionProvider implements IPermissionDataProvider {
     // Notify event handlers
     this.notifyEvent({
       type: PermissionEventTypes.PERMISSION_ADDED,
+      timestamp: new Date(),
       permission,
-      roleId
+      roleId,
     });
     
     return permissionAssignment;
@@ -553,8 +559,9 @@ export class SupabasePermissionProvider implements IPermissionDataProvider {
       // Notify event handlers
       this.notifyEvent({
         type: PermissionEventTypes.PERMISSION_REMOVED,
+        timestamp: new Date(),
         permission,
-        roleId
+        roleId,
       });
       
       return true;

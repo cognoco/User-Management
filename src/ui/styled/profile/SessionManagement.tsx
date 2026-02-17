@@ -51,20 +51,20 @@ const SessionManagement: React.FC = () => {
                   </thead>
                   <tbody>
                     {sessions.map((session) => (
-                      <tr key={session.id} className={session.is_current ? 'bg-blue-50' : ''}>
+                      <tr key={session.id} className={session.isCurrent ? 'bg-blue-50' : ''}>
                         <td className="px-4 py-2">
-                          {session.user_agent || 'Unknown'}
-                          {session.is_current && (
+                          {session.userAgent || 'Unknown'}
+                          {session.isCurrent && (
                             <span className="ml-2 text-xs text-blue-600 font-semibold">
                               (Current)
                               <span className="sr-only">(Current session)</span>
                             </span>
                           )}
                         </td>
-                        <td className="px-4 py-2">{session.ip_address || '-'}</td>
-                        <td className="px-4 py-2">{session.last_active_at ? new Date(session.last_active_at).toLocaleString() : '-'}</td>
+                        <td className="px-4 py-2">{session.ipAddress || '-'}</td>
+                        <td className="px-4 py-2">{session.lastActiveAt ? new Date(session.lastActiveAt).toLocaleString() : '-'}</td>
                         <td className="px-4 py-2">
-                          {session.is_current ? (
+                          {session.isCurrent ? (
                             <span className="text-gray-400">Active</span>
                           ) : (
                             <AlertDialog>

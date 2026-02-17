@@ -1,5 +1,6 @@
 import { ReactNode, useState, useEffect, FormEvent } from 'react';
 import { useAuth } from '@/hooks/auth/useAuth';
+import { api } from '@/lib/api/axios';
 
 /**
  * Headless IDPConfiguration component that handles behavior only
@@ -139,16 +140,36 @@ export const IDPConfiguration = ({
   error: externalError,
   children
 }: IDPConfigurationProps) => {
-  // Get authentication hook
-  const { 
-    configureIDP, 
-    getIDPProviders, 
-    testIDPConfiguration, 
-    getIDPStatus,
-    deleteIDPConfiguration,
-    isLoading: authIsLoading, 
-    error: authError 
-  } = useAuth();
+  // Get authentication hook — only use what exists in UseAuth
+  const { isLoading: authIsLoading, error: authError } = useAuth();
+
+  // IDP management API helpers (not yet in useAuth)
+  const getIDPProviders = async (orgId: string): Promise<IDPProvider[]> => {
+    const res = await api.get(`/organizations/${orgId}/idp/providers`);
+    return res.data;
+  };
+
+  const getIDPStatus = async (orgId: string): Promise<{ configured: boolean; providerId?: string; config?: Record<string, string> }> => {
+    const res = await api.get(`/organizations/${orgId}/idp/status`);
+    return res.data;
+  };
+
+  const configureIDP = async (params: { organizationId?: string; providerId: string; config: Record<string, string> }): Promise<{ success: boolean; message?: string; error?: string }> => {
+    const { organizationId: orgId = '', providerId, config } = params;
+    const res = await api.post(`/organizations/${orgId}/idp/configure`, { providerId, config });
+    return res.data;
+  };
+
+  const testIDPConfiguration = async (params: { organizationId?: string; providerId?: string; config?: Record<string, string> }): Promise<{ success: boolean; message: string }> => {
+    const { organizationId: orgId = '' } = params;
+    const res = await api.post(`/organizations/${orgId}/idp/test`, params);
+    return res.data;
+  };
+
+  const deleteIDPConfiguration = async (orgId: string): Promise<{ success: boolean; error?: string }> => {
+    const res = await api.delete(`/organizations/${orgId}/idp`);
+    return res.data;
+  };
   
   // Form state
   const [availableProviders, setAvailableProviders] = useState<IDPProvider[]>([]);
@@ -164,7 +185,7 @@ export const IDPConfiguration = ({
 
   // Use external state if provided, otherwise use internal state
   const isLoading = externalIsLoading !== undefined ? externalIsLoading : authIsLoading || isSubmitting;
-  const formError = externalError !== undefined ? externalError : authError;
+  const formError = externalError !== undefined ? externalError : (authError ?? undefined);
 
   // Load available IDP providers and current status
   useEffect(() => {
@@ -228,13 +249,11 @@ export const IDPConfiguration = ({
     
     // Clear error for this field
     if (errors.config && errors.config[fieldId]) {
-      setErrors(prev => ({
-        ...prev,
-        config: {
-          ...prev.config,
-          [fieldId]: undefined
-        }
-      }));
+      setErrors(prev => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { [fieldId]: _removed, ...restConfig } = prev.config ?? {};
+        return { ...prev, config: restConfig };
+      });
     }
   };
 
@@ -287,13 +306,11 @@ export const IDPConfiguration = ({
           }
         }));
       } else {
-        setErrors(prev => ({
-          ...prev,
-          config: {
-            ...prev.config,
-            [fieldId]: undefined
-          }
-        }));
+        setErrors(prev => {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const { [fieldId]: _removed, ...restConfig } = prev.config ?? {};
+          return { ...prev, config: restConfig };
+        });
       }
     }
   };
@@ -335,7 +352,7 @@ export const IDPConfiguration = ({
       
       if (result.success) {
         setIdpStatus('configured');
-        onSuccess?.(result);
+        onSuccess?.({ success: result.success, message: result.message ?? 'IDP configured successfully' });
       } else if (result.error) {
         setErrors(prev => ({ ...prev, form: result.error }));
         onError?.(result.error);

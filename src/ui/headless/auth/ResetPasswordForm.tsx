@@ -7,6 +7,7 @@
 
 import { useState, FormEvent, useEffect } from 'react';
 import { useAuth } from '@/hooks/auth/useAuth';
+import { api } from '@/lib/api/axios';
 import { z } from 'zod';
 
 export interface ResetPasswordFormProps {
@@ -94,7 +95,7 @@ export function ResetPasswordForm({
   
   // Use external state if provided, otherwise use internal state
   const isLoading = externalIsLoading !== undefined ? externalIsLoading : authIsLoading || isSubmitting;
-  const formError = externalError !== undefined ? externalError : authError;
+  const formError = externalError !== undefined ? externalError : (authError ?? undefined);
   
   // Validate form
   const validateForm = () => {
@@ -206,7 +207,8 @@ export function ResetPasswordForm({
         onSuccess?.();
       } else {
         // Use default auth hook
-        const result = await resetPassword(token, passwordValue);
+        const res = await api.post('/auth/reset-password', { token, password: passwordValue });
+        const result = res.data as { success: boolean; error?: string };
         
         if (result.error) {
           setErrors({ ...errors, form: result.error });

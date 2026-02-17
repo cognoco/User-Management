@@ -34,7 +34,7 @@ export function NotificationPreferences({ autoSave = true, onSave, render }: Not
   const defaultState: NotificationPreferencesState = {
     [NotificationCategory.SECURITY]: { email: true, push: true, inApp: true },
     [NotificationCategory.TEAM]: { email: true, push: true, inApp: true },
-    [NotificationCategory.BILLING]: { email: true, push: true, inApp: true }
+    [NotificationCategory.ACCOUNT]: { email: true, push: true, inApp: true }
   } as NotificationPreferencesState;
 
   const [prefs, setPrefs] = useState<NotificationPreferencesState>(defaultState);
@@ -47,8 +47,12 @@ export function NotificationPreferences({ autoSave = true, onSave, render }: Not
       setPrefs({
         [NotificationCategory.SECURITY]: { email, push, inApp: true },
         [NotificationCategory.TEAM]: { email, push, inApp: true },
-        [NotificationCategory.BILLING]: { email, push, inApp: true }
-      });
+        [NotificationCategory.ACCOUNT]: { email, push, inApp: true },
+        [NotificationCategory.SYSTEM]: { email, push, inApp: true },
+        [NotificationCategory.PROMOTIONAL]: { email, push, inApp: false },
+        [NotificationCategory.UPDATES]: { email, push, inApp: true },
+        [NotificationCategory.ACTIVITY]: { email, push, inApp: true },
+      } as NotificationPreferencesState);
     }
   }, [preferences]);
 

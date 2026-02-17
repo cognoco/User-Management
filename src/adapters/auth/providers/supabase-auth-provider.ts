@@ -21,7 +21,7 @@ import {
 } from '@/core/common/errors';
 import { saveRefreshToken, rotateRefreshToken } from '@/lib/auth/refresh-token-store';
 
-import type { IAuthDataProvider as AuthDataProvider } from '../interfaces';
+import type { AuthDataProvider } from '../interfaces';
 
 
 /**
@@ -81,9 +81,9 @@ export class SupabaseAuthProvider implements AuthDataProvider {
       lastName: supabaseUser.user_metadata?.lastName || '',
       emailVerified: supabaseUser.email_confirmed_at !== null,
       phoneNumber: supabaseUser.phone || '',
-      createdAt: supabaseUser.created_at ? new Date(supabaseUser.created_at) : new Date(),
-      updatedAt: supabaseUser.updated_at ? new Date(supabaseUser.updated_at) : new Date(),
-      lastLoginAt: supabaseUser.last_sign_in_at ? new Date(supabaseUser.last_sign_in_at) : null,
+      createdAt: supabaseUser.created_at ? new Date(supabaseUser.created_at).toISOString() : new Date().toISOString(),
+      updatedAt: supabaseUser.updated_at ? new Date(supabaseUser.updated_at).toISOString() : new Date().toISOString(),
+      lastLoginAt: supabaseUser.last_sign_in_at ? new Date(supabaseUser.last_sign_in_at).toISOString() : undefined,
       mfaEnabled: supabaseUser.factors?.length > 0 || false,
       isActive: true // Supabase doesn't have a built-in active flag, we'd need to store this in a separate table
     };
@@ -447,7 +447,7 @@ export class SupabaseAuthProvider implements AuthDataProvider {
   async verifyMagicLink(token: string): Promise<AuthResult> {
     this.log('verifyMagicLink');
     try {
-      const { data, error } = await this.supabase.auth.verifyOtp({ type: 'magiclink', token });
+      const { data, error } = await this.supabase.auth.verifyOtp({ type: 'email', token_hash: token });
       if (error || !data.session || !data.user) {
         return { success: false, error: error?.message || 'Invalid or expired token' };
       }
@@ -523,9 +523,15 @@ export class SupabaseAuthProvider implements AuthDataProvider {
   async verifyMFA(code: string): Promise<MFAVerifyResponse> {
     this.log('verifyMFA');
     try {
+      // Get the active challenge first
+      const { data: challengeData, error: challengeError } = await this.supabase.auth.mfa.challenge({ factorId: 'totp' });
+      if (challengeError || !challengeData) {
+        return { success: false, error: challengeError?.message || 'Failed to create MFA challenge' };
+      }
       const { data, error } = await this.supabase.auth.mfa.verify({
         factorId: 'totp',
-        code
+        challengeId: challengeData.id,
+        code,
       });
       
       if (error) {
@@ -559,7 +565,6 @@ export class SupabaseAuthProvider implements AuthDataProvider {
     try {
       const { error } = await this.supabase.auth.mfa.unenroll({
         factorId: 'totp',
-        code
       });
       
       if (error) {
@@ -573,7 +578,7 @@ export class SupabaseAuthProvider implements AuthDataProvider {
       
       return {
         success: true,
-        user
+        user: user ?? undefined,
       };
     } catch (error: any) {
       this.logError('disableMFA failed', error);
@@ -642,7 +647,7 @@ export class SupabaseAuthProvider implements AuthDataProvider {
       return {
         accessToken: data.session.access_token,
         refreshToken: data.session.refresh_token ?? '',
-        expiresAt: data.session.expires_at * 1000,
+        expiresAt: (data.session.expires_at ?? 0) * 1000,
       };
     } catch (error: any) {
       this.logError('refreshToken failed', error);

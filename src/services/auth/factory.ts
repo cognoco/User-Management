@@ -85,7 +85,7 @@ export function getApiAuthService(options: ApiAuthServiceOptions = {}): AuthServ
   if (!cachedService) {
     if (options.provider) {
       const storage = options.storage ?? new BrowserAuthStorage();
-      cachedService = new DefaultAuthService(options.provider, storage);
+      cachedService = new DefaultAuthService(options.provider, storage) as unknown as AuthService;
     } else {
       const config = getServiceConfiguration();
       if (config.authService) {
@@ -100,7 +100,7 @@ export function getApiAuthService(options: ApiAuthServiceOptions = {}): AuthServ
         if (!cachedService) {
           const provider = resolveProvider();
           const storage = options.storage ?? new BrowserAuthStorage();
-          cachedService = new DefaultAuthService(provider, storage);
+          cachedService = new DefaultAuthService(provider, storage) as unknown as AuthService;
         }
       }
     }

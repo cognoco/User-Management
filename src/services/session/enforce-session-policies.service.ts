@@ -59,8 +59,8 @@ export async function enforceSessionPolicies(
       const timeoutMs = timeoutMinutes * 60 * 1000;
       const now = Date.now();
       for (const session of sessions) {
-        if (!session.user_metadata?.last_activity) continue;
-        const last = new Date(session.user_metadata.last_activity).getTime();
+        if (!session.lastActiveAt) continue;
+        const last = new Date(session.lastActiveAt).getTime();
         if (now - last > timeoutMs) {
           await sessionProvider.deleteUserSession(user.id, session.id);
         }
@@ -69,22 +69,20 @@ export async function enforceSessionPolicies(
 
     if (maxSessions > 0 && sessions.length > maxSessions) {
       const sorted = [...sessions].sort((a, b) => {
-        const aTime = a.user_metadata?.last_activity
-          ? new Date(a.user_metadata.last_activity).getTime()
-          : new Date(a.created_at).getTime();
-        const bTime = b.user_metadata?.last_activity
-          ? new Date(b.user_metadata.last_activity).getTime()
-          : new Date(b.created_at).getTime();
+        const aTime = a.lastActiveAt
+          ? new Date(a.lastActiveAt).getTime()
+          : new Date(a.createdAt).getTime();
+        const bTime = b.lastActiveAt
+          ? new Date(b.lastActiveAt).getTime()
+          : new Date(b.createdAt).getTime();
         return aTime - bTime;
       });
 
-      const { data: { session: current } } = await supabase.auth.getSession();
-      const currentId = current?.id;
       const toRemove = sorted.length - maxSessions;
       let removed = 0;
       for (const s of sorted) {
         if (removed >= toRemove) break;
-        if (s.id !== currentId) {
+        if (!s.isCurrent) {
           await sessionProvider.deleteUserSession(user.id, s.id);
           removed++;
         }

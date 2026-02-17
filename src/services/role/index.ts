@@ -7,5 +7,5 @@ export type {
   RoleUpdateData,
   UserRoleAssignment,
   RoleHierarchyNode,
-} from './role.service';
+} from '@/core/role/interfaces';
 export { getApiRoleService } from './factory';

@@ -1,5 +1,6 @@
 import { ReactNode, useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/auth/useAuth';
+import { api } from '@/lib/api/axios';
 
 /**
  * Headless MFAManagementSection component that handles behavior only
@@ -125,15 +126,31 @@ export const MFAManagementSection = ({
   error: externalError,
   children
 }: MFAManagementSectionProps) => {
-  // Get authentication hook
-  const { 
-    getUserMFAMethods, 
-    getAvailableMFAMethods, 
-    disableMFAMethod,
-    regenerateMFABackupCodes,
-    isLoading: authIsLoading, 
-    error: authError 
-  } = useAuth();
+  // Get authentication hook — only use what exists in UseAuth
+  const { isLoading: authIsLoading, error: authError } = useAuth();
+
+  // MFA management API helpers (not yet in useAuth)
+  const getUserMFAMethods = async (uid?: string): Promise<MFAMethod[]> => {
+    const path = uid ? `/users/${uid}/mfa/methods` : '/auth/mfa/methods';
+    const res = await api.get(path);
+    return res.data as MFAMethod[];
+  };
+
+  const getAvailableMFAMethods = async (): Promise<Array<{ type: 'totp' | 'sms' | 'email' | 'backup_codes' | 'security_key'; name: string; description: string; canEnable: boolean }>> => {
+    const res = await api.get('/auth/mfa/available');
+    return res.data;
+  };
+
+  const disableMFAMethod = async (methodType: string): Promise<{ success: boolean; error?: string }> => {
+    const res = await api.delete(`/auth/mfa/${methodType}`);
+    return res.data;
+  };
+
+  const regenerateMFABackupCodes = async (_uid?: string): Promise<string[]> => {
+    const res = await api.post('/auth/mfa/backup-codes/regenerate');
+    const data = res.data as { success: boolean; backupCodes?: string[]; error?: string };
+    return data.backupCodes ?? [];
+  };
   
   // State
   const [isMFAEnabled, setIsMFAEnabled] = useState(false);
@@ -154,7 +171,7 @@ export const MFAManagementSection = ({
 
   // Use external state if provided, otherwise use internal state
   const isLoading = externalIsLoading !== undefined ? externalIsLoading : authIsLoading || isSubmitting;
-  const error = externalError !== undefined ? externalError : authError;
+  const error = externalError !== undefined ? externalError : (authError ?? undefined);
 
   // Load MFA methods
   const loadMFAMethods = async () => {
@@ -201,7 +218,7 @@ export const MFAManagementSection = ({
       if (result.success) {
         // Refresh methods after successful disable
         await loadMFAMethods();
-        onUpdate?.(result);
+        onUpdate?.({ success: result.success, message: result.error ?? 'MFA method updated' });
         return true;
       } else {
         onError?.(result.error || 'Failed to disable MFA method');

@@ -12,6 +12,7 @@ import { TeamMemberManager } from '@/ui/styled/team/TeamMemberManager';
 import { useTeams } from '@/hooks/team/useTeams';
 import { useTeamMembers } from '@/hooks/team/useTeamMembers';
 import { useTeamInvitations } from '@/hooks/team/useTeamInvitations';
+import type { TeamInvitation } from '@/core/team/models';
 
 export default function TeamDashboardPageClient() {
   const [activeTab, setActiveTab] = useState('overview');
@@ -19,8 +20,8 @@ export default function TeamDashboardPageClient() {
   // Use our hooks from the new architecture
   const {
     teams,
-    selectedTeam,
-    setSelectedTeam,
+    currentTeam: selectedTeam,
+    setCurrentTeam: setSelectedTeam,
     createTeam,
     isLoading: teamsLoading,
     error: teamsError
@@ -28,15 +29,15 @@ export default function TeamDashboardPageClient() {
   
   const {
     members,
-    addMember,
-    removeMember,
-    updateMemberRole,
+    addTeamMember: addMember,
+    removeTeamMember: removeMember,
+    updateTeamMember: updateMemberRole,
     isLoading: membersLoading,
     error: membersError
-  } = useTeamMembers(selectedTeam?.id);
+  } = useTeamMembers(selectedTeam?.id || '');
   
   const {
-    invitations,
+    teamInvitations: invitations,
     cancelInvitation,
     resendInvitation,
     isLoading: invitationsLoading,
@@ -133,10 +134,8 @@ export default function TeamDashboardPageClient() {
                     {selectedTeam && (
                       <TeamMemberManager
                         teamId={selectedTeam.id}
-                        members={members || []}
-                        onAddMember={addMember}
-                        onRemoveMember={removeMember}
-                        onUpdateMemberRole={updateMemberRole}
+                        onRemoveMember={async (userId: string) => { await removeMember(userId); }}
+                        onUpdateMember={async (userId: string, data: { role: string }) => { await updateMemberRole(userId, data); }}
                       />
                     )}
                   </CardContent>
@@ -156,7 +155,7 @@ export default function TeamDashboardPageClient() {
                           <p>No pending invitations</p>
                         ) : (
                           <div className="space-y-4">
-                            {invitations.map((invitation) => (
+                            {invitations.map((invitation: TeamInvitation) => (
                               <div key={invitation.id} className="flex items-center justify-between p-4 border rounded-md">
                                 <div>
                                   <p className="font-medium">{invitation.email}</p>

@@ -14,6 +14,7 @@ import { getServiceContainer, getServiceConfiguration } from '@/lib/config/servi
 export interface ApiTeamServiceOptions {
   /** When true, resets the cached instance. Useful for tests */
   reset?: boolean;
+  provider?: ITeamDataProvider;
 }
 
 const GLOBAL_CACHE_KEY = '__UM_TEAM_SERVICE__';
@@ -67,4 +68,13 @@ export function getApiTeamService(
   }
 
   return cachedService;
+}
+
+// Aliases for backwards compatibility
+export interface TeamServiceConfig {
+  provider?: ITeamDataProvider;
+}
+
+export function createTeamService(config?: TeamServiceConfig): TeamService {
+  return getApiTeamService({ provider: config?.provider }) as TeamService;
 }

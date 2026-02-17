@@ -35,7 +35,7 @@ async function inviteTeamMember(data: { email: string; role: 'admin' | 'member' 
   }
 }
 
-export function TeamInviteDialog({ availableSeats }: TeamInviteDialogProps): JSX.Element {
+export function TeamInviteDialog({ availableSeats }: TeamInviteDialogProps): React.ReactElement {
   const [isOpen, setIsOpen] = useState(false);
   const [email, setEmail] = useState('');
   const [role, setRole] = useState<'admin' | 'member'>('member');

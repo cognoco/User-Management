@@ -229,7 +229,7 @@ export function initializeUserManagement(config = {}, options = {}) {
       resourceRelationshipService: services.resourceRelationshipService,
       ssoService: services.ssoService,
       adminService: services.adminService,
-      ...options.serviceProviders
+      ...(options as any).serviceProviders
     },
     options: {
       // Default options
@@ -240,7 +240,7 @@ export function initializeUserManagement(config = {}, options = {}) {
         afterPasswordReset: '/auth/login',
       },
       // Merge with provided options
-      ...options
+      ...(options as any)
     }
   });
   

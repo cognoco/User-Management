@@ -38,7 +38,7 @@ export class SupabaseRepository<T> implements BaseDatabaseInterface<T> {
       .single();
 
     if (error) {
-      return { code: SERVER_ERROR_CODES.DATABASE_ERROR, message: error.message };
+      return { code: SERVER_ERROR_CODES.DATABASE_ERROR, message: error.message } as unknown as DatabaseError;
     }
 
     return result as T;
@@ -52,7 +52,7 @@ export class SupabaseRepository<T> implements BaseDatabaseInterface<T> {
       .single();
 
     if (error) {
-      return { code: SERVER_ERROR_CODES.RETRIEVAL_FAILED, message: error.message };
+      return { code: SERVER_ERROR_CODES.RETRIEVAL_FAILED, message: error.message } as unknown as DatabaseError;
     }
 
     return data as T;
@@ -67,7 +67,7 @@ export class SupabaseRepository<T> implements BaseDatabaseInterface<T> {
       .single();
 
     if (error) {
-      return { code: SERVER_ERROR_CODES.DATABASE_ERROR, message: error.message };
+      return { code: SERVER_ERROR_CODES.DATABASE_ERROR, message: error.message } as unknown as DatabaseError;
     }
 
     return result as T;
@@ -76,7 +76,7 @@ export class SupabaseRepository<T> implements BaseDatabaseInterface<T> {
   async delete(id: string): Promise<{ success: boolean; error?: DatabaseError }> {
     const { error } = await this.client.from(this.table).delete().eq('id', id);
     if (error) {
-      return { success: false, error: { code: SERVER_ERROR_CODES.DELETE_FAILED, message: error.message } };
+      return { success: false, error: { code: SERVER_ERROR_CODES.DELETE_FAILED, message: error.message } as unknown as DatabaseError };
     }
     return { success: true };
   }

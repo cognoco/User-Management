@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getApiAuthService } from '@/services/auth/factory';
 import { getApiPermissionService } from '@/services/permission/factory';
-import type { Permission } from '@/lib/rbac/roles';
+import type { Permission } from '@/core/permission/models';
 import { isPermission } from '@/lib/rbac/roles';
 import { checkPermission, checkAnyPermission, checkAllPermissions } from '@/lib/auth/permissionCheck';
 import { createAuthApiError } from './auth-errors';

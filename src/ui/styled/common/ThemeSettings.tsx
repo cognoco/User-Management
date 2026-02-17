@@ -33,8 +33,8 @@ export const ThemeSettings: React.FC = () => {
   useEffect(() => {
     if (preferences) {
       if (preferences.theme) setPendingTheme(preferences.theme as 'light' | 'dark' | 'system');
-      if (preferences.color_scheme && paletteKeys.includes(preferences.color_scheme as PaletteKey)) {
-        setPendingPalette(preferences.color_scheme as PaletteKey);
+      if ((preferences as any).color_scheme && paletteKeys.includes((preferences as any).color_scheme as PaletteKey)) {
+        setPendingPalette((preferences as any).color_scheme as PaletteKey);
       }
     }
   }, [preferences]);
@@ -58,7 +58,7 @@ export const ThemeSettings: React.FC = () => {
   const handleSave = async () => {
     setSaving(true);
     setSuccess('');
-    const ok = await updatePreferences({ theme: pendingTheme, color_scheme: pendingPalette });
+    const ok = await updatePreferences({ theme: pendingTheme, ...(pendingPalette ? { color_scheme: pendingPalette } : {}) } as any);
     setSaving(false);
     if (ok) {
       setSuccess('Theme and palette preference saved!');
@@ -70,8 +70,8 @@ export const ThemeSettings: React.FC = () => {
     // Restore from preferences
     if (preferences) {
       setPendingTheme(preferences.theme as 'light' | 'dark' | 'system');
-      if (preferences.color_scheme && paletteKeys.includes(preferences.color_scheme as PaletteKey)) {
-        setPendingPalette(preferences.color_scheme as PaletteKey);
+      if ((preferences as any).color_scheme && paletteKeys.includes((preferences as any).color_scheme as PaletteKey)) {
+        setPendingPalette((preferences as any).color_scheme as PaletteKey);
       }
     }
     setPreviewMode(false);

@@ -87,8 +87,8 @@ export function TeamMemberManager({
   
   // Use external state if provided, otherwise use internal state
   const isLoading = externalIsLoading !== undefined ? externalIsLoading : membersIsLoading || isProcessing;
-  const error = externalError !== undefined ? externalError : membersError;
-  const successMessage = externalSuccessMessage !== undefined ? externalSuccessMessage : membersSuccessMessage;
+  const error: string | undefined = externalError !== undefined ? externalError : (membersError ?? undefined);
+  const successMessage: string | undefined = externalSuccessMessage !== undefined ? externalSuccessMessage : (membersSuccessMessage ?? undefined);
   
   // Fetch team members on mount and when teamId changes
   useEffect(() => {

@@ -36,7 +36,8 @@ export function WebhookForm({
   const [data, setData] = useState<WebhookCreatePayload>({ 
     name: '', 
     url: '', 
-    events: [] 
+    events: [],
+    isActive: true,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [internalError, setInternalError] = useState<string | null>(null);
@@ -63,10 +64,10 @@ export function WebhookForm({
       if (onSubmit) {
         await onSubmit(data);
       } else {
-        await createWebhook(data);
+        await createWebhook.mutateAsync(data);
       }
       // Reset form only on successful submission
-      setData({ name: '', url: '', events: [] });
+      setData({ name: '', url: '', events: [], isActive: true });
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to submit webhook';
       setInternalError(message);

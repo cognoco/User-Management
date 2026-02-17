@@ -39,10 +39,11 @@ export function ConsentManagement({ render }: ConsentManagementProps) {
     setSubmitted(false);
     await updatePreferences({
       notifications: {
-        ...preferences?.notifications,
+        email: (preferences?.notifications as any)?.email ?? true,
+        push: (preferences?.notifications as any)?.push ?? true,
         marketing: marketingRef.current,
       },
-    });
+    } as any);
     setSubmitted(true);
   };
 

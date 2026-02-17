@@ -65,7 +65,7 @@ export function useLogin(): UseLogin {
         const result = await authService.sendVerificationEmail(email);
         setIsLoading(false);
         if (result.success) {
-          setSuccessMessage(result.message ?? 'Verification email sent successfully.');
+          setSuccessMessage((result as any).message ?? 'Verification email sent successfully.');
         } else {
           setError(result.error ?? 'Failed to send verification email.');
         }

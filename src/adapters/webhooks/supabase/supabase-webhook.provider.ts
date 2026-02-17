@@ -217,6 +217,7 @@ export class SupabaseWebhookProvider implements IWebhookDataProvider {
       url: record.url,
       events: record.events,
       secret: record.secret,
+      name: record.name ?? '',
       isActive: record.is_active,
       createdAt: record.created_at,
       updatedAt: record.updated_at

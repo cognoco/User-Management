@@ -61,7 +61,9 @@ export function ProtectedRoute({
   render
 }: ProtectedRouteProps) {
   // Get authentication hook
-  const { isAuthenticated: authIsAuthenticated, user, isLoading: authIsLoading, hasRole, hasPermission } = useAuth();
+  const { isAuthenticated: authIsAuthenticated, user, isLoading: authIsLoading } = useAuth();
+  const hasRole = (role: string): boolean => (user?.role === role) || ((user?.metadata?.roles as string[] | undefined)?.includes(role) ?? false);
+  const hasPermission = (permission: string): boolean => (user?.metadata?.permissions as string[] | undefined)?.includes(permission) ?? false;
   
   // State
   const [isChecking, setIsChecking] = useState(true);

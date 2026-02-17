@@ -11,8 +11,8 @@ export function SessionCard({ session, isCurrent, onTerminate }: SessionCardProp
   return (
     <div className="border rounded p-2 flex items-center justify-between">
       <div>
-        <div className="font-medium">{session.user_agent || 'Unknown'}</div>
-        <div className="text-xs text-gray-500">{session.ip_address || '-'} | {session.last_active_at ? new Date(session.last_active_at).toLocaleString() : '-'}</div>
+        <div className="font-medium">{session.userAgent || 'Unknown'}</div>
+        <div className="text-xs text-gray-500">{session.ipAddress || '-'} | {session.lastActiveAt ? new Date(session.lastActiveAt).toLocaleString() : '-'}</div>
       </div>
       {isCurrent ? (
         <span className="text-sm text-gray-500">Current</span>

@@ -79,7 +79,7 @@ export const createAuthMiddleware = (options?: {
           // Load permissions if required
           if (options?.requiredPermissions?.length) {
             const permissionService = getApiPermissionService();
-            const userPermissions = await permissionService.getUserPermissions(userId);
+            const userPermissions = await (permissionService as any).getUserPermissions?.(userId) ?? await permissionService.getRolePermissions(userId);
             context.permissions = userPermissions;
             
             // Check if user has all required permissions

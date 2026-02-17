@@ -173,7 +173,7 @@ export const ChangePasswordForm = ({
   
   // Use external state if provided, otherwise use internal state
   const isLoading = externalIsLoading !== undefined ? externalIsLoading : authIsLoading || isSubmitting;
-  const formError = externalError !== undefined ? externalError : authError;
+  const formError = externalError !== undefined ? externalError : (authError ?? undefined);
   
   // Validate form
   const validateForm = () => {
@@ -298,12 +298,12 @@ export const ChangePasswordForm = ({
         onSuccess?.('Password updated successfully!');
       } else {
         // Use default auth hook
-        const result = await updatePassword(data);
+        const result = await updatePassword(data.currentPassword, data.newPassword);
         
         if (result.error) {
           setErrors({ ...errors, form: result.error });
         } else {
-          const message = result.message || 'Password updated successfully!';
+          const message = 'Password updated successfully!';
           setSuccessMessage(message);
           onSuccess?.(message);
           

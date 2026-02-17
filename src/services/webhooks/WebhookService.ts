@@ -58,7 +58,8 @@ export class WebhookService implements IWebhookService {
     limit?: number
   ): Promise<WebhookDelivery[]> {
     await ensureSubscriptionTier(userId, SubscriptionTier.PREMIUM);
-    return this.dataProvider.listDeliveries(userId, webhookId, limit);
+    const result = await this.dataProvider.listDeliveries(userId, webhookId, limit);
+    return result.deliveries;
   }
 
   async triggerEvent(

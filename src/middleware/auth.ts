@@ -3,7 +3,7 @@ import type { User } from '@supabase/auth-js';
 import { NextRequest, NextResponse } from 'next/server';
 import { getApiAuthService } from '@/services/auth/factory';
 import { getApiPermissionService } from '@/services/permission/factory';
-import { Permission } from '@/lib/rbac/roles';
+import type { Permission } from '@/core/permission/models';
 import { ApiError } from '@/lib/api/common/api-error';
 import { createAuthApiError } from './auth-errors';
 import { createErrorResponse } from '@/lib/api/common/response-formatter';

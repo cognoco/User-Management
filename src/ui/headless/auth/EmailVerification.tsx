@@ -24,7 +24,7 @@ export function EmailVerification({ render }: EmailVerificationProps) {
   const error = useAuth().error;
   const successMessage = useAuth().successMessage;
   const clearError = useAuth().clearError;
-  const clearSuccess = useAuth().clearSuccessMessage;
+  const clearSuccess = useAuth().clearSuccess;
 
   const [token, setToken] = useState('');
   const [email, setEmail] = useState('');

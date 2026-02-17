@@ -7,4 +7,3 @@
 export type { ITeamDataProvider } from '@/core/team/ITeamDataProvider';
 export * from './factory';
 export * from './supabase-team-provider';
-export * from './supabase';

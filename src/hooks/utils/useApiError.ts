@@ -48,12 +48,22 @@ export function useApiError() {
   return { error, handleError, clearError };
 }
 
+interface ParsedApiError {
+  message: string;
+  code: string;
+  status: number;
+}
+
+function isApiError(err: unknown): err is { message: string; code?: string; status?: number } {
+  return typeof err === 'object' && err !== null && 'message' in err;
+}
+
 export function parseApiError(err: unknown): ParsedApiError {
   if (isApiError(err)) {
     return {
-      message: err.message,
-      code: err.code,
-      status: err.status,
+      message: (err as any).message,
+      code: (err as any).code || 'UNKNOWN_ERROR',
+      status: (err as any).status || 500,
     };
   } else if (err instanceof Error) {
     return {

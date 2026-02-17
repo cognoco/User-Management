@@ -40,7 +40,7 @@ export function getApiConsentService(
   }
 
   if (!consentServiceInstance) {
-    consentServiceInstance = UserManagementConfiguration.getServiceProvider('consentService') as ConsentService | undefined;
+    consentServiceInstance = (UserManagementConfiguration.getServiceProvider('consentService') as ConsentService | undefined) ?? null;
     if (!consentServiceInstance) {
       const provider = AdapterRegistry.getInstance().getAdapter<IConsentDataProvider>('consent');
       consentServiceInstance = new DefaultConsentService(provider);

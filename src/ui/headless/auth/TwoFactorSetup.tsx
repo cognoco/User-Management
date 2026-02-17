@@ -7,6 +7,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/auth/useAuth';
+import { api } from '@/lib/api/axios';
 
 export type TwoFactorMethod = 'app' | 'sms' | 'email' | 'backup';
 
@@ -71,14 +72,30 @@ export function TwoFactorSetup({
   error: externalError,
   render
 }: TwoFactorSetupProps) {
-  // Get authentication hook
-  const { 
-    setupTwoFactor, 
-    verifyTwoFactor, 
-    getUserProfile,
-    isLoading: authIsLoading, 
-    error: authError 
-  } = useAuth();
+  // Get authentication hook — only use what exists in UseAuth
+  const { setupMFA: setupTwoFactorBase, verifyMFA: verifyTwoFactorBase, isLoading: authIsLoading, error: authError } = useAuth();
+
+  // Two-factor setup API helpers
+  const setupTwoFactor = async (method: TwoFactorMethod) => {
+    if (method === 'app') {
+      return setupTwoFactorBase();
+    }
+    const res = await api.post('/auth/2fa/setup', { method });
+    return res.data;
+  };
+
+  const verifyTwoFactor = async (method: TwoFactorMethod, code: string) => {
+    if (method === 'app') {
+      return verifyTwoFactorBase(code);
+    }
+    const res = await api.post('/auth/2fa/verify', { method, code });
+    return res.data;
+  };
+
+  const getUserProfile = async () => {
+    const res = await api.get('/profile');
+    return res.data;
+  };
   
   // State
   const [currentMethod, setCurrentMethod] = useState<TwoFactorMethod>(initialMethod);
@@ -180,7 +197,7 @@ export function TwoFactorSetup({
   // Render the component using the render prop
   return render({
     currentMethod,
-    availableMethods: availableMethods.filter(method => method === currentMethod || !setupData[method]),
+    availableMethods: availableMethods.filter(method => method === currentMethod || !(setupData as Record<string, unknown>)[method]),
     setupStage,
     handleMethodChange,
     handleStartSetup,

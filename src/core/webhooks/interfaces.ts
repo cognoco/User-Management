@@ -6,4 +6,4 @@
  * domain grows.
  */
 
-export { IWebhookService } from './IWebhookService';
+export type { IWebhookService } from './IWebhookService';

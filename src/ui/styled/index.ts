@@ -62,7 +62,8 @@ export * from './profile/CompanyDataExport';
 export * from './profile/PrivacySettings';
 export * from './profile/ProfileForm';
 export * from './profile/ProfileVerification';
-export * from './profile/AvatarUpload';
+// profile/AvatarUpload: AvatarUpload name conflicts with user/AvatarUpload above; alias it
+export { AvatarUpload as ProfileAvatarUpload } from './profile/AvatarUpload';
 export * from './profile/AccountSettings';
 export * from './profile/ProfileEditor';
 export * from './profile/DataExport';
@@ -81,7 +82,8 @@ export * from './registration/MultiStepRegistration';
 export * from './registration/ProfileCompletion';
 export * from './account/DeleteAccountDialog';
 export * from './account/AccountSwitcher';
-export * from './account/AccountDeletion';
+// account/AccountDeletion: AccountDeletion conflicts with gdpr/AccountDeletion above; alias it
+export { AccountDeletion as AccountAccountDeletion } from './account/AccountDeletion';
 export * from './dashboard/Dashboard';
 export * from './auth/BackupCodesDisplay';
 export * from './auth/ResetPasswordForm';
@@ -103,7 +105,8 @@ export * from './auth/ProviderManagementPanel';
 export * from './auth/DomainBasedOrgMatching';
 export * from './auth/LoginForm';
 export * from './auth/ChangePasswordForm';
-export * from './auth/TwoFactorSetup';
+// auth/TwoFactorSetup: TwoFactorSetup conflicts with two-factor/TwoFactorSetup above; alias it
+export { TwoFactorSetup as AuthTwoFactorSetup } from './auth/TwoFactorSetup';
 export * from './auth/MFASetup';
 export * from './auth/OrganizationSSO';
 export * from './auth/PasswordlessLogin';
@@ -117,7 +120,9 @@ export * from './payment/InvoiceGenerator';
 export * from './payment/PaymentHistory';
 export * from './payment/PaymentForm';
 export * from './payment/PaymentMethodList';
-export * from './payment/SubscriptionManager';
+// payment/SubscriptionManager: conflicts with subscription/SubscriptionManager above; alias components
+export { SubscriptionManager as PaymentSubscriptionManager } from './payment/SubscriptionManager';
+export type { StyledSubscriptionManagerProps as PaymentStyledSubscriptionManagerProps } from './payment/SubscriptionManager';
 export * from './permission/RoleHierarchyTree';
 export * from './permission/ResourcePermissionAssigner';
 export * from './permission/ParentRoleSelector';
@@ -132,9 +137,11 @@ export * from './webhooks/WebhookEvents';
 export * from './webhooks/WebhookList';
 export * from './webhooks/WebhookLogs';
 export * from './settings/DataImport';
-export * from './settings/AccountDeletion';
+// settings/AccountDeletion: AccountDeletion conflicts with gdpr/AccountDeletion above; alias it
+export { AccountDeletion as SettingsAccountDeletion } from './settings/AccountDeletion';
 export * from './settings/LanguageSelector';
-export * from './settings/DataExport';
+// settings/DataExport: DataExport conflicts with gdpr/DataExport above; alias it
+export { DataExport as SettingsDataExport } from './settings/DataExport';
 export * from './settings/SettingsPanel';
 export * from './common/ApiErrorAlert';
 export * from './common/FormWithRecovery';

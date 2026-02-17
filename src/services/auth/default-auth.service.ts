@@ -4,7 +4,7 @@
  * Provides business logic around the {@link AuthDataProvider} while exposing
  * the {@link AuthService} interface used throughout the application.
  */
-import { AuthService, RequestContext } from '@/core/auth/interfaces';
+import { AuthService, RequestContext, MfaCheckParams, MfaCheckResult, MfaVerifyParams, MfaVerifyResult, MfaResendResult } from '@/core/auth/interfaces';
 import type { AuthDataProvider } from '@/adapters/auth/interfaces';
 import {
   AuthResult,
@@ -470,19 +470,21 @@ export class DefaultAuthService
     }
   }
 
-  async deleteAccount(password?: string): Promise<void> {
+  async deleteAccount(password?: string | { userId: string; password: string }): Promise<{ success: boolean; error?: string }> {
     const id = this.user?.id;
     try {
-      await this.provider.deleteAccount(password);
+      const pw = typeof password === 'string' ? password : password?.password;
+      await this.provider.deleteAccount(pw);
       this.sessionTracker.cleanup();
       this.persistToken(null);
       this.user = null;
       this.emit({ type: 'account_deleted', timestamp: Date.now(), userId: id ?? '' });
       await this.logAction({ userId: id, action: 'ACCOUNT_DELETION', status: 'SUCCESS', targetResourceType: 'user', targetResourceId: id });
+      return { success: true };
     } catch (error) {
       const message = translateError(error, { defaultMessage: 'Account deletion failed' });
       await this.logAction({ userId: id, action: 'ACCOUNT_DELETION', status: 'FAILURE', details: { error: message } });
-      throw new Error(message);
+      return { success: false, error: message };
     }
   }
 
@@ -630,5 +632,25 @@ export class DefaultAuthService
         callback(this.user);
       }
     });
+  }
+
+  async getUserAccount(userId: string): Promise<any> {
+    return this.user;
+  }
+
+  async checkMfaRequirements(params: MfaCheckParams): Promise<MfaCheckResult> {
+    return { required: false, availableMethods: [] };
+  }
+
+  async verifyMfaCode(params: MfaVerifyParams): Promise<MfaVerifyResult> {
+    return { success: false, error: 'Not implemented' };
+  }
+
+  async resendMfaEmailCode(accessToken: string): Promise<MfaResendResult> {
+    return { success: false, error: 'Not implemented' };
+  }
+
+  async resendMfaSmsCode(accessToken: string): Promise<MfaResendResult> {
+    return { success: false, error: 'Not implemented' };
   }
 }

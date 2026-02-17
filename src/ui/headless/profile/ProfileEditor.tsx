@@ -190,8 +190,8 @@ export function ProfileEditor({
   
   // Use external state if provided, otherwise use internal state
   const isLoading = externalIsLoading !== undefined ? externalIsLoading : profileIsLoading || isSubmitting;
-  const formError = externalError !== undefined ? externalError : profileError;
-  const formSuccessMessage = externalSuccessMessage !== undefined ? externalSuccessMessage : profileSuccessMessage;
+  const formError: string | undefined = externalError !== undefined ? externalError : (profileError ?? undefined);
+  const formSuccessMessage: string | undefined = externalSuccessMessage !== undefined ? externalSuccessMessage : (profileSuccessMessage ?? undefined);
   
   // Update form values when profile changes
   useEffect(() => {

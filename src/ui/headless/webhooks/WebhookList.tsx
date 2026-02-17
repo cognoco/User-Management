@@ -33,20 +33,14 @@ export function WebhookList({ userId, children, onDelete }: WebhookListProps) {
   // Handle webhook deletion
   const handleRemove = useCallback(async (id: string) => {
     if (onDelete) {
-      return onDelete(id);
+      await onDelete(id);
+      return { success: true };
     }
     
     try {
-      const result = await deleteWebhook.mutateAsync 
-        ? deleteWebhook.mutateAsync(id)
-        : deleteWebhook(id);
-      
-      // Refresh the list if needed
-      if (result?.success !== false) {
-        await fetchWebhooks();
-      }
-      
-      return result;
+      await deleteWebhook.mutateAsync(id);
+      await fetchWebhooks();
+      return { success: true };
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to delete webhook';
       return { success: false, error: message };
@@ -55,13 +49,7 @@ export function WebhookList({ userId, children, onDelete }: WebhookListProps) {
 
   // Refresh handler
   const refresh = useCallback(async () => {
-    try {
-      await fetchWebhooks();
-      return { success: true };
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to refresh webhooks';
-      return { success: false, error: message };
-    }
+    await fetchWebhooks();
   }, [fetchWebhooks]);
 
   return children({ 

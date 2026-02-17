@@ -9,7 +9,7 @@ import { UserService } from '@/core/user/interfaces';
 import { DefaultUserService } from './default-user.service';
 export { RepositoryUserService } from './repository-user.service';
 export { ApiUserService, getApiUserService } from './api-user.service';
-import type { UserDataProvider } from '@/core/user/IUserDataProvider';
+import type { IUserDataProvider as UserDataProvider } from '@/core/user/IUserDataProvider';
 
 /**
  * Configuration options for creating a UserService

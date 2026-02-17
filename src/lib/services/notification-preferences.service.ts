@@ -45,7 +45,11 @@ class NotificationPreferencesService {
     try {
       // Update in store
       const result = await usePreferencesStore.getState().updatePreferences({
-        notifications: preferences
+        notifications: {
+          email: preferences.email ?? false,
+          push: preferences.push ?? false,
+          marketing: preferences.marketing ?? false,
+        }
       });
 
       // Apply to notification service

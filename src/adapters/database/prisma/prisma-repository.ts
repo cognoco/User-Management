@@ -39,7 +39,7 @@ export class PrismaRepository<T> implements BaseDatabaseInterface<T> {
     try {
       return (await this.model.create({ data })) as T;
     } catch (error: any) {
-      return { code: SERVER_ERROR_CODES.DATABASE_ERROR, message: error.message };
+      return { code: SERVER_ERROR_CODES.DATABASE_ERROR, message: error.message } as unknown as DatabaseError;
     }
   }
 
@@ -47,7 +47,7 @@ export class PrismaRepository<T> implements BaseDatabaseInterface<T> {
     try {
       return (await this.model.findUnique({ where: { id } })) as T | null;
     } catch (error: any) {
-      return { code: SERVER_ERROR_CODES.RETRIEVAL_FAILED, message: error.message };
+      return { code: SERVER_ERROR_CODES.RETRIEVAL_FAILED, message: error.message } as unknown as DatabaseError;
     }
   }
 
@@ -55,7 +55,7 @@ export class PrismaRepository<T> implements BaseDatabaseInterface<T> {
     try {
       return (await this.model.update({ where: { id }, data })) as T;
     } catch (error: any) {
-      return { code: SERVER_ERROR_CODES.DATABASE_ERROR, message: error.message };
+      return { code: SERVER_ERROR_CODES.DATABASE_ERROR, message: error.message } as unknown as DatabaseError;
     }
   }
 
@@ -64,7 +64,7 @@ export class PrismaRepository<T> implements BaseDatabaseInterface<T> {
       await this.model.delete({ where: { id } });
       return { success: true };
     } catch (error: any) {
-      return { success: false, error: { code: SERVER_ERROR_CODES.DELETE_FAILED, message: error.message } };
+      return { success: false, error: { code: SERVER_ERROR_CODES.DELETE_FAILED, message: error.message } as unknown as DatabaseError };
     }
   }
 

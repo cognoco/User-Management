@@ -57,21 +57,38 @@ export function TeamMemberManager({
   ...headlessProps
 }: StyledTeamMemberManagerProps) {
   const isMobile = useIsMobile();
+
+  // Local state for confirmation dialog (not provided by headless component)
+  const [confirmationState, setConfirmationState] = React.useState<{
+    isOpen: boolean;
+    memberId: string | null;
+    memberName: string;
+  }>({ isOpen: false, memberId: null, memberName: '' });
+
   return (
     <HeadlessTeamMemberManager
       {...headlessProps}
       render={({
         members,
         availableRoles,
-        handleRoleChange,
+        updateMemberRole: handleRoleChange,
+        removeMember,
         isLoading,
         error,
-        isSuccess,
-        confirmationState,
-        setConfirmationState,
-        handleConfirmRemove,
-        cancelRemove
-      }) => (
+        successMessage,
+      }) => {
+        const isSuccess = !!successMessage;
+
+        const handleConfirmRemove = async (memberId: string) => {
+          await removeMember(memberId);
+          setConfirmationState({ isOpen: false, memberId: null, memberName: '' });
+        };
+
+        const cancelRemove = () => {
+          setConfirmationState({ isOpen: false, memberId: null, memberName: '' });
+        };
+
+        return (
         <Card className={className}>
           <CardHeader>
             <CardTitle>{title}</CardTitle>
@@ -105,13 +122,13 @@ export function TeamMemberManager({
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3">
                         <Avatar className="h-8 w-8">
-                          <AvatarImage src={member.avatarUrl} alt={member.name} />
+                          <AvatarImage src={member.avatarUrl ?? undefined} alt={member.name ?? ''} />
                           <AvatarFallback>
-                            {member.name.split(' ').map(n => n[0]).join('') || '?'}
+                            {(member.name ?? '').split(' ').map((n: string) => n[0]).join('') || '?'}
                           </AvatarFallback>
                         </Avatar>
                         <div>
-                          <p className="font-medium">{member.name}</p>
+                          <p className="font-medium">{member.name ?? ''}</p>
                           <p className="text-sm text-gray-500">{member.email}</p>
                         </div>
                       </div>
@@ -119,7 +136,7 @@ export function TeamMemberManager({
                         variant="outline"
                         size="sm"
                         disabled={isLoading || member.isCurrentUser || !member.canRemove}
-                        onClick={() => setConfirmationState({ memberId: member.id, memberName: member.name, isOpen: true })}
+                        onClick={() => setConfirmationState({ memberId: member.id, memberName: member.name ?? '', isOpen: true })}
                       >
                         Remove
                       </Button>
@@ -182,13 +199,13 @@ export function TeamMemberManager({
                         <TableCell>
                           <div className="flex items-center space-x-3">
                             <Avatar className="h-8 w-8">
-                              <AvatarImage src={member.avatarUrl} alt={member.name} />
+                              <AvatarImage src={member.avatarUrl ?? undefined} alt={member.name ?? ''} />
                               <AvatarFallback>
-                                {member.name.split(' ').map(n => n[0]).join('') || '?'}
+                                {(member.name ?? '').split(' ').map((n: string) => n[0]).join('') || '?'}
                               </AvatarFallback>
                             </Avatar>
                             <div>
-                              <p className="font-medium">{member.name}</p>
+                              <p className="font-medium">{member.name ?? ''}</p>
                               <p className="text-sm text-gray-500">{member.email}</p>
                             </div>
                           </div>
@@ -230,7 +247,7 @@ export function TeamMemberManager({
                                 disabled={isLoading || member.isCurrentUser || !member.canRemove}
                                 onClick={() => setConfirmationState({ 
                                   memberId: member.id, 
-                                  memberName: member.name,
+                                  memberName: member.name ?? '',
                                   isOpen: true 
                                 })}
                               >
@@ -281,7 +298,8 @@ export function TeamMemberManager({
           
           {footer && <CardFooter>{footer}</CardFooter>}
         </Card>
-      )}
+        );
+      }}
     />
   );
 }

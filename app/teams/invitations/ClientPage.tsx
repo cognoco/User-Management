@@ -19,21 +19,20 @@ export default function TeamInvitationsPageClient() {
   // Use our hooks from the new architecture
   const {
     teams,
-    selectedTeam,
-    setSelectedTeam,
+    currentTeam: selectedTeam,
+    setCurrentTeam: setSelectedTeam,
     isLoading: teamsLoading,
     error: teamsError
   } = useTeams();
   
   const {
-    pendingInvitations,
-    sentInvitations,
-    createInvitation,
+    teamInvitations: pendingInvitations,
+    userInvitations: sentInvitations,
     cancelInvitation,
     resendInvitation,
     isLoading: invitationsLoading,
     error: invitationsError
-  } = useTeamInvitations(teamId);
+  } = useTeamInvitations(teamId ?? undefined);
   
   // Combine loading and error states
   const isLoading = teamsLoading || invitationsLoading;
@@ -80,11 +79,6 @@ export default function TeamInvitationsPageClient() {
       ) : selectedTeam ? (
         <InvitationManager
           teamId={selectedTeam.id}
-          pendingInvitations={pendingInvitations || []}
-          sentInvitations={sentInvitations || []}
-          onCreateInvitation={createInvitation}
-          onCancelInvitation={cancelInvitation}
-          onResendInvitation={resendInvitation}
           footer={
             <div className="flex justify-between w-full">
               <Button

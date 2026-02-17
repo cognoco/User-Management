@@ -79,7 +79,7 @@ export function AccountDeletion({ children }: AccountDeletionProps) {
   }, [teams, user, userSubscription]);
 
   const validateConfirmation = useCallback(() => {
-    if (user?.userType === UserType.CORPORATE) {
+    if ((user as any)?.userType === UserType.CORPORATE) {
       if (!confirmationValue) {
         setLocalError('Password is required');
         return false;
@@ -97,7 +97,7 @@ export function AccountDeletion({ children }: AccountDeletionProps) {
     setLocalError(null);
     if (!validateConfirmation()) return;
     try {
-      await deleteAccount(user?.userType === UserType.CORPORATE ? confirmationValue : undefined);
+      await deleteAccount((user as any)?.userType === UserType.CORPORATE ? confirmationValue : undefined);
       setStep('completed');
     } catch (e: any) {
       setLocalError(e.message || 'Failed to delete account');

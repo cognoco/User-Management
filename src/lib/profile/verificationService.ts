@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/database/supabase';
+import { supabase } from '@/lib/database/supabase';
 
 export type ProfileVerificationStatus = 'unverified' | 'pending' | 'verified' | 'rejected';
 
@@ -10,8 +10,6 @@ export interface ProfileVerification {
   updated_at?: string;
 }
 
-const supabase = createClient();
-
 export async function getProfileVerificationStatus(userId: string): Promise<ProfileVerification> {
   const { data, error } = await supabase
     .from('profile_verification_requests')
@@ -22,11 +20,11 @@ export async function getProfileVerificationStatus(userId: string): Promise<Prof
     return { status: 'unverified' };
   }
   return {
-    status: data.status,
-    admin_feedback: data.admin_feedback,
-    document_url: data.document_url,
-    created_at: data.created_at,
-    updated_at: data.updated_at,
+    status: (data as any).status as ProfileVerificationStatus,
+    admin_feedback: (data as any).admin_feedback ?? null,
+    document_url: (data as any).document_url ?? null,
+    created_at: (data as any).created_at,
+    updated_at: (data as any).updated_at,
   };
 }
 
@@ -40,17 +38,17 @@ export async function requestProfileVerification(userId: string, documentUrl?: s
       document_url: documentUrl || null,
       admin_feedback: null,
       updated_at: new Date().toISOString(),
-    }, { onConflict: ['user_id'] })
+    }, { onConflict: 'user_id' })
     .select('*')
     .single();
   if (error || !data) {
     throw new Error('Failed to request verification');
   }
   return {
-    status: data.status,
-    admin_feedback: data.admin_feedback,
-    document_url: data.document_url,
-    created_at: data.created_at,
-    updated_at: data.updated_at,
+    status: (data as any).status as ProfileVerificationStatus,
+    admin_feedback: (data as any).admin_feedback ?? null,
+    document_url: (data as any).document_url ?? null,
+    created_at: (data as any).created_at,
+    updated_at: (data as any).updated_at,
   };
 }

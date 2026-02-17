@@ -3,7 +3,7 @@ import { useDataDeletion } from '@/hooks/gdpr/useDataDeletion';
 
 export interface DataDeletionRequestProps {
   render: (props: {
-    requestDeletion: () => Promise<void>;
+    requestDeletion: () => Promise<boolean>;
     isLoading: boolean;
     success: boolean;
     error: string | null;

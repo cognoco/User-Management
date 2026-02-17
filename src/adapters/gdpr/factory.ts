@@ -20,7 +20,7 @@ export function createGdprProvider(config: {
 }): IGdprDataProvider {
   switch (config.type) {
     case 'supabase':
-      return createSupabaseGdprProvider(config.options);
+      return createSupabaseGdprProvider(config.options as { supabaseUrl: string; supabaseKey: string; [key: string]: any });
     default:
       throw new Error(`Unsupported gdpr provider type: ${config.type}`);
   }

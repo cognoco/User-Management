@@ -164,13 +164,13 @@ export function RoleManager({
     externalIsLoading : 
     rolesIsLoading || permissionsIsLoading || isSubmitting;
   
-  const error = externalError !== undefined ? 
+  const error: string | undefined = externalError !== undefined ? 
     externalError : 
-    rolesError || permissionsError;
+    (rolesError ?? permissionsError ?? undefined);
   
-  const successMessage = externalSuccessMessage !== undefined ? 
+  const successMessage: string | undefined = externalSuccessMessage !== undefined ? 
     externalSuccessMessage : 
-    rolesSuccessMessage || permissionsSuccessMessage;
+    (rolesSuccessMessage ?? permissionsSuccessMessage ?? undefined);
   
   // Reset form
   const resetForm = () => {

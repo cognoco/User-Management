@@ -8,7 +8,7 @@
 import {
   UserService
 } from '@/core/user/interfaces';
-import type { UserDataProvider } from '@/core/user/IUserDataProvider';
+import type { IUserDataProvider as UserDataProvider } from '@/core/user/IUserDataProvider';
 import {
   UserProfile,
   ProfileUpdatePayload,
@@ -75,7 +75,7 @@ export class DefaultUserService
         method: 'getUserProfile',
         resourceType: 'user',
         resourceId: userId,
-      }, ERROR_CODES.NOT_FOUND);
+      }, ERROR_CODES.USER_NOT_FOUND);
       DefaultUserService.profileCache.delete(userId);
       throw err;
     }

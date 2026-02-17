@@ -28,7 +28,7 @@ export function subscribeToTableChanges(
     activeChannels[channelKey] = { channel, tableName, eventType, callback };
   }
 
-  channel.on(
+  (channel as any).on(
     'postgres_changes',
     {
       event: eventType === '*' ? '*' : eventType,

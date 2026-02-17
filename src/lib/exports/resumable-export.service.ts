@@ -11,9 +11,16 @@ import {
 import {
   getUserExportData,
   getUserDataExportById,
-  getCompanyExportData,
-  getCompanyDataExportById,
 } from './export.service';
+
+// Stubs for company export functions (not yet implemented in export.service)
+async function getCompanyExportData(companyId: string): Promise<CompanyExportData | null> {
+  return null;
+}
+
+async function getCompanyDataExportById(exportId: string): Promise<any | null> {
+  return null;
+}
 import { DataExportError } from '@/core/common/errors';
 import { EXPORT_ERROR } from '@/core/common/error-codes';
 
@@ -182,6 +189,7 @@ export async function processCompanyExportResumable(exportId: string, companyId:
     });
 
     const data = await getCompanyExportData(companyId);
+    if (!data) throw new DataExportError(EXPORT_ERROR.EXPORT_003, 'Company data not found');
     progress = 25;
     await updateExport('company_data_exports', exportId, { progress });
 

@@ -4,15 +4,11 @@ import type { IAdminDataProvider } from '@/core/admin/IAdminDataProvider';
 import { objectsToCSV } from '@/utils/export/csvExport';
 import { formatJSONForExport } from '@/utils/export/jsonExport';
 import { SearchCache } from '@/utils/cache/searchCache';
+import type { PaginationMeta } from '@/lib/api/common/response-formatter';
 
 interface SearchResult {
   users: any[];
-  pagination: {
-    page: number;
-    limit: number;
-    totalCount: number;
-    totalPages: number;
-  };
+  pagination: PaginationMeta;
 }
 
 export class DefaultAdminService implements AdminService {

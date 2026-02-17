@@ -15,7 +15,7 @@ export function createTwoFactorProvider(config: {
 }): ITwoFactorDataProvider {
   switch (config.type) {
     case 'supabase':
-      return createSupabaseTwoFactorProvider(config.options);
+      return createSupabaseTwoFactorProvider(config.options as any);
     default:
       throw new Error(`Unsupported two-factor provider type: ${config.type}`);
   }

@@ -8,16 +8,16 @@
  */
 
 import { AuthDataProvider } from '@/adapters/auth/interfaces';
-import { UserDataProvider } from '@/core/user/IUserDataProvider';
-import { TeamDataProvider } from '@/core/team/ITeamDataProvider';
-import { PermissionDataProvider } from '@/core/permission/IPermissionDataProvider';
-import { GdprDataProvider } from '@/core/gdpr/IGdprDataProvider';
+import { IUserDataProvider } from '@/core/user/IUserDataProvider';
+import { ITeamDataProvider } from '@/core/team/ITeamDataProvider';
+import { IPermissionDataProvider } from '@/core/permission/IPermissionDataProvider';
+import { IGdprDataProvider } from '@/core/gdpr/IGdprDataProvider';
 import { IConsentDataProvider } from '@/core/consent/IConsentDataProvider';
 import { SessionDataProvider } from '@/core/session/ISessionDataProvider';
 import { SsoDataProvider } from '@/core/sso/ISsoDataProvider';
 import { OAuthDataProvider } from '@/core/oauth/IOAuthDataProvider';
-import { SubscriptionDataProvider } from '@/core/subscription/ISubscriptionDataProvider';
-import { ApiKeyDataProvider } from '@/core/api-keys/IApiKeyDataProvider';
+import { ISubscriptionDataProvider } from '@/core/subscription/ISubscriptionDataProvider';
+import { IApiKeyDataProvider } from '@/core/api-keys/IApiKeyDataProvider';
 import { IWebhookDataProvider } from '@/core/webhooks/IWebhookDataProvider';
 import { ISavedSearchDataProvider } from '@/core/saved-search/ISavedSearchDataProvider';
 import type { ITwoFactorDataProvider } from '@/core/two-factor/ITwoFactorDataProvider';
@@ -25,11 +25,10 @@ import { IOrganizationDataProvider } from '@/core/organization/IOrganizationData
 import { ICompanyNotificationDataProvider } from '@/core/company-notification/ICompanyNotificationDataProvider';
 import { IAdminDataProvider } from '@/core/admin/IAdminDataProvider';
 import { IDataExportDataProvider } from '@/core/data-export/IDataExportDataProvider';
-import { 
+import type { 
   DatabaseProvider, 
   DatabaseConfig 
-} from '../core/database/interfaces';
-import { BaseRepository } from '../core/database/interfaces/base.interface';
+} from '../lib/database/types';
 
 
 
@@ -54,12 +53,12 @@ export interface AdapterFactory {
   /**
    * Create a user data provider
    */
-  createUserProvider(): UserDataProvider;
+  createUserProvider(): IUserDataProvider;
   
   /**
    * Create a team data provider
    */
-  createTeamProvider(): TeamDataProvider;
+  createTeamProvider(): ITeamDataProvider;
 
   /**
    * Create an admin data provider
@@ -74,13 +73,13 @@ export interface AdapterFactory {
   /**
    * Create a permission data provider
    */
-  createPermissionProvider(): PermissionDataProvider;
+  createPermissionProvider(): IPermissionDataProvider;
 
   /**
   /**
    * Create a GDPR data provider
    */
-  createGdprProvider?(): GdprDataProvider;
+  createGdprProvider?(): IGdprDataProvider;
 
   /**
    * Create a consent data provider
@@ -110,12 +109,12 @@ export interface AdapterFactory {
   /**
    * Create a subscription data provider
    */
-  createSubscriptionProvider(): SubscriptionDataProvider;
+  createSubscriptionProvider(): ISubscriptionDataProvider;
 
   /**
    * Create an API key data provider
    */
-  createApiKeyProvider(): ApiKeyDataProvider;
+  createApiKeyProvider(): IApiKeyDataProvider;
 
   /**
    * Create a company notification data provider

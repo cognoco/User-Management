@@ -5,8 +5,9 @@
  * It follows the headless UI pattern using render props to allow complete UI customization.
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/auth/useAuth';
+import { api } from '@/lib/api/axios';
 
 export interface OAuthProvider {
   id: string;
@@ -54,18 +55,36 @@ export function OAuthButtons({
   render
 }: OAuthButtonsProps) {
   // Get authentication hook
-  const { getOAuthProviders, signInWithOAuth, isLoading: authIsLoading, error: authError } = useAuth();
+  const { isLoading: authIsLoading, error: authError } = useAuth();
+
+  // OAuth API helpers (not yet in useAuth)
+  const getOAuthProviders = async (): Promise<{ id: string; name: string; icon?: string }[]> => {
+    const res = await api.get('/auth/oauth/providers');
+    return res.data;
+  };
+
+  const signInWithOAuth = async (providerId: string): Promise<{ success: boolean; redirectUrl?: string; error?: string }> => {
+    const res = await api.post('/auth/oauth/initiate', { providerId });
+    return res.data;
+  };
   
   // State
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | undefined>(undefined);
+  const [loadedProviders, setLoadedProviders] = useState<OAuthProvider[]>([]);
   
   // Use external state if provided, otherwise use internal state
   const isLoading = externalIsLoading !== undefined ? externalIsLoading : authIsLoading || isSubmitting;
-  const formError = externalError !== undefined ? externalError : authError || error;
+  const formError: string | undefined = externalError !== undefined ? externalError : (authError ?? error ?? undefined);
   
-  // Get available providers
-  const providers = customProviders || getOAuthProviders();
+  // Get available providers (async)
+  const providers: OAuthProvider[] = customProviders ?? loadedProviders;
+
+  useEffect(() => {
+    if (!customProviders) {
+      getOAuthProviders().then((ps) => setLoadedProviders(ps as OAuthProvider[])).catch(() => {});
+    }
+  }, []);
   
   // Handle provider click
   const handleProviderClick = async (providerId: string) => {

@@ -5,8 +5,8 @@ import {
   verifyAuthenticationResponse,
 } from '@simplewebauthn/server';
 import type {
-  RegistrationCredentialJSON,
-  AuthenticationCredentialJSON,
+  RegistrationResponseJSON as RegistrationCredentialJSON,
+  AuthenticationResponseJSON as AuthenticationCredentialJSON,
 } from '@simplewebauthn/types';
 import { getServiceSupabase } from '@/lib/database/supabase';
 
@@ -32,6 +32,7 @@ export async function generateRegistration(userId: string) {
     rpName,
     rpID,
     userID: userId,
+    userName: userId,
     attestationType: 'none',
     excludeCredentials,
     authenticatorSelection: {
@@ -70,7 +71,7 @@ export async function verifyRegistration(
   }
 
   const verification = await verifyRegistrationResponse({
-    credential,
+    response: credential,
     expectedChallenge: challengeData.challenge,
     expectedOrigin: origin,
     expectedRPID: rpID,
@@ -171,7 +172,7 @@ export async function verifyAuthentication(
   }
 
   const verification = await verifyAuthenticationResponse({
-    credential,
+    response: credential,
     expectedChallenge: challengeData.challenge,
     expectedOrigin: origin,
     expectedRPID: rpID,

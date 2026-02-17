@@ -3,6 +3,7 @@ import { Permission } from '@/core/permission/models';
 import { ResourcePermissionResolver } from '@/lib/services/resource-permission-resolver.service';
 import { usePermissions } from '@/hooks/permission/usePermissions';
 import useResourceHierarchy, { ResourceNode } from '@/hooks/resource/useResourceHierarchy';
+import { api } from '@/lib/api/axios';
 
 export interface ResourcePermissionAssignerProps {
   userId: string;
@@ -19,7 +20,15 @@ export interface ResourcePermissionAssignerProps {
 }
 
 export function ResourcePermissionAssigner({ userId, rootType, rootId, render }: ResourcePermissionAssignerProps) {
-  const { assignResourcePermission, removeResourcePermission } = usePermissions();
+  usePermissions(); // Load permissions context
+  const assignResourcePermission = async (userId: string, resourceType: string, resourceId: string, permission: string) => {
+    const res = await api.post('/permissions/resource/assign', { userId, resourceType, resourceId, permission });
+    return res.data;
+  };
+  const removeResourcePermission = async (userId: string, resourceType: string, resourceId: string, permission: string) => {
+    const res = await api.delete('/permissions/resource/remove', { data: { userId, resourceType, resourceId, permission } });
+    return res.data;
+  };
   const { tree, refresh } = useResourceHierarchy(rootType, rootId);
   const [resolver] = useState(() => new ResourcePermissionResolver());
   const [isLoading, setIsLoading] = useState(false);

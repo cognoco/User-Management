@@ -52,8 +52,8 @@ export function TeamManagement({ teamId, children }: TeamManagementProps) {
     team: currentTeam,
     members,
     invitations: teamInvitations,
-    refreshMembers: fetchTeamMembers,
-    refreshInvitations: () => fetchTeamInvitations(teamId),
+    refreshMembers: async () => { await fetchTeamMembers(); },
+    refreshInvitations: async () => { await fetchTeamInvitations(teamId); },
     isLoading,
     error
   });

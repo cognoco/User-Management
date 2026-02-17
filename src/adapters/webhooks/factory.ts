@@ -35,7 +35,7 @@ export function createWebhookProvider(config: {
 }): IWebhookDataProvider {
   switch (config.type) {
     case 'supabase':
-      return createSupabaseWebhookProvider(config.options);
+      return createSupabaseWebhookProvider(config.options as any);
     default:
       throw new Error(`Unsupported webhook provider type: ${config.type}`);
   }

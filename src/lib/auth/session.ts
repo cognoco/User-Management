@@ -35,7 +35,7 @@ export interface CurrentSession {
  */
 export async function getCurrentSession(): Promise<CurrentSession | null> {
   try {
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -60,7 +60,7 @@ export async function getCurrentSession(): Promise<CurrentSession | null> {
       role: (session.user.role as string) ?? 'user',
       accessToken: session.access_token,
       refreshToken: session.refresh_token ?? undefined,
-      expiresAt: session.expires_at * 1000,
+      expiresAt: (session.expires_at ?? 0) * 1000,
     };
   } catch (error) {
     console.error('[session] Failed to get current session:', error);
@@ -113,9 +113,9 @@ export function handleSessionTimeout(): void {
 /**
  * Persist or clear the session access token cookie.
  */
-export function persistSession(session: Session | null): void {
+export async function persistSession(session: Session | null): Promise<void> {
   try {
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const name = authConfig.sessionCookieName;
 
     if (session) {

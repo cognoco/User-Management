@@ -1,5 +1,6 @@
 import { ReactNode, useState, useEffect, FormEvent } from 'react';
 import { useAuth } from '@/hooks/auth/useAuth';
+import { api } from '@/lib/api/axios';
 
 /**
  * Headless BusinessSSOSetup component that handles behavior only
@@ -128,8 +129,24 @@ export const BusinessSSOSetup = ({
   error: externalError,
   children
 }: BusinessSSOSetupProps) => {
-  // Get authentication hook
-  const { configureSSOProvider, getSSOProviders, testSSOConfiguration, isLoading: authIsLoading, error: authError } = useAuth();
+  // Get authentication hook — only use what exists in UseAuth
+  const { isLoading: authIsLoading, error: authError } = useAuth();
+
+  // SSO management API helpers (not yet in useAuth)
+  const getSSOProviders = async (_orgId?: string): Promise<SSOProvider[]> => {
+    const res = await api.get('/auth/sso/providers');
+    return res.data;
+  };
+
+  const configureSSOProvider = async (params: { organizationId?: string; providerId: string; config: Record<string, string> }): Promise<{ success: boolean; message?: string; error?: string }> => {
+    const res = await api.post('/auth/sso/configure', params);
+    return res.data;
+  };
+
+  const testSSOConfiguration = async (params: { organizationId?: string; providerId: string; config?: Record<string, string> }): Promise<{ success: boolean; message: string }> => {
+    const res = await api.post('/auth/sso/test', params);
+    return res.data;
+  };
   
   // Form state
   const [availableProviders, setAvailableProviders] = useState<SSOProvider[]>([]);
@@ -144,7 +161,7 @@ export const BusinessSSOSetup = ({
 
   // Use external state if provided, otherwise use internal state
   const isLoading = externalIsLoading !== undefined ? externalIsLoading : authIsLoading || isSubmitting;
-  const formError = externalError !== undefined ? externalError : authError;
+  const formError = externalError !== undefined ? externalError : (authError ?? undefined);
 
   // Load available SSO providers
   useEffect(() => {
@@ -192,13 +209,11 @@ export const BusinessSSOSetup = ({
     
     // Clear error for this field
     if (errors.config && errors.config[fieldId]) {
-      setErrors(prev => ({
-        ...prev,
-        config: {
-          ...prev.config,
-          [fieldId]: undefined
-        }
-      }));
+      setErrors(prev => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { [fieldId]: _removed, ...restConfig } = prev.config ?? {};
+        return { ...prev, config: restConfig };
+      });
     }
   };
 
@@ -251,13 +266,11 @@ export const BusinessSSOSetup = ({
           }
         }));
       } else {
-        setErrors(prev => ({
-          ...prev,
-          config: {
-            ...prev.config,
-            [fieldId]: undefined
-          }
-        }));
+        setErrors(prev => {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const { [fieldId]: _removed, ...restConfig } = prev.config ?? {};
+          return { ...prev, config: restConfig };
+        });
       }
     }
   };
@@ -298,7 +311,7 @@ export const BusinessSSOSetup = ({
       });
       
       if (result.success) {
-        onSuccess?.(result);
+        onSuccess?.({ success: result.success, message: result.message ?? 'SSO configured successfully' });
       } else if (result.error) {
         setErrors(prev => ({ ...prev, form: result.error }));
         onError?.(result.error);

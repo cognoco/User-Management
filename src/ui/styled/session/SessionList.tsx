@@ -39,13 +39,13 @@ export function SessionList(props: StyledSessionListProps) {
                   {sessions.map(session => (
                     <tr key={session.id} className={session.id === currentSessionId ? 'bg-blue-50' : ''}>
                       <td className="px-4 py-2">
-                        {session.user_agent || 'Unknown'}
+                        {session.userAgent || 'Unknown'}
                         {session.id === currentSessionId && (
                           <span className="ml-2 text-xs text-blue-600 font-semibold">(Current)</span>
                         )}
                       </td>
-                      <td className="px-4 py-2">{session.ip_address || '-'}</td>
-                      <td className="px-4 py-2">{session.last_active_at ? new Date(session.last_active_at).toLocaleString() : '-'}</td>
+                      <td className="px-4 py-2">{session.ipAddress || '-'}</td>
+                      <td className="px-4 py-2">{session.lastActiveAt ? new Date(session.lastActiveAt).toLocaleString() : '-'}</td>
                       <td className="px-4 py-2">
                         {session.id === currentSessionId ? (
                           <span className="text-gray-400">Active</span>

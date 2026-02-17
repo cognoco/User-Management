@@ -4,6 +4,7 @@ import compliance from '../../../config/compliance.config';
 import { createError, createAuthenticationError, createNotFoundError } from './error-factory';
 import { SERVER_ERROR_CODES } from '@/lib/api/common/error-codes';
 import type { ErrorCode } from '@/lib/api/common/error-codes';
+import type { LanguageCode } from '@/lib/i18n';
 
 export interface ErrorContext {
   requestId?: string;
@@ -46,7 +47,7 @@ export function translateDatabaseError(error: any, locale = 'en'): ApplicationEr
 /**
  * Translate third party API errors to application errors.
  */
-export function translateApiError(error: any, serviceName: string, locale = 'en'): ApplicationError {
+export function translateApiError(error: any, serviceName: string, locale: LanguageCode = 'en'): ApplicationError {
   const status = error?.response?.status;
   if (status === 401) {
     return createAuthenticationError(getMessage('auth', locale), error, locale);

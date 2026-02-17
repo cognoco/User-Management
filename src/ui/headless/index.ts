@@ -45,7 +45,7 @@ export * from './address/AddressForm';
 export * from './address/AddressSelector';
 export * from './address/AddressList';
 export * from './shared/ConnectedAccounts';
-export * from './shared/NotificationPreferences';
+// shared/NotificationPreferences exports are already covered by company/NotificationPreferences above
 export * from './session/SessionTimeout';
 export * from './session/SessionManager';
 export * from './session/SessionPolicyEnforcer';
@@ -57,15 +57,18 @@ export * from './profile/CompanyDataExport';
 export * from './profile/PrivacySettings';
 export * from './profile/ProfileForm';
 export * from './profile/ProfileVerification';
-export * from './profile/AvatarUpload';
+// profile/AvatarUpload: AvatarUploadProps/RenderProps already exported by user/AvatarUpload; re-export only the component
+export { AvatarUpload as ProfileAvatarUpload } from './profile/AvatarUpload';
 export * from './profile/AccountSettings';
 export * from './profile/ProfileEditor';
 export * from './profile/DataExport';
-export * from './profile/NotificationPreferences';
+// profile/NotificationPreferences: NotificationPreferences/Props already exported above; re-export unique types only
+export type { CategoryPreferences, NotificationPreferencesState } from './profile/NotificationPreferences';
 export * from './profile/ActivityLog';
 export * from './profile/ProfileTypeConversion';
 export * from './profile/CompanyLogoUpload';
-export * from './profile/Profile';
+// profile/Profile: ProfileProps already exported by user/Profile; re-export only the component
+export { Profile as ProfileComponent } from './profile/Profile';
 export * from './layout/UserLayout';
 export * from './layout/Features';
 export * from './layout/Layout';
@@ -77,6 +80,8 @@ export * from './registration/ProfileCompletion';
 export * from './account/DeleteAccountDialog';
 export * from './account/AccountSwitcher';
 export * from './account/AccountDeletion';
+// auth/AccountDeletion exports AccountDeletion/Props (already exported above); re-export unique types
+export type { AccountDeletionStep, AccountDeletionRenderProps } from './auth/AccountDeletion';
 export * from './dashboard/Dashboard';
 export * from './auth/BackupCodesDisplay';
 export * from './auth/ResetPasswordForm';
@@ -85,7 +90,7 @@ export * from './auth/OAuthButtons';
 export * from './auth/BusinessSSOSetup';
 export * from './auth/ForgotPasswordForm';
 export * from './auth/AccountLockout';
-export * from './auth/AccountDeletion';
+// auth/AccountDeletion: AccountDeletion/Props already re-exported via account/AccountDeletion above
 export * from './auth/SocialLoginCallbacks';
 export * from './auth/PasswordRequirements';
 export * from './auth/PasswordResetForm';
@@ -97,9 +102,12 @@ export * from './auth/ProviderManagementPanel';
 export * from './auth/DomainBasedOrgMatching';
 export * from './auth/LoginForm';
 export * from './auth/ChangePasswordForm';
-export * from './auth/TwoFactorSetup';
+// auth/TwoFactorSetup: TwoFactorSetup/Props already exported by two-factor/TwoFactorSetup above; re-export unique type
+export type { TwoFactorMethod } from './auth/TwoFactorSetup';
 export * from './auth/MFASetup';
-export * from './auth/OrganizationSSO';
+// auth/OrganizationSSO: SSOProvider already exported by auth/BusinessSSOSetup; exclude it
+export { OrganizationSSO } from './auth/OrganizationSSO';
+export type { OrganizationSSOProps, OrganizationSSORenderProps } from './auth/OrganizationSSO';
 export * from './auth/PasswordlessLogin';
 export * from './auth/RememberMeToggle';
 export * from './auth/RegistrationForm';
@@ -111,7 +119,7 @@ export * from './payment/InvoiceGenerator';
 export * from './payment/PaymentHistory';
 export * from './payment/PaymentForm';
 export * from './payment/PaymentMethodList';
-export * from './payment/SubscriptionManager';
+// payment/SubscriptionManager: SubscriptionManager/Props already exported by subscription/SubscriptionManager above
 export * from './permission/ResourcePermissionAssigner';
 export * from './permission/RoleManager';
 export * from './permission/PermissionEditor';
@@ -123,7 +131,7 @@ export * from './webhooks/WebhookList';
 export * from './settings/DataImport';
 export * from './settings/AccountDeletion';
 export * from './settings/LanguageSelector';
-export * from './settings/DataExport';
+// settings/DataExport: DataExport/Props already exported by profile/DataExport above
 export * from './settings/SettingsPanel';
 export * from './common/FormWithRecovery';
 export * from './common/ReportingDashboard';

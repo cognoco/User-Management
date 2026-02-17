@@ -650,8 +650,10 @@ export class SupabaseTeamProvider implements ITeamDataProvider {
       }
       
       // Apply pagination
-      const from = params.page * params.pageSize;
-      const to = from + params.pageSize - 1;
+      const page = params.page ?? 0;
+      const pageSize = params.pageSize ?? 20;
+      const from = page * pageSize;
+      const to = from + pageSize - 1;
       
       query = query.range(from, to);
       
@@ -670,29 +672,24 @@ export class SupabaseTeamProvider implements ITeamDataProvider {
       }
       
       const totalCount = count || 0;
-      const totalPages = Math.ceil(totalCount / params.pageSize);
+      const totalPages = Math.ceil(totalCount / pageSize);
       
       const teams = data.map(this.mapDbTeamToTeam);
       
       return {
         teams,
-        pagination: {
-          page: params.page,
-          pageSize: params.pageSize,
-          totalCount,
-          totalPages
-        }
+        total: totalCount,
+        page,
+        limit: pageSize,
+        totalPages,
       };
     } catch (error: any) {
       return {
         teams: [],
-        pagination: {
-          page: params.page,
-          pageSize: params.pageSize,
-          totalCount: 0,
-          totalPages: 0
-        },
-        error: error.message || 'An error occurred while searching teams'
+        total: 0,
+        page: params.page ?? 0,
+        limit: params.pageSize ?? 20,
+        totalPages: 0,
       };
     }
   }
@@ -806,10 +803,11 @@ export class SupabaseTeamProvider implements ITeamDataProvider {
       name: dbTeam.name,
       description: dbTeam.description,
       ownerId: dbTeam.owner_id,
-      isPublic: dbTeam.is_public,
-      settings: dbTeam.settings,
-      createdAt: new Date(dbTeam.created_at),
-      updatedAt: new Date(dbTeam.updated_at)
+      isActive: dbTeam.is_active ?? true,
+      visibility: dbTeam.visibility ?? 'private',
+      memberLimit: dbTeam.member_limit ?? 0,
+      createdAt: dbTeam.created_at ? new Date(dbTeam.created_at).toISOString() : new Date().toISOString(),
+      updatedAt: dbTeam.updated_at ? new Date(dbTeam.updated_at).toISOString() : new Date().toISOString(),
     };
   }
   
@@ -820,16 +818,19 @@ export class SupabaseTeamProvider implements ITeamDataProvider {
    * @returns TeamMember model
    */
   private mapDbMemberToTeamMember(dbMember: any): TeamMember {
+    const firstName = dbMember.profiles?.first_name || '';
+    const lastName = dbMember.profiles?.last_name || '';
+    const name = [firstName, lastName].filter(Boolean).join(' ') || undefined;
     return {
       id: dbMember.id,
-      teamId: dbMember.team_license_id,
+      teamId: dbMember.team_license_id || dbMember.team_id,
       userId: dbMember.user_id,
       role: dbMember.role,
-      firstName: dbMember.profiles?.first_name || '',
-      lastName: dbMember.profiles?.last_name || '',
+      name,
       avatarUrl: dbMember.profiles?.avatar_url || null,
-      joinedAt: new Date(dbMember.joined_at),
-      updatedAt: dbMember.updated_at ? new Date(dbMember.updated_at) : null
+      isActive: dbMember.is_active ?? true,
+      joinedAt: dbMember.joined_at ? new Date(dbMember.joined_at).toISOString() : new Date().toISOString(),
+      updatedAt: dbMember.updated_at ? new Date(dbMember.updated_at).toISOString() : new Date().toISOString(),
     };
   }
   
@@ -842,16 +843,18 @@ export class SupabaseTeamProvider implements ITeamDataProvider {
   private mapDbInvitationToTeamInvitation(dbInvitation: any): TeamInvitation {
     return {
       id: dbInvitation.id,
-      teamId: dbInvitation.team_license_id,
-      teamName: dbInvitation.teams?.name || '',
+      teamId: dbInvitation.team_license_id || dbInvitation.team_id,
       email: dbInvitation.email,
       role: dbInvitation.role,
       invitedBy: dbInvitation.invited_by,
-      createdAt: new Date(dbInvitation.created_at),
-      expiresAt: dbInvitation.expires_at ? new Date(dbInvitation.expires_at) : null,
-      acceptedAt: dbInvitation.accepted_at ? new Date(dbInvitation.accepted_at) : null,
-      acceptedBy: dbInvitation.accepted_by,
-      declinedAt: dbInvitation.declined_at ? new Date(dbInvitation.declined_at) : null
+      status: dbInvitation.status ?? 'pending',
+      createdAt: dbInvitation.created_at ? new Date(dbInvitation.created_at).toISOString() : new Date().toISOString(),
+      expiresAt: dbInvitation.expires_at ? new Date(dbInvitation.expires_at).toISOString() : new Date().toISOString(),
+      respondedAt: dbInvitation.accepted_at
+        ? new Date(dbInvitation.accepted_at).toISOString()
+        : dbInvitation.declined_at
+        ? new Date(dbInvitation.declined_at).toISOString()
+        : undefined,
     };
   }
 }

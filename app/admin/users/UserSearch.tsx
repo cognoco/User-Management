@@ -1,11 +1,11 @@
 'use client';
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, type Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '@/ui/primitives/button';
 import { Input } from '@/ui/primitives/input';
-import { Select } from '@/ui/primitives/select';
+// Note: Using native select for react-hook-form compatibility in filters
 import { DatePicker } from '@/ui/primitives/datepicker';
 import { Card, CardContent, CardHeader, CardTitle } from '@/ui/primitives/card';
 import { Alert, AlertDescription } from '@/ui/primitives/alert';
@@ -84,7 +84,7 @@ export function UserSearch({ initialSearchParams = {}, onSearch }: UserSearchPro
   });
 
   const { register, handleSubmit, control, reset, watch, setValue } = useForm<SearchFormValues>({
-    resolver: zodResolver(searchFormSchema),
+    resolver: zodResolver(searchFormSchema) as Resolver<SearchFormValues>,
     defaultValues: {
       status: 'all',
       sortBy: 'createdAt',
@@ -164,7 +164,7 @@ export function UserSearch({ initialSearchParams = {}, onSearch }: UserSearchPro
           <CardTitle>User Search</CardTitle>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={handleSubmit(onSubmit as any)} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <label htmlFor="query" className="text-sm font-medium">Search</label>
@@ -172,21 +172,21 @@ export function UserSearch({ initialSearchParams = {}, onSearch }: UserSearchPro
               </div>
               <div className="space-y-2">
                 <label htmlFor="status" className="text-sm font-medium">Status</label>
-                <Select id="status" {...register('status')}>
+                <select id="status" className="w-full border rounded px-2 py-1 text-sm" {...register('status')}>
                   <option value="all">All Statuses</option>
                   <option value="active">Active</option>
                   <option value="inactive">Inactive</option>
                   <option value="suspended">Suspended</option>
-                </Select>
+                </select>
               </div>
               <div className="space-y-2">
                 <label htmlFor="role" className="text-sm font-medium">Role</label>
-                <Select id="role" {...register('role')}>
+                <select id="role" className="w-full border rounded px-2 py-1 text-sm" {...register('role')}>
                   <option value="">All Roles</option>
                   <option value="admin">Admin</option>
                   <option value="user">User</option>
                   <option value="viewer">Viewer</option>
-                </Select>
+                </select>
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

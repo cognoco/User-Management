@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { useProfileStore } from '@/lib/stores/profile.store';
+import { useProfileStore, profileStore } from '@/lib/stores/profile.store';
 import { useUserManagement } from '@/lib/auth/UserManagementProvider';
 import { api } from '@/lib/api/axios';
 import { type Crop, PixelCrop } from 'react-image-crop';
@@ -73,8 +73,8 @@ export interface AvatarUploadRenderProps {
   isLoadingAvatars: boolean;
   platform: string;
   isNative: boolean;
-  fileInputRef: React.RefObject<HTMLInputElement>;
-  imgRef: React.RefObject<HTMLImageElement>;
+  fileInputRef: React.RefObject<HTMLInputElement | null>;
+  imgRef: React.RefObject<HTMLImageElement | null>;
   
   // Methods
   setActiveTab: (tab: string) => void;
@@ -153,7 +153,7 @@ export default function AvatarUpload({ children }: AvatarUploadProps) {
     const file = event.target.files?.[0];
     if (!file) return;
     
-    if (!isValidImage(file, ALLOWED_IMAGE_TYPES, MAX_FILE_SIZE)) {
+    if (!isValidImage(file)) {
       setUploadError(`Invalid file. Please upload an image (${ALLOWED_IMAGE_TYPES.join(', ')}) under ${MAX_FILE_SIZE / (1024 * 1024)}MB.`);
       return;
     }
@@ -231,7 +231,7 @@ export default function AvatarUpload({ children }: AvatarUploadProps) {
       await api.post('/api/profile/avatar/apply', { avatarId: selectedAvatarId });
       
       // Refresh the profile to show the new avatar
-      await useProfileStore.getState().fetchProfile();
+      await profileStore.getState().fetchProfile(undefined);
       
       setIsModalOpen(false);
       setSelectedAvatarId(null);

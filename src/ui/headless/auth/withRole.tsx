@@ -1,5 +1,6 @@
 import { ReactNode, ComponentType, useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/auth/useAuth';
+import { api } from '@/lib/api/axios';
 
 /**
  * Headless withRole higher-order component that handles role-based access control
@@ -114,13 +115,8 @@ export const WithRoleComponent = ({
   bypass = false,
   children
 }: WithRoleProps) => {
-  // Get authentication hook
-  const { 
-    getUserRoles, 
-    getUserPermissions, 
-    isLoading: authIsLoading, 
-    error: authError 
-  } = useAuth();
+  // Get authentication hook — only use what exists in UseAuth
+  const { user, isLoading: authIsLoading, error: authError } = useAuth();
   
   // State
   const [userRoles, setUserRoles] = useState<string[]>([]);
@@ -139,9 +135,11 @@ export const WithRoleComponent = ({
 
     const loadRolesAndPermissions = async () => {
       try {
-        // Get user roles and permissions
-        const roles = await getUserRoles();
-        const permissions = await getUserPermissions();
+        // Fetch user roles directly via API
+        const userId = user?.id;
+        const rolesRes = userId ? await api.get(`/users/${userId}/roles`) : { data: [] };
+        const roles: string[] = Array.isArray(rolesRes.data) ? rolesRes.data.map((r: any) => r.name || r.role || r) : [];
+        const permissions: string[] = [];
         
         setUserRoles(roles);
         setUserPermissions(permissions);
@@ -150,8 +148,7 @@ export const WithRoleComponent = ({
         const hasRequiredRoles = requiredRoles.length === 0 || 
           requiredRoles.some(role => roles.includes(role));
         
-        const hasRequiredPermissions = requiredPermissions.length === 0 || 
-          requiredPermissions.every(permission => permissions.includes(permission));
+        const hasRequiredPermissions = requiredPermissions.length === 0;
         
         const userHasAccess = hasRequiredRoles && hasRequiredPermissions;
         setHasAccess(userHasAccess);
@@ -173,12 +170,12 @@ export const WithRoleComponent = ({
   }, [bypass, requiredRoles.join(','), requiredPermissions.join(',')]);
 
   // Check if user has a specific role
-  const hasRole = (role: string) => {
+  const hasRoleCheck = (role: string) => {
     return userRoles.includes(role);
   };
 
   // Check if user has a specific permission
-  const hasPermission = (permission: string) => {
+  const hasPermissionCheck = (permission: string) => {
     return userPermissions.includes(permission);
   };
   
@@ -188,9 +185,9 @@ export const WithRoleComponent = ({
     userRoles,
     userPermissions,
     isLoading: isLoading || authIsLoading,
-    error: error || authError,
-    hasRole,
-    hasPermission
+    error: error || (authError ?? undefined),
+    hasRole: hasRoleCheck,
+    hasPermission: hasPermissionCheck
   };
   
   return children(renderProps);

@@ -104,7 +104,7 @@ export class ErrorMetrics {
     const count = this.getErrorCount(dim);
     const duration = this.getImpactDuration(dim) || 0;
     const severityScores = { low: 1, medium: 2, high: 3, critical: 4 };
-    const sw = weights.severityWeight?.[dim.severity] ?? severityScores[dim.severity] ?? 1;
+    const sw = weights.severityWeight?.[dim.severity] ?? severityScores[dim.severity as keyof typeof severityScores] ?? 1;
     const cw = weights.countWeight ?? 1;
     const dw = weights.durationWeight ?? 0.001;
     return (count * cw + duration * dw) * sw;

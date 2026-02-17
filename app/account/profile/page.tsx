@@ -1,6 +1,7 @@
 'use client'; // Required for hooks
 import '@/lib/i18n';
 
+import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Skeleton } from '@/ui/primitives/skeleton';
 import { Alert, AlertDescription } from '@/ui/primitives/alert';
@@ -12,7 +13,7 @@ import { ProfileEditor } from '@/ui/styled/profile/ProfileEditor';
 import { useUserProfile } from '@/hooks/user/useUserProfile';
 import { useAccountSettings } from '@/hooks/user/useAccountSettings';
 
-export default function ProfilePage(): JSX.Element {
+export default function ProfilePage(): React.ReactElement {
   const { t } = useTranslation();
   
   // Use our hooks from the new architecture
@@ -21,8 +22,8 @@ export default function ProfilePage(): JSX.Element {
     isLoading, 
     error, 
     updateProfile,
-    uploadAvatar,
-    removeAvatar
+    uploadProfilePicture: uploadAvatar,
+    deleteProfilePicture: removeAvatar
   } = useUserProfile();
   
   useAccountSettings();
@@ -67,14 +68,7 @@ export default function ProfilePage(): JSX.Element {
         </h1>
         
         {/* Use our new ProfileEditor component */}
-        <ProfileEditor 
-          title={t('profile.details.title', 'Profile Details')}
-          description={t('profile.details.description', 'Update your personal information and preferences')}
-          profile={profile}
-          onUpdateProfile={updateProfile}
-          onAvatarUpload={uploadAvatar}
-          onAvatarRemove={removeAvatar}
-        />
+        <ProfileEditor />
         
         {/* Password Change Section */}
         <Card>

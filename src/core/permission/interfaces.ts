@@ -13,7 +13,8 @@ import {
   UserRole,
   PermissionAssignment,
   RoleCreationPayload,
-  RoleUpdatePayload
+  RoleUpdatePayload,
+  ResourcePermission,
 } from './models';
 import { PermissionEventHandler } from './events';
 
