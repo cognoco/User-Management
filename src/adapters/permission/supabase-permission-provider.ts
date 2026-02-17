@@ -9,6 +9,7 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { 
   Permission, 
   Role, 
+  RoleEntity,
   RoleWithPermissions,
   UserRole,
   PermissionAssignment,
@@ -68,8 +69,7 @@ export class SupabasePermissionProvider implements IPermissionDataProvider {
       .from('role_permissions')
       .select('id')
       .in('role_id', roleIds)
-      .eq('permission_name', permission.name)
-      .eq('resource', permission.resource);
+      .eq('permission_name', permission as string);
     
     return !permissionsError && !!permissions && permissions.length > 0;
   }
@@ -82,11 +82,22 @@ export class SupabasePermissionProvider implements IPermissionDataProvider {
    * @returns A boolean indicating if the user has the role
    */
   async hasRole(userId: string, role: Role): Promise<boolean> {
+    // Look up the role entity by name first, then check user assignment
+    const { data: roleEntity, error: roleError } = await this.supabase
+      .from('roles')
+      .select('id')
+      .eq('name', role as string)
+      .single();
+
+    if (roleError || !roleEntity) {
+      return false;
+    }
+
     const { data, error } = await this.supabase
       .from('user_roles')
       .select('id')
       .eq('user_id', userId)
-      .eq('role_id', role.id)
+      .eq('role_id', roleEntity.id)
       .single();
     
     return !error && !!data;
@@ -253,12 +264,12 @@ export class SupabasePermissionProvider implements IPermissionDataProvider {
       
       if (!currentPermissionsError && currentPermissions) {
         const currentPermissionMap = new Map(
-          currentPermissions.map(p => [`${p.permission_name}:${p.resource}`, p])
+          currentPermissions.map(p => [p.permission_name as string, p])
         );
         
         // Add new permissions and remove old ones
         for (const permission of roleData.permissions) {
-          const key = `${permission.name}:${permission.resource}`;
+          const key = permission as string;
           if (!currentPermissionMap.has(key)) {
             await this.addPermissionToRole(roleId, permission);
           }
@@ -267,10 +278,7 @@ export class SupabasePermissionProvider implements IPermissionDataProvider {
         
         // Remove permissions that are no longer in the list
         for (const [, permission] of currentPermissionMap) {
-          await this.removePermissionFromRole(roleId, {
-            name: permission.permission_name,
-            resource: permission.resource
-          });
+          await this.removePermissionFromRole(roleId, permission.permission_name as Permission);
         }
       }
     }
@@ -463,8 +471,7 @@ export class SupabasePermissionProvider implements IPermissionDataProvider {
       .from('role_permissions')
       .select('id')
       .eq('role_id', roleId)
-      .eq('permission_name', permission.name)
-      .eq('resource', permission.resource)
+      .eq('permission_name', permission as string)
       .single();
     
     return !error && !!data;
@@ -487,8 +494,7 @@ export class SupabasePermissionProvider implements IPermissionDataProvider {
         .from('role_permissions')
         .select('*')
         .eq('role_id', roleId)
-        .eq('permission_name', permission.name)
-        .eq('resource', permission.resource)
+        .eq('permission_name', permission as string)
         .single();
       
       if (error || !data) {
@@ -503,8 +509,7 @@ export class SupabasePermissionProvider implements IPermissionDataProvider {
       .from('role_permissions')
       .insert({
         role_id: roleId,
-        permission_name: permission.name,
-        resource: permission.resource,
+        permission_name: permission as string,
         created_at: new Date().toISOString()
       })
       .select()
@@ -539,8 +544,7 @@ export class SupabasePermissionProvider implements IPermissionDataProvider {
         .from('role_permissions')
         .delete()
         .eq('role_id', roleId)
-        .eq('permission_name', permission.name)
-        .eq('resource', permission.resource);
+        .eq('permission_name', permission as string);
       
       if (error) {
         return false;
@@ -569,7 +573,7 @@ export class SupabasePermissionProvider implements IPermissionDataProvider {
       .from('resource_permissions')
       .insert({
         user_id: userId,
-        permission_name: permission.name,
+        permission_name: permission as string,
         resource_type: resourceType,
         resource_id: resourceId,
         created_at: new Date().toISOString(),
@@ -599,7 +603,7 @@ export class SupabasePermissionProvider implements IPermissionDataProvider {
       .from('resource_permissions')
       .delete()
       .eq('user_id', userId)
-      .eq('permission_name', permission.name)
+      .eq('permission_name', permission as string)
       .eq('resource_type', resourceType)
       .eq('resource_id', resourceId);
     return !error;
@@ -615,7 +619,7 @@ export class SupabasePermissionProvider implements IPermissionDataProvider {
       .from('resource_permissions')
       .select('id')
       .eq('user_id', userId)
-      .eq('permission_name', permission.name)
+      .eq('permission_name', permission as string)
       .eq('resource_type', resourceType)
       .eq('resource_id', resourceId)
       .single();
@@ -631,7 +635,7 @@ export class SupabasePermissionProvider implements IPermissionDataProvider {
     return data.map((d: any) => ({
       id: d.id,
       userId: d.user_id,
-      permission: { name: d.permission_name, resource: d.resource_type },
+      permission: d.permission_name as Permission,
       resourceType: d.resource_type,
       resourceId: d.resource_id,
       createdAt: new Date(d.created_at),
@@ -651,7 +655,7 @@ export class SupabasePermissionProvider implements IPermissionDataProvider {
     return data.map((d: any) => ({
       id: d.id,
       userId: d.user_id,
-      permission: { name: d.permission_name, resource: d.resource_type },
+      permission: d.permission_name as Permission,
       resourceType: d.resource_type,
       resourceId: d.resource_id,
       createdAt: new Date(d.created_at),
@@ -668,7 +672,7 @@ export class SupabasePermissionProvider implements IPermissionDataProvider {
       .select('user_id')
       .eq('resource_type', resourceType)
       .eq('resource_id', resourceId)
-      .eq('permission_name', permission.name);
+      .eq('permission_name', permission as string);
     if (error || !data) return [];
     return data.map((d: any) => d.user_id);
   }
@@ -761,7 +765,7 @@ export class SupabasePermissionProvider implements IPermissionDataProvider {
    * @param dbRole Database role record
    * @returns Role model
    */
-  private mapDbRoleToRole(dbRole: any): Role {
+  private mapDbRoleToRole(dbRole: any): RoleEntity {
     return {
       id: dbRole.id,
       name: dbRole.name,
@@ -776,26 +780,20 @@ export class SupabasePermissionProvider implements IPermissionDataProvider {
    * Map a database permission record to a Permission model
    * 
    * @param dbPermission Database permission record
-   * @returns Permission model
+   * @returns Permission model (string literal)
    */
   private mapDbPermissionToPermission(dbPermission: any): Permission {
-    return {
-      name: dbPermission.permission_name,
-      resource: dbPermission.resource
-    };
+    return dbPermission.permission_name as Permission;
   }
   
   /**
    * Map a database permission definition to a Permission model
    * 
    * @param dbPermissionDef Database permission definition
-   * @returns Permission model
+   * @returns Permission model (string literal)
    */
   private mapDbPermissionDefinitionToPermission(dbPermissionDef: any): Permission {
-    return {
-      name: dbPermissionDef.name,
-      resource: dbPermissionDef.resource
-    };
+    return dbPermissionDef.name as Permission;
   }
   
   /**
@@ -809,11 +807,16 @@ export class SupabasePermissionProvider implements IPermissionDataProvider {
       id: dbUserRole.id,
       userId: dbUserRole.user_id,
       roleId: dbUserRole.role_id,
-      roleName: dbUserRole.roles?.name || '',
-      roleDescription: dbUserRole.roles?.description || '',
+      role: dbUserRole.roles ? {
+        id: dbUserRole.role_id,
+        name: dbUserRole.roles.name || '',
+        description: dbUserRole.roles.description || '',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      } : undefined,
       assignedBy: dbUserRole.assigned_by,
-      assignedAt: new Date(dbUserRole.created_at),
-      expiresAt: dbUserRole.expires_at ? new Date(dbUserRole.expires_at) : null
+      createdAt: new Date(dbUserRole.created_at),
+      expiresAt: dbUserRole.expires_at ? new Date(dbUserRole.expires_at) : undefined
     };
   }
   
@@ -827,10 +830,7 @@ export class SupabasePermissionProvider implements IPermissionDataProvider {
     return {
       id: dbPermissionAssignment.id,
       roleId: dbPermissionAssignment.role_id,
-      permission: {
-        name: dbPermissionAssignment.permission_name,
-        resource: dbPermissionAssignment.resource
-      },
+      permission: dbPermissionAssignment.permission_name as Permission,
       createdAt: new Date(dbPermissionAssignment.created_at)
     };
   }

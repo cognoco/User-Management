@@ -537,7 +537,7 @@ export class SupabaseAuthProvider implements AuthDataProvider {
       
       return {
         success: true,
-        token: data.token
+        token: data.access_token
       };
     } catch (error: any) {
       this.logError('verifyMFA failed', error);
