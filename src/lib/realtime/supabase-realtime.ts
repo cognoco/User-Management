@@ -1,4 +1,4 @@
-import { RealtimeChannel, RealtimePresenceState } from '@supabase/supabase-js';
+import type { RealtimeChannel, RealtimePresenceState } from '@supabase/realtime-js';
 import { supabase } from '@/lib/supabase';
 
 export type PresenceState = RealtimePresenceState;

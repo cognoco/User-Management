@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import type { User } from '@supabase/supabase-js';
+import type { User } from '@supabase/auth-js';
 import { NextRequest, NextResponse } from 'next/server';
 import { getApiAuthService } from '@/services/auth/factory';
 import { getApiPermissionService } from '@/services/permission/factory';

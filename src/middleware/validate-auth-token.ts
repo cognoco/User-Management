@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import type { User } from '@supabase/supabase-js';
+import type { User } from '@supabase/auth-js';
 import { getSessionFromToken } from '@/services/auth/factory';
 import { ApiError } from '@/lib/api/common/api-error';
 import { createAuthApiError } from './auth-errors';

@@ -4,7 +4,7 @@
 import { cookies } from 'next/headers';
 import { createServerClient } from '@supabase/ssr';
 import type { NextRequest } from 'next/server';
-import type { Session } from '@supabase/supabase-js';
+import type { Session } from '@supabase/auth-js';
 import { getApiAuthService } from '@/services/auth/factory';
 import { authConfig, isProduction } from './config';
 import { extractAuthToken, validateAuthToken } from './utils';
@@ -151,6 +151,12 @@ export async function getCurrentUser() {
     role: session.role,
   };
 }
+
+/**
+ * Alias for {@link getCurrentSession}.
+ * Some route files import `getSession` directly; this re-export keeps them working.
+ */
+export const getSession = getCurrentSession;
 
 /**
  * Resolve the authenticated user from a Next.js request using the Authorization header

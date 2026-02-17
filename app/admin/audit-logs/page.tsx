@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { getSupabaseServerClient } from '@/lib/auth';
-import type { User as SupabaseUser } from '@supabase/supabase-js';
+import type { User as SupabaseUser } from '@supabase/auth-js';
 import { hasPermission } from '@/lib/auth/hasPermission';
 import { AdminAuditLogs } from '@/ui/styled/admin/audit-logs/AdminAuditLogs';
 

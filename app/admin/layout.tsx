@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
 import { redirect } from "next/navigation";
 import { getSupabaseServerClient } from "@/lib/auth";
-import type { User as SupabaseUser } from "@supabase/supabase-js";
+import type { User as SupabaseUser } from "@supabase/auth-js";
 import { hasPermission } from "@/lib/auth/hasPermission";
 import { PermissionValues } from "@/core/permission/models";
 import Link from "next/link";

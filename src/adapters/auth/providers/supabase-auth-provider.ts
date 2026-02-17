@@ -5,7 +5,8 @@
  * It adapts Supabase's authentication API to the interface required by our core business logic.
  */
 
-import { createClient, SupabaseClient, type Session } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import type { Session } from '@supabase/auth-js';
 import {
   AuthResult,
   LoginPayload,

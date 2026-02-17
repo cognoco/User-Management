@@ -2,7 +2,7 @@
 // Utility helpers for Supabase authentication in tests
 
 import { vi, Mock } from 'vitest';
-import type { User, Session, AuthError } from '@supabase/supabase-js';
+import type { User, Session, AuthError } from '@supabase/auth-js';
 import { supabase } from '@/tests/mocks/supabase';
 
 /**

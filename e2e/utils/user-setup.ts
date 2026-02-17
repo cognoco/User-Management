@@ -1,4 +1,4 @@
-import { User } from '@supabase/supabase-js';
+import type { User } from '@supabase/auth-js';
 import { getServiceSupabase } from '../../src/lib/database/supabase'; // Adjust path if necessary
 
 // Lazy initialization to avoid module-load-time errors

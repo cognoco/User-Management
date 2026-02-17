@@ -1,8 +1,8 @@
 // Universal Supabase Mock Implementation
 // This mock is designed to be used globally across all tests
 import { vi, Mock } from 'vitest';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import type { 
-  SupabaseClient, 
   AuthResponse, 
   AuthError, 
   UserResponse, 
@@ -18,7 +18,7 @@ import type {
   AuthMFAEnrollResponse,
   AuthMFAUnenrollResponse, 
   MFAUnenrollParams
-} from '@supabase/supabase-js';
+} from '@supabase/auth-js';
 
 // Define a type for the RPC response structure
 interface SupabaseRpcResponse { data: unknown | null; error: unknown | null }
