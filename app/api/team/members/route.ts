@@ -1,8 +1,8 @@
-import { prisma } from '@/lib/database/prisma';
 import { z } from 'zod';
 import { createApiHandler } from '@/lib/api/route-helpers';
 import { createSuccessResponse, ApiError, ERROR_CODES } from '@/lib/api/common';
 import type { AuthContext, ServiceContainer } from '@/core/config/interfaces';
+import { NextRequest, NextResponse } from 'next/server';
 import { Permission } from '@/lib/rbac/roles';
 
 const querySchema = z.object({
@@ -17,159 +17,94 @@ const querySchema = z.object({
 const addMemberSchema = z.object({
   teamId: z.string(),
   userId: z.string(),
-  role: z.string()
+  role: z.string(),
 });
 
-async function handleTeamMembers(
-  _req: Request,
+async function handleGetMembers(
+  _req: NextRequest,
   auth: AuthContext,
-  data: z.infer<typeof querySchema>
+  data: z.infer<typeof querySchema>,
+  services: ServiceContainer,
 ) {
-  const params = data;
-  
-  const { page, limit, search, status, sortBy, sortOrder } = params;
-  const skip = (page - 1) * limit;
+  if (!services.team) {
+    throw new ApiError(ERROR_CODES.SERVICE_UNAVAILABLE, 'Team service unavailable', 503);
+  }
 
-  // Get the team ID first to ensure we're looking at the correct team
-  const userTeam = await prisma.team_members.findFirst({
-    where: { userId: auth.userId! },
-    select: { teamId: true },
-  });
-
-  if (!userTeam) {
+  // Use the service layer to get user's teams first
+  const userTeams = await services.team.getUserTeams(auth.userId!);
+  if (!userTeams || userTeams.length === 0) {
     throw new ApiError(ERROR_CODES.NOT_FOUND, 'Team not found', 404);
   }
 
-  try {
-    // Single query for team data, including subscription info and count
-    const teamWithData = await prisma.team_licenses.findUnique({
-      where: { id: userTeam.teamId },
-      select: {
-        subscription: { select: { seats: true } },
-        _count: { select: { members: true } },
-      },
-    });
+  // Get members of the first team via service
+  const teamId = userTeams[0].id;
+  const members = await services.team.getTeamMembers(teamId);
 
-    // Build query conditions for team members
-    const whereCondition: any = {
-      teamId: userTeam.teamId,
-    };
+  // Client-side pagination and filtering (service returns all members)
+  let filtered = members;
 
-    if (status !== 'all') {
-      whereCondition.status = status;
-    }
+  // TeamMember model doesn't have status; filtering reserved for future use
 
-    if (search) {
-      whereCondition.user = {
-        OR: [
-          { name: { contains: search, mode: 'insensitive' } },
-          { email: { contains: search, mode: 'insensitive' } },
-        ],
-      };
-    }
-
-    // Use a transaction to ensure count and data are consistent
-    const [members, totalCount] = await prisma.$transaction([
-      prisma.team_members.findMany({
-        where: whereCondition,
-        include: {
-          user: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-              image: true,
-            },
-          },
-        },
-        orderBy: {
-          ...(sortBy === 'joinedAt' && { joinedAt: sortOrder }),
-          ...(sortBy === 'role' && { role: sortOrder }),
-          ...(sortBy === 'status' && { status: sortOrder }),
-          ...(sortBy === 'name' && { user: { name: sortOrder } }),
-          ...(sortBy === 'email' && { user: { email: sortOrder } }),
-        },
-        skip,
-        take: limit,
-      }),
-      prisma.team_members.count({ where: whereCondition }),
-    ]);
-
-    // Transform data to match expected format
-    const users = members.map((member) => ({
-      id: member.user.id,
-      name: member.user.name,
-      email: member.user.email,
-      image: member.user.image,
-      teamMember: {
-        id: member.id,
-        role: member.role,
-        status: member.status,
-        joinedAt: member.joinedAt,
-      },
-    }));
-
-    const totalPages = Math.ceil(totalCount / limit);
-
-    return createSuccessResponse({
-      users,
-      pagination: {
-        page,
-        limit,
-        totalCount,
-        totalPages,
-        hasNextPage: page < totalPages,
-        hasPreviousPage: page > 1,
-      },
-      seatUsage: {
-        used: teamWithData?._count.members ?? 0,
-        total: teamWithData?.subscription?.seats ?? 0,
-        percentage: teamWithData?.subscription?.seats
-          ? (teamWithData._count.members / teamWithData.subscription.seats) * 100
-          : 0,
-      },
-    });
-  } catch (error) {
-    if (error instanceof Error && error.message.includes('timeout')) {
-      throw new ApiError(ERROR_CODES.INVALID_REQUEST, 'Database query timeout', 504);
-    }
-    throw error;
+  if (data.search) {
+    const search = data.search.toLowerCase();
+    filtered = filtered.filter(
+      (m) =>
+        m.userId?.toLowerCase().includes(search) ||
+        m.role?.toLowerCase().includes(search),
+    );
   }
+
+  const totalCount = filtered.length;
+  const totalPages = Math.ceil(totalCount / data.limit);
+  const start = (data.page - 1) * data.limit;
+  const paged = filtered.slice(start, start + data.limit);
+
+  return createSuccessResponse({
+    users: paged,
+    pagination: {
+      page: data.page,
+      limit: data.limit,
+      totalCount,
+      totalPages,
+      hasNextPage: data.page < totalPages,
+      hasPreviousPage: data.page > 1,
+    },
+  });
 }
 
 async function handleAddMember(
-  _req: Request,
+  _req: NextRequest,
   auth: AuthContext,
   data: z.infer<typeof addMemberSchema>,
-  services: ServiceContainer
+  services: ServiceContainer,
 ) {
-  const license = await prisma.team_licenses.findUnique({
-    where: { id: data.teamId },
-    select: { usedSeats: true, totalSeats: true },
-  });
+  if (!services.team) {
+    throw new ApiError(ERROR_CODES.SERVICE_UNAVAILABLE, 'Team service unavailable', 503);
+  }
 
-  if (license && license.usedSeats >= license.totalSeats) {
+  const result = await services.team.addTeamMember(
+    data.teamId,
+    data.userId,
+    data.role,
+  );
+
+  if (!result.success || !result.member) {
     throw new ApiError(
       ERROR_CODES.INVALID_REQUEST,
-      "You have reached your plan's seat limit. Please upgrade your plan or remove an existing member.",
+      result.error || 'Failed to add member',
       400,
     );
   }
-  const result = await services.team.addTeamMember(data.teamId, data.userId, data.role);
-  if (!result.success || !result.member) {
-    throw new ApiError(ERROR_CODES.INVALID_REQUEST, result.error || 'Failed');
-  }
+
   return createSuccessResponse(result.member, 201);
 }
 
-export const GET = createApiHandler(
-  querySchema,
-  handleTeamMembers,
-  { requireAuth: true, requiredPermissions: [Permission.VIEW_TEAM_MEMBERS] }
-);
+export const GET = createApiHandler(querySchema, handleGetMembers as any, {
+  requireAuth: true,
+  requiredPermissions: [Permission.VIEW_TEAM_MEMBERS],
+});
 
-export const POST = createApiHandler(
-  addMemberSchema,
-  handleAddMember,
-  { requireAuth: true, requiredPermissions: [Permission.INVITE_TEAM_MEMBER] }
-);
+export const POST = createApiHandler(addMemberSchema, handleAddMember as any, {
+  requireAuth: true,
+  requiredPermissions: [Permission.INVITE_TEAM_MEMBER],
+});
