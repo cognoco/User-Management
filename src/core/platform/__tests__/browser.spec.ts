@@ -15,20 +15,20 @@ describe('Browser Platform', () => {
     beforeEach(() => {
       // Mock localStorage and sessionStorage
       const localStorageMock = {
-        getItem: jest.fn(),
-        setItem: jest.fn(),
-        removeItem: jest.fn(),
-        clear: jest.fn(),
-        key: jest.fn(),
+        getItem: vi.fn(),
+        setItem: vi.fn(),
+        removeItem: vi.fn(),
+        clear: vi.fn(),
+        key: vi.fn(),
         length: 0
       };
 
       const sessionStorageMock = {
-        getItem: jest.fn(),
-        setItem: jest.fn(),
-        removeItem: jest.fn(),
-        clear: jest.fn(),
-        key: jest.fn(),
+        getItem: vi.fn(),
+        setItem: vi.fn(),
+        removeItem: vi.fn(),
+        clear: vi.fn(),
+        key: vi.fn(),
         length: 0
       };
 
@@ -44,7 +44,7 @@ describe('Browser Platform', () => {
       global.localStorage = originalLocalStorage;
       // @ts-expect-error - Restoring browser globals
       global.sessionStorage = originalSessionStorage;
-      jest.clearAllMocks();
+      vi.clearAllMocks();
     });
 
     it('should use localStorage when type is "local"', () => {
