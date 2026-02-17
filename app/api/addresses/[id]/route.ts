@@ -15,7 +15,7 @@ export const GET = createApiHandler(
   emptySchema,
   async (req: NextRequest, auth, _data, services) => {
     const id = extractAddressId(req.url);
-    const address = await services.addressService.getAddress(id, auth.userId!);
+    const address = await services.address!.getAddress(id, auth.userId!);
     return createSuccessResponse({ address });
   },
   { requireAuth: true }
@@ -25,7 +25,7 @@ export const PUT = createApiHandler(
   addressSchema.partial(),
   async (req: NextRequest, auth, data, services) => {
     const id = extractAddressId(req.url);
-    const updated = await services.addressService.updateAddress(
+    const updated = await services.address!.updateAddress(
       id,
       data,
       auth.userId!
@@ -39,7 +39,7 @@ export const DELETE = createApiHandler(
   emptySchema,
   async (req: NextRequest, auth, _data, services) => {
     const id = extractAddressId(req.url);
-    await services.addressService.deleteAddress(id, auth.userId!);
+    await services.address!.deleteAddress(id, auth.userId!);
     return createNoContentResponse();
   },
   { requireAuth: true }

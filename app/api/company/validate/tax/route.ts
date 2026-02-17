@@ -57,7 +57,7 @@ async function handlePost(
 
   try {
     const userId = auth.userId!;
-    const companyProfile = await services.addressService.getProfileByUserId(userId);
+    const companyProfile = await (services.address as any).getProfileByUserId(userId);
     if (!companyProfile) {
       return NextResponse.json({ error: 'Company profile not found' }, { status: 404 });
     }

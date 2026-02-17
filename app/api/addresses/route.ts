@@ -9,7 +9,7 @@ import {
 export const GET = createApiHandler(
   emptySchema,
   async (req: NextRequest, authContext: any, data: any, services: any) => {
-    const addresses = await services.addressService.getAddresses(authContext.userId);
+    const addresses = await services.address!.getAddresses(authContext.userId);
     return createSuccessResponse({ addresses });
   },
   {
@@ -20,7 +20,7 @@ export const GET = createApiHandler(
 export const POST = createApiHandler(
   addressSchema,
   async (req: NextRequest, authContext: any, data: any, services: any) => {
-    const address = await services.addressService.createAddress({ ...data, userId: authContext.userId });
+    const address = await services.address!.createAddress({ ...data, userId: authContext.userId });
     return createCreatedResponse({ address });
   },
   {

@@ -24,7 +24,7 @@ import type { ConsentService } from '@/core/consent/interfaces';
 import type { AuditService } from '@/core/audit/interfaces';
 import type { AdminService } from '@/core/admin/interfaces';
 import type { RoleService } from '@/core/role/interfaces';
-import type { AddressService, CompanyAddressService } from '@/core/address/interfaces';
+import type { AddressService } from '@/core/address/interfaces';
 import type { ResourceRelationshipService } from '@/core/resource-relationship/interfaces';
 
 // Import additional service interfaces as they become available
@@ -53,7 +53,7 @@ export interface ServiceContainer {
   admin?: AdminService;
   // TODO: Add other services as their interfaces become available
   role?: RoleService;
-  address?: CompanyAddressService;
+  address?: AddressService;
   companyNotification?: import("@/core/company-notification/interfaces").CompanyNotificationService;
   resourceRelationship?: ResourceRelationshipService;
   oauth?: import('@/core/oauth/interfaces').OAuthService;
@@ -154,9 +154,9 @@ export interface ServiceConfig {
   roleService?: RoleService;
 
   /**
-   * Custom address service implementation (for company addresses)
+   * Custom address service implementation (for user addresses)
    */
-  addressService?: CompanyAddressService;
+  addressService?: AddressService;
   oauthService?: import('@/core/oauth/interfaces').OAuthService;
   companyNotificationService?: import("@/core/company-notification/interfaces").CompanyNotificationService;
 

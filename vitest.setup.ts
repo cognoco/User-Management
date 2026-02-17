@@ -4,6 +4,44 @@ import './src/tests/setup';
 process.env.NEXT_PUBLIC_SUPABASE_URL = 'http://localhost:54321'; // Dummy URL
 process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'dummy-anon-key'; // Dummy key
 
+// ---------------------------------------------------------------------------
+// AdapterRegistry – register no-op mock adapters so services that call
+// AdapterRegistry.getInstance().getAdapter(key) during test setup don't
+// throw "Adapter '...' not registered" errors.  Individual test files can
+// override these by calling registerAdapter() in their own beforeEach/beforeAll.
+// ---------------------------------------------------------------------------
+import { AdapterRegistry } from './src/adapters/registry';
+{
+  const registry = AdapterRegistry.getInstance();
+  const mockAdapter = {};
+  const ADAPTER_KEYS = [
+    'address',
+    'admin',
+    'apiKey',
+    'audit',
+    'auth',
+    'consent',
+    'csrf',
+    'gdpr',
+    'health',
+    'notification',
+    'organization',
+    'permission',
+    'resourceRelationship',
+    'session',
+    'sso',
+    'storage',
+    'subscription',
+    'team',
+    'user',
+    'webhook',
+  ];
+  for (const key of ADAPTER_KEYS) {
+    registry.registerAdapter(key, mockAdapter);
+  }
+}
+// ---------------------------------------------------------------------------
+
 // Mock Prisma client to avoid requiring generated client in tests
 vi.mock('@/lib/database/prisma', () => ({
   prisma: {

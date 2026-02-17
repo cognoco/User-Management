@@ -16,9 +16,9 @@ export const GET = createApiHandler(
       });
     }
 
-    const assignments = await services.permissionService.getUserRoles(authContext.userId);
+    const assignments = await services.permission!.getUserRoles(authContext.userId);
     const roleEntities = await Promise.all(
-      assignments.map((r: any) => services.permissionService.getRoleById(r.roleId))
+      assignments.map((r: any) => services.permission!.getRoleById(r.roleId))
     );
     const roles = roleEntities.filter(Boolean).map((r: any) => r!.name);
     const permissions = new Set<string>();

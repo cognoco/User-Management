@@ -29,7 +29,7 @@ import type { ConsentService } from '@/core/consent/interfaces';
 import type { AuditService } from '@/core/audit/interfaces';
 import type { AdminService } from '@/core/admin/interfaces';
 import type { RoleService } from '@/core/role/interfaces';
-import type { CompanyAddressService } from '@/core/address/interfaces';
+import type { AddressService } from '@/core/address/interfaces';
 import type { ResourceRelationshipService } from '@/core/resource-relationship/interfaces';
 import type { OAuthService } from '@/core/oauth/interfaces';
 
@@ -418,7 +418,7 @@ export function getConfiguredRoleService(override?: RoleService): RoleService | 
 /**
  * Get a specific service with fallback to global configuration
  */
-export function getConfiguredAddressService(override?: CompanyAddressService): CompanyAddressService | undefined {
+export function getConfiguredAddressService(override?: AddressService): AddressService | undefined {
   return override || globalServiceConfig.addressService || getApiAddressService();
 }
 

@@ -5,7 +5,7 @@
  * It ensures consistent configuration and dependency injection across all API endpoints.
  */
 
-import { CompanyAddressService, AddressService } from '@/core/address/interfaces';
+import { AddressService } from '@/core/address/interfaces';
 import { UserManagementConfiguration } from '@/core/config';
 import type { IAddressDataProvider } from '@/core/address';
 import { AdapterRegistry } from '@/adapters/registry';
@@ -21,19 +21,19 @@ export interface ApiAddressServiceOptions {
 const COMPANY_CACHE_KEY = '__UM_COMPANY_ADDRESS_SERVICE__';
 const PERSONAL_CACHE_KEY = '__UM_PERSONAL_ADDRESS_SERVICE__';
 
-let addressServiceInstance: CompanyAddressService | null = null;
+let addressServiceInstance: AddressService | null = null;
 let personalAddressServiceInstance: AddressService | null = null;
 let constructingCompany = false;
 let constructingPersonal = false;
 
 /**
- * Get the configured address service instance for API routes (Company addresses)
- * 
- * @returns Configured CompanyAddressService instance
+ * Get the configured address service instance for API routes (User/personal addresses)
+ *
+ * @returns Configured AddressService instance
  */
 export function getApiAddressService(
   options: ApiAddressServiceOptions = {}
-): CompanyAddressService {
+): AddressService {
   if (options.reset) {
     addressServiceInstance = null;
     if (typeof globalThis !== 'undefined') {
@@ -42,7 +42,7 @@ export function getApiAddressService(
   }
 
   if (!addressServiceInstance && typeof globalThis !== 'undefined') {
-    addressServiceInstance = (globalThis as any)[COMPANY_CACHE_KEY] as CompanyAddressService | null;
+    addressServiceInstance = (globalThis as any)[COMPANY_CACHE_KEY] as AddressService | null;
   }
 
   if (!addressServiceInstance && !constructingCompany) {
@@ -61,10 +61,10 @@ export function getApiAddressService(
       UserManagementConfiguration.getServiceProvider('addressService');
 
     if (override) {
-      addressServiceInstance = override as CompanyAddressService;
+      addressServiceInstance = override as AddressService;
     } else {
       const provider = AdapterRegistry.getInstance().getAdapter<IAddressDataProvider>('address');
-      addressServiceInstance = new DefaultAddressService(provider) as unknown as CompanyAddressService;
+      addressServiceInstance = new DefaultAddressService(provider);
     }
   }
 

@@ -1,5 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { GET } from '../route';
+
+vi.mock('@/middleware/auth', () => ({ withRouteAuth: vi.fn() }));
 import { withRouteAuth } from '@/middleware/auth';
 
 const mockPermissionService = {
