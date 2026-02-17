@@ -26,7 +26,7 @@ interface RateLimitConfig {
 }
 
 /** Options passed to {@link rateLimit} */
-interface RateLimitOptions {
+export interface RateLimitOptions {
   windowMs?: number;
   max?: number;
   keyPrefix?: string;

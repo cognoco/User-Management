@@ -9,37 +9,50 @@ process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'dummy-anon-key'; // Dummy key
 // AdapterRegistry.getInstance().getAdapter(key) during test setup don't
 // throw "Adapter '...' not registered" errors.  Individual test files can
 // override these by calling registerAdapter() in their own beforeEach/beforeAll.
+// We also re-register inside beforeEach because some tests reset the singleton
+// with `(AdapterRegistry as any).instance = null`.
 // ---------------------------------------------------------------------------
+import { beforeEach as _beforeEach } from 'vitest';
 import { AdapterRegistry } from './src/adapters/registry';
-{
+
+const ADAPTER_KEYS = [
+  'address',
+  'admin',
+  'apiKey',
+  'audit',
+  'auth',
+  'consent',
+  'csrf',
+  'gdpr',
+  'health',
+  'notification',
+  'organization',
+  'permission',
+  'resourceRelationship',
+  'session',
+  'sso',
+  'storage',
+  'subscription',
+  'team',
+  'user',
+  'webhook',
+] as const;
+
+function registerMockAdapters() {
   const registry = AdapterRegistry.getInstance();
   const mockAdapter = {};
-  const ADAPTER_KEYS = [
-    'address',
-    'admin',
-    'apiKey',
-    'audit',
-    'auth',
-    'consent',
-    'csrf',
-    'gdpr',
-    'health',
-    'notification',
-    'organization',
-    'permission',
-    'resourceRelationship',
-    'session',
-    'sso',
-    'storage',
-    'subscription',
-    'team',
-    'user',
-    'webhook',
-  ];
   for (const key of ADAPTER_KEYS) {
     registry.registerAdapter(key, mockAdapter);
   }
 }
+
+// Register once at module load time...
+registerMockAdapters();
+
+// ...and again before each test so tests that reset the singleton still work.
+_beforeEach(() => {
+  registerMockAdapters();
+});
 // ---------------------------------------------------------------------------
 
 // Mock Prisma client to avoid requiring generated client in tests

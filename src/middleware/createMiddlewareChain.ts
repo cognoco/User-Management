@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withErrorHandling } from './error-handling';
 import { withRouteAuth, type RouteAuthOptions } from './auth';
+
+// Re-export RouteAuthContext so callers can import it from either location.
+export type { RouteAuthContext } from './auth';
 import { withValidation } from './validation';
 import type { ZodSchema } from 'zod';
 import { createRateLimit, type RateLimitOptions } from './rate-limit';

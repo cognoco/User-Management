@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { rateLimit } from '@/middleware/rate-limit';
+import { type NextRequest, NextResponse } from 'next/server';
+import { rateLimit, createRateLimit } from '@/middleware/rate-limit';
 import { securityHeaders } from '@/middleware/security-headers';
 import { auditLog } from '@/middleware/audit-log';
 import { cors } from '@/middleware/cors';
@@ -146,3 +147,51 @@ export function withSecurity(
 
 export { withErrorHandling } from './error-handling';
 export { correlationIdMiddleware };
+
+// ---------------------------------------------------------------------------
+// App Router middleware helper
+// ---------------------------------------------------------------------------
+
+type AppRouteHandler = (req: NextRequest) => Promise<NextResponse>;
+
+/**
+ * Supported named middlewares for the App Router {@link middleware} helper.
+ */
+type MiddlewareName = 'cors' | 'csrf' | 'rateLimit' | string;
+
+/**
+ * Compose named middleware(s) around a Next.js App Router route handler.
+ *
+ * Supported names: `'rateLimit'` applies request rate limiting.
+ * `'cors'` and `'csrf'` are acknowledged but handled at the infrastructure
+ * level in the App Router (global headers / edge middleware), so they are
+ * no-ops here.
+ *
+ * @example
+ * ```ts
+ * export const GET = middleware(
+ *   ['cors', 'csrf', 'rateLimit'],
+ *   async (req) => { ... }
+ * );
+ * ```
+ */
+export function middleware(
+  names: MiddlewareName[],
+  handler: AppRouteHandler,
+): AppRouteHandler {
+  let wrapped: AppRouteHandler = handler;
+
+  // Apply wrappers in reverse so the first name in the array is the outermost.
+  const reversed = [...names].reverse();
+  for (const name of reversed) {
+    if (name === 'rateLimit') {
+      const limiter = createRateLimit();
+      const inner = wrapped;
+      wrapped = (req: NextRequest) => limiter(req, inner);
+    }
+    // 'cors' and 'csrf' are handled at the edge / global middleware level
+    // in the Next.js App Router, so they are intentional no-ops here.
+  }
+
+  return wrapped;
+}

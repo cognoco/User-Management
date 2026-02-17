@@ -6,6 +6,7 @@ import {
   routeAuthMiddleware,
   rateLimitMiddleware,
   validationMiddleware,
+  type RouteAuthContext,
 } from "@/middleware/createMiddlewareChain";
 import { z } from "zod";
 import { checkPermission } from "@/lib/auth/permissionCheck";
