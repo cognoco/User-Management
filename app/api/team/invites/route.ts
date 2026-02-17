@@ -12,7 +12,7 @@ import {
   routeAuthMiddleware,
   validationMiddleware
 } from '@/middleware/createMiddlewareChain';
-import type { RouteAuthContext } from '@/middleware/auth';
+import type { AuthContext } from '@/core/config/interfaces';
 import {
   createTeamNotFoundError,
   createTeamMemberAlreadyExistsError
@@ -24,20 +24,20 @@ const inviteSchema = z.object({
   teamLicenseId: z.string(),
 });
 
-async function listInvites(req: NextRequest, _auth: RouteAuthContext) {
+async function listInvites(req: NextRequest, _auth: AuthContext) {
   const url = new URL(req.url);
   const licenseId = url.searchParams.get('teamLicenseId');
   if (!licenseId) {
     return createSuccessResponse([], 200);
   }
-  const invites = await prisma.teamMember.findMany({
+  const invites = await prisma.team_members.findMany({
     where: { teamLicenseId: licenseId, status: 'pending' }
   });
   return createSuccessResponse(invites);
 }
 async function handleInvite(
   _req: NextRequest,
-  auth: RouteAuthContext | undefined,
+  auth: AuthContext | undefined,
   data: z.infer<typeof inviteSchema>
 ) {
   if (!auth?.userId) {
@@ -56,7 +56,7 @@ async function handleInvite(
   }
   const invokingUserTeamId = invokingUser.teamMemberships[0].teamId;
 
-  const targetLicense = await prisma.teamLicense.findUnique({
+  const targetLicense = await prisma.team_licenses.findUnique({
     where: { id: data.teamLicenseId },
     select: { teamId: true }
   });
@@ -67,7 +67,7 @@ async function handleInvite(
     throw new ApiError(ERROR_CODES.FORBIDDEN, 'Forbidden: Cannot invite members to this team license.', 403);
   }
 
-  const teamLicense = await prisma.teamLicense.findUnique({
+  const teamLicense = await prisma.team_licenses.findUnique({
     where: { id: data.teamLicenseId },
     select: { usedSeats: true, totalSeats: true },
   });
@@ -78,7 +78,7 @@ async function handleInvite(
     throw new ApiError(ERROR_CODES.INVALID_REQUEST, 'Team has reached its seat limit', 400);
   }
 
-  const existingMember = await prisma.teamMember.findFirst({
+  const existingMember = await prisma.team_members.findFirst({
     where: {
       OR: [
         { userId: invokingUser.id, teamLicenseId: data.teamLicenseId },
@@ -91,7 +91,7 @@ async function handleInvite(
   }
 
   const inviteToken = generateInviteToken();
-  const invite = await prisma.teamMember.create({
+  const invite = await prisma.team_members.create({
     data: {
       teamLicenseId: data.teamLicenseId,
       role: data.role,
@@ -103,7 +103,7 @@ async function handleInvite(
     },
   });
 
-  await prisma.teamLicense.update({
+  await prisma.team_licenses.update({
     where: { id: data.teamLicenseId },
     data: { usedSeats: { increment: 1 } },
   });

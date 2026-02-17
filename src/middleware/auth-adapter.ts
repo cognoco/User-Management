@@ -20,7 +20,7 @@ export interface AdapterSession {
 async function buildSession(session: CurrentSession): Promise<AdapterSession> {
   const permissionService = getApiPermissionService();
   const roles = await permissionService.getUserRoles(session.userId);
-  const roleName = roles[0]?.roleName || roles[0]?.role?.name;
+  const roleName = roles[0]?.role?.name;
 
   const permissionsSet = new Set<string>();
   for (const r of roles) {

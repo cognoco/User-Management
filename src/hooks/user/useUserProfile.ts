@@ -145,7 +145,7 @@ export function useUserProfile() {
         if (profile) {
           setProfile({
             ...profile,
-            profilePictureUrl: null
+            profilePictureUrl: undefined
           });
         }
         setSuccessMessage('Profile picture deleted successfully');

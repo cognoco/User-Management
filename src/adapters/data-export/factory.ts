@@ -15,7 +15,7 @@ export function createDataExportProvider(config: {
 }): IDataExportDataProvider {
   switch (config.type) {
     case 'supabase':
-      return createSupabaseDataExportProvider(config.options);
+      return createSupabaseDataExportProvider(config.options as any);
     default:
       throw new Error(`Unsupported data export provider type: ${config.type}`);
   }

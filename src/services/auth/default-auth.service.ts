@@ -639,7 +639,7 @@ export class DefaultAuthService
   }
 
   async checkMfaRequirements(params: MfaCheckParams): Promise<MfaCheckResult> {
-    return { required: false, availableMethods: [] };
+    return { success: true, mfaRequired: false };
   }
 
   async verifyMfaCode(params: MfaVerifyParams): Promise<MfaVerifyResult> {

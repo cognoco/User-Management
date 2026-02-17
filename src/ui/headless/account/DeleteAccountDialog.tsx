@@ -48,7 +48,7 @@ export function DeleteAccountDialog({
 
   const handleDeleteAccount = async () => {
     if (isConfirmed) {
-      await deleteAccount();
+      await deleteAccount({} as any);
       if (!error) {
         onClose();
       }

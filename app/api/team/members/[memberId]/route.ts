@@ -10,17 +10,17 @@ import {
   errorHandlingMiddleware,
   routeAuthMiddleware
 } from '@/middleware/createMiddlewareChain';
-import type { RouteAuthContext } from '@/middleware/auth';
+import type { AuthContext } from '@/core/config/interfaces';
 import { Permission } from '@/lib/rbac/roles';
 
 const paramSchema = z.object({ memberId: z.string().uuid() });
 
 async function handleDelete(
   _req: NextRequest,
-  auth: RouteAuthContext,
+  auth: AuthContext,
   params: z.infer<typeof paramSchema>
 ) {
-  const teamMember = await prisma.teamMember.findUnique({
+  const teamMember = await prisma.team_members.findUnique({
     where: { id: params.memberId },
     include: {
       team: { include: { members: { where: { role: 'ADMIN' } } } },
@@ -31,7 +31,7 @@ async function handleDelete(
     throw createTeamMemberNotFoundError();
   }
 
-  const currentMembership = await prisma.teamMember.findFirst({
+  const currentMembership = await prisma.team_members.findFirst({
     where: { teamId: teamMember.teamId, userId: auth.userId! },
   });
 
@@ -60,7 +60,7 @@ async function handleDelete(
     );
   }
 
-  await prisma.teamMember.delete({ where: { id: params.memberId } });
+  await prisma.team_members.delete({ where: { id: params.memberId } });
 
   return createSuccessResponse({ message: 'Team member removed successfully' });
 }

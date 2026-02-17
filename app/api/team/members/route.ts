@@ -31,7 +31,7 @@ async function handleTeamMembers(
   const skip = (page - 1) * limit;
 
   // Get the team ID first to ensure we're looking at the correct team
-  const userTeam = await prisma.teamMember.findFirst({
+  const userTeam = await prisma.team_members.findFirst({
     where: { userId: auth.userId! },
     select: { teamId: true },
   });
@@ -42,7 +42,7 @@ async function handleTeamMembers(
 
   try {
     // Single query for team data, including subscription info and count
-    const teamWithData = await prisma.team.findUnique({
+    const teamWithData = await prisma.team_licenses.findUnique({
       where: { id: userTeam.teamId },
       select: {
         subscription: { select: { seats: true } },
@@ -70,7 +70,7 @@ async function handleTeamMembers(
 
     // Use a transaction to ensure count and data are consistent
     const [members, totalCount] = await prisma.$transaction([
-      prisma.teamMember.findMany({
+      prisma.team_members.findMany({
         where: whereCondition,
         include: {
           user: {
@@ -92,7 +92,7 @@ async function handleTeamMembers(
         skip,
         take: limit,
       }),
-      prisma.teamMember.count({ where: whereCondition }),
+      prisma.team_members.count({ where: whereCondition }),
     ]);
 
     // Transform data to match expected format
@@ -131,7 +131,7 @@ async function handleTeamMembers(
     });
   } catch (error) {
     if (error instanceof Error && error.message.includes('timeout')) {
-      throw new ApiError(ERROR_CODES.TIMEOUT, 'Database query timeout', 504);
+      throw new ApiError(ERROR_CODES.INVALID_REQUEST, 'Database query timeout', 504);
     }
     throw error;
   }
@@ -143,7 +143,7 @@ async function handleAddMember(
   data: z.infer<typeof addMemberSchema>,
   services: ServiceContainer
 ) {
-  const license = await prisma.teamLicense.findUnique({
+  const license = await prisma.team_licenses.findUnique({
     where: { id: data.teamId },
     select: { usedSeats: true, totalSeats: true },
   });

@@ -11,7 +11,7 @@ import { personalProfileUpdateSchema } from '@/lib/schemas/profile.schema';
 export const GET = createApiHandler(
   emptySchema,
   async (request, { userId }, _data, services) => {
-    const ipAddress = request.ip;
+    const ipAddress = request.headers.get("x-forwarded-for") || "unknown";
     const userAgent = request.headers.get('user-agent');
     if (await checkRateLimit(request)) {
       return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
@@ -80,7 +80,7 @@ export const GET = createApiHandler(
 export const PATCH = createApiHandler(
   personalProfileUpdateSchema,
   async (request, { userId }, data, services) => {
-    const ipAddress = request.ip;
+    const ipAddress = request.headers.get("x-forwarded-for") || "unknown";
     const userAgent = request.headers.get('user-agent');
     if (await checkRateLimit(request)) {
       return NextResponse.json({ error: 'Too many requests' }, { status: 429 });

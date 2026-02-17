@@ -4,7 +4,7 @@ import { getApiCompanyService } from "@/services/company/factory";
 import { createApiHandler, emptySchema } from "@/lib/api/route-helpers";
 import { createSuccessResponse } from "@/lib/api/common";
 import { logUserAction } from "@/lib/audit/auditLogger";
-import { type RouteAuthContext } from "@/middleware/auth";
+import type { AuthContext } from "@/core/config/interfaces";
 import { withSecurity } from "@/middleware/with-security";
 import { checkRateLimit } from "@/middleware/rate-limit";
 import { PermissionValues } from "@/types/rbac";
@@ -36,10 +36,10 @@ type CompanyProfileUpdateRequest = z.infer<typeof companyProfileUpdateSchema>;
 
 async function handlePost(
   request: NextRequest,
-  auth: RouteAuthContext,
+  auth: AuthContext,
   data?: CompanyProfileRequest,
 ) {
-  const ipAddress = request.ip;
+  const ipAddress = request.headers.get("x-forwarded-for") || "unknown";
   const userAgent = request.headers.get("user-agent");
   if (await checkRateLimit(request)) {
     return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
@@ -132,10 +132,10 @@ export const POST = withSecurity((req: NextRequest) =>
 
 async function handleGet(
   request: NextRequest,
-  auth: RouteAuthContext,
+  auth: AuthContext,
   _data: unknown,
 ) {
-  const ipAddress = request.ip;
+  const ipAddress = request.headers.get("x-forwarded-for") || "unknown";
   const userAgent = request.headers.get("user-agent");
   if (await checkRateLimit(request)) {
     return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
@@ -197,11 +197,11 @@ export const GET = withSecurity((req: NextRequest) =>
 
 async function handlePut(
   request: NextRequest,
-  auth: RouteAuthContext,
+  auth: AuthContext,
   data: CompanyProfileUpdateRequest,
 ) {
   // Get IP and User Agent early
-  const ipAddress = request.ip;
+  const ipAddress = request.headers.get("x-forwarded-for") || "unknown";
   const userAgent = request.headers.get("user-agent");
   if (await checkRateLimit(request)) {
     return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
@@ -305,10 +305,10 @@ export const PUT = withSecurity((req: NextRequest) =>
 
 async function handleDelete(
   request: NextRequest,
-  auth: RouteAuthContext,
+  auth: AuthContext,
 ) {
   // Get IP and User Agent early
-  const ipAddress = request.ip;
+  const ipAddress = request.headers.get("x-forwarded-for") || "unknown";
   const userAgent = request.headers.get("user-agent");
   if (await checkRateLimit(request)) {
     return NextResponse.json({ error: 'Too many requests' }, { status: 429 });

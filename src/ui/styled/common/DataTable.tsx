@@ -105,8 +105,9 @@ export function DataTable<T extends Record<string, any>>({
                       {columns
                         .filter(col => col.key !== primaryColumn.key)
                         .map((column) => {
-                          const cellValue = column.render
-                            ? column.render(row[column.key], row)
+                          const col = column as Column<T>;
+                          const cellValue = col.render
+                            ? col.render(row[column.key], row)
                             : row[column.key]?.toString() || '-';
                           return (
                             <div key={String(column.key)} className="grid grid-cols-2 gap-2">

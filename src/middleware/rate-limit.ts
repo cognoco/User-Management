@@ -74,7 +74,7 @@ export async function checkRateLimit(
   } = { ...defaultConfig, ...options }; // Merge with defaults
 
   // Generate a unique key based on IP address
-  const ip = request.ip ?? request.headers.get('x-forwarded-for') ?? 'unknown-ip';
+  const ip = request.headers.get('x-forwarded-for') ?? request.headers.get('x-real-ip') ?? 'unknown-ip';
   const key = `${keyPrefix}:${ip}`;
   
   const now = Date.now();
@@ -189,8 +189,7 @@ export async function withRateLimit(
   }
   try {
     // Get client IP
-    const ip = request.ip || 
-               request.headers.get('x-forwarded-for') || 
+    const ip = request.headers.get('x-forwarded-for') || 
                request.headers.get('x-real-ip') ||
                '127.0.0.1';
 

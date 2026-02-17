@@ -93,7 +93,7 @@ export const ERROR_CODES = {
 } as const;
 
 // HTTP status code mapping for each error code
-export const ERROR_STATUS_MAP: Record<ErrorCode, number> = {
+export const ERROR_STATUS_MAP: Record<string, number> = {
   // Auth
   [AUTH_ERROR_CODES.UNAUTHORIZED]: 401,
   [AUTH_ERROR_CODES.FORBIDDEN]: 403,

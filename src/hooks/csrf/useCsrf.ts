@@ -11,8 +11,8 @@ export function useCsrf() {
     setLoading(true);
     setError(null);
     try {
-      const { token: newToken } = await csrfService.generateToken();
-      setToken(newToken);
+      const result = await csrfService.createToken();
+      setToken(result.token?.token ?? null);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to fetch CSRF token';
       setError(message);

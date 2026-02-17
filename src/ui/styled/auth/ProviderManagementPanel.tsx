@@ -108,7 +108,7 @@ export function ProviderManagementPanel() {
             <li key={provider} className="flex items-center gap-2 mb-2">
               {/* Show icon and label from OAUTH_PROVIDERS mapping */}
               {(() => {
-                const info = OAUTH_PROVIDERS[provider.toLowerCase()] || { label: provider.toLowerCase() };
+                const info = ((OAUTH_PROVIDERS as Record<string, { label: string; icon?: string }>)[provider.toLowerCase()]) || { label: provider.toLowerCase() };
                 return (
                   <span className="flex items-center gap-2">
                     {info.icon && (
@@ -162,7 +162,7 @@ export function ProviderManagementPanel() {
                 </span>
               ) : (
                 <span>
-                  Are you sure you want to unlink <b>{selectedProvider && OAUTH_PROVIDERS[selectedProvider.toLowerCase()]?.label}</b>?<br />
+                  Are you sure you want to unlink <b>{selectedProvider && ((OAUTH_PROVIDERS as Record<string, { label: string; icon?: string }>)[selectedProvider.toLowerCase()])?.label}</b>?<br />
                   You may not be able to log in with this provider again unless you re-link it.
                 </span>
               )}

@@ -1,7 +1,7 @@
 import { type NextRequest } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/database/prisma';
-import { withRouteAuth, type RouteAuthContext } from '@/middleware/auth';
+import type { AuthContext } from '@/core/config/interfaces';
 import { logUserAction } from '@/lib/audit/auditLogger';
 import { createSuccessResponse, ApiError, ERROR_CODES } from '@/lib/api/common';
 import { withErrorHandling } from '@/middleware/error-handling';
@@ -17,11 +17,11 @@ const paramSchema = z.object({ memberId: z.string().uuid() });
 
 async function handlePatch(
   _req: NextRequest,
-  auth: RouteAuthContext,
+  auth: AuthContext,
   data: z.infer<typeof updateRoleSchema>,
   memberId: string
 ) {
-  const targetMember = await prisma.teamMember.findUnique({
+  const targetMember = await prisma.team_members.findUnique({
     where: { id: memberId },
   });
 
@@ -29,7 +29,7 @@ async function handlePatch(
     throw createTeamMemberNotFoundError();
   }
 
-  const currentUserMember = await prisma.teamMember.findFirst({
+  const currentUserMember = await prisma.team_members.findFirst({
     where: { userId: auth.userId!, teamId: targetMember.teamId, role: 'admin' },
   });
   if (!currentUserMember) {
@@ -45,7 +45,7 @@ async function handlePatch(
   }
 
   try {
-    const updatedMember = await prisma.teamMember.update({
+    const updatedMember = await prisma.team_members.update({
       where: { id: memberId },
       data: { role: data.role },
     });

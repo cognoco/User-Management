@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getApiCompanyService } from "@/services/company/factory";
-import { type RouteAuthContext } from "@/middleware/auth";
+import type { AuthContext } from '@/core/config/interfaces';
 import {
   createMiddlewareChain,
   errorHandlingMiddleware,
@@ -38,7 +38,7 @@ const postMiddleware = createMiddlewareChain([
   validationMiddleware(domainSchema),
 ]);
 
-async function handleGet(_request: NextRequest, auth: RouteAuthContext) {
+async function handleGet(_request: NextRequest, auth: AuthContext) {
   try {
     const companyService = getApiCompanyService();
     const companyProfile = await companyService.getProfileByUserId(auth.userId!);
@@ -64,7 +64,7 @@ async function handleGet(_request: NextRequest, auth: RouteAuthContext) {
 
 async function handlePost(
   _request: NextRequest,
-  auth: RouteAuthContext,
+  auth: AuthContext,
   data: DomainRequest,
 ) {
   try {

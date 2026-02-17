@@ -90,7 +90,7 @@ export interface BusinessSSOAuthRenderProps {
   availableProviders: Array<{
     id: string;
     name: string;
-    logoUrl: string;
+    logoUrl?: string;
   }>;
 
   /**

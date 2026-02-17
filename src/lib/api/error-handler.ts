@@ -24,7 +24,7 @@ import {
 
 
 
-const CATEGORY_MAP: Record<ErrorCode, ErrorCategory> = {
+const CATEGORY_MAP: Record<string, ErrorCategory> = {
   // Auth
   [AUTH_ERROR_CODES.UNAUTHORIZED]: 'auth',
   [AUTH_ERROR_CODES.FORBIDDEN]: 'auth',

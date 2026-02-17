@@ -15,7 +15,7 @@ export function createOAuthProvider(config: {
 }): IOAuthDataProvider {
   switch (config.type) {
     case 'supabase':
-      return createSupabaseOAuthProvider(config.options);
+      return createSupabaseOAuthProvider(config.options as any);
     default:
       throw new Error(`Unsupported OAuth provider type: ${config.type}`);
   }

@@ -2,10 +2,11 @@ import { api } from './axios';
 import { detectNetworkStatus } from '../offline/network-detector';
 import { queueRequest, processQueue, setRequestExecutor } from '../offline/request-queue';
 
-export interface RequestOptions extends RequestInit {
+export interface RequestOptions extends Omit<RequestInit, 'body' | 'priority'> {
+  body?: any;
   /** queue request when offline */
   queueIfOffline?: boolean;
-  /** priority for queued request */
+  /** priority for queued request (0=low, 1=normal, 2=high) */
   priority?: number;
   /** dependent request ids */
   dependencies?: string[];

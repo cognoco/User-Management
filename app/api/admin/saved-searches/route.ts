@@ -6,7 +6,7 @@ import {
   errorHandlingMiddleware,
   routeAuthMiddleware,
   validationMiddleware,
-  type RouteAuthContext,
+  type AuthContext,
 } from "@/middleware/createMiddlewareChain";
 import { withSecurity } from "@/middleware/with-security";
 import { getApiSavedSearchService } from "@/services/saved-search/factory";
@@ -33,7 +33,7 @@ const createSavedSearchSchema = z.object({
   isPublic: z.boolean().default(false),
 });
 
-async function getAllSavedSearches(_req: NextRequest, auth: RouteAuthContext) {
+async function getAllSavedSearches(_req: NextRequest, auth: AuthContext) {
   if (!auth.userId) {
     return createSuccessResponse({ savedSearches: [] });
   }
@@ -44,7 +44,7 @@ async function getAllSavedSearches(_req: NextRequest, auth: RouteAuthContext) {
 
 async function createSavedSearch(
   _req: NextRequest,
-  auth: RouteAuthContext,
+  auth: AuthContext,
   data: z.infer<typeof createSavedSearchSchema>,
 ) {
   if (!auth.userId) {

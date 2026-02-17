@@ -8,12 +8,12 @@ import {
   errorHandlingMiddleware,
   routeAuthMiddleware,
   rateLimitMiddleware,
-  type RouteAuthContext,
+  type AuthContext,
 } from '@/middleware/createMiddlewareChain';
 import { withSecurity } from '@/middleware/with-security';
 
 
-async function handleGet(req: NextRequest, auth: RouteAuthContext) {
+async function handleGet(req: NextRequest, auth: AuthContext) {
   const user = auth.user;
   if (!user) {
     return new NextResponse(JSON.stringify({ error: 'Unauthorized' }), {
@@ -31,7 +31,7 @@ async function handleGet(req: NextRequest, auth: RouteAuthContext) {
       userId: user?.id,
       action: 'COMPANY_DATA_EXPORT',
       status: 'FAILURE',
-      ipAddress: req.ip,
+      ipAddress: req.headers.get('x-forwarded-for') ?? undefined,
       userAgent: req.headers.get('user-agent'),
       targetResourceType: 'company',
       targetResourceId: undefined,
@@ -50,7 +50,7 @@ async function handleGet(req: NextRequest, auth: RouteAuthContext) {
       userId: user.id,
       action: 'COMPANY_DATA_EXPORT',
       status: 'FAILURE',
-      ipAddress: req.ip,
+      ipAddress: req.headers.get('x-forwarded-for') ?? undefined,
       userAgent: req.headers.get('user-agent'),
       targetResourceType: 'company',
       targetResourceId: companyProfile.id,
@@ -69,7 +69,7 @@ async function handleGet(req: NextRequest, auth: RouteAuthContext) {
       userId: user.id,
       action: 'COMPANY_DATA_EXPORT',
       status: 'FAILURE',
-      ipAddress: req.ip,
+      ipAddress: req.headers.get('x-forwarded-for') ?? undefined,
       userAgent: req.headers.get('user-agent'),
       targetResourceType: 'company',
       targetResourceId: companyProfile.id,
@@ -89,7 +89,7 @@ async function handleGet(req: NextRequest, auth: RouteAuthContext) {
     userId: user.id,
     action: 'COMPANY_DATA_EXPORT',
     status: 'SUCCESS',
-    ipAddress: req.ip,
+    ipAddress: req.headers.get('x-forwarded-for') ?? undefined,
     userAgent: req.headers.get('user-agent'),
     targetResourceType: 'company',
     targetResourceId: companyProfile.id,

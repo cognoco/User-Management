@@ -6,7 +6,7 @@ import {
   routeAuthMiddleware,
   rateLimitMiddleware,
   validationMiddleware,
-  type RouteAuthContext,
+  type AuthContext,
 } from "@/middleware/createMiddlewareChain";
 import { z } from "zod";
 import { checkPermission } from "@/lib/auth/permissionCheck";
@@ -35,7 +35,7 @@ const patchMiddleware = createMiddlewareChain([
 // DELETE /api/company/domains/[id] - Delete a domain
 async function handleDelete(
   _request: NextRequest,
-  auth: RouteAuthContext,
+  auth: AuthContext,
   params: { id: string },
 ) {
   try {
@@ -102,7 +102,7 @@ async function handleDelete(
 // PATCH /api/company/domains/[id] - Update a domain (currently just primary status)
 async function handlePatch(
   _request: NextRequest,
-  auth: RouteAuthContext,
+  auth: AuthContext,
   params: { id: string },
   data: DomainUpdateRequest,
 ) {

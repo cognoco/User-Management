@@ -9,13 +9,13 @@ import {
   routeAuthMiddleware,
   validationMiddleware
 } from '@/middleware/createMiddlewareChain';
-import type { RouteAuthContext } from '@/middleware/auth';
+import type { AuthContext } from '@/core/config/interfaces';
 
 const acceptInviteSchema = z.object({ token: z.string() });
 
 async function handleAccept(
   req: NextRequest,
-  auth?: RouteAuthContext,
+  auth?: AuthContext,
   data?: z.infer<typeof acceptInviteSchema>
 ) {
   if (!data) {
@@ -37,7 +37,7 @@ async function handleAccept(
     throw new ApiError(ERROR_CODES.UNAUTHORIZED, 'Unauthorized', 401);
   }
 
-  const invite = await prisma.teamMember.findUnique({
+  const invite = await prisma.team_members.findUnique({
     where: { inviteToken: token },
     include: { teamLicense: true },
   });
@@ -54,7 +54,7 @@ async function handleAccept(
   }
 
   try {
-    const updated = await prisma.teamMember.update({
+    const updated = await prisma.team_members.update({
       where: { id: invite.id },
       data: {
         userId: auth.userId,

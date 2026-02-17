@@ -14,5 +14,5 @@ export function SubscriptionBadge({ children }: SubscriptionBadgeProps) {
   const { getTier, isSubscribed, getRemainingTrialDays } = useSubscriptionStore();
   const tier = getTier();
   const trialDays = getRemainingTrialDays();
-  return <>{children({ tier, trialDays, isSubscribed })}</>;
+  return <>{children({ tier, trialDays, isSubscribed: isSubscribed() })}</>;
 }

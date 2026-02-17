@@ -8,7 +8,7 @@ export function createSupabaseApiKeyProvider(options: { supabaseUrl: string; sup
 export function createApiKeyProvider(config: { type: 'supabase' | string; options: Record<string, any> }): IApiKeyDataProvider {
   switch (config.type) {
     case 'supabase':
-      return createSupabaseApiKeyProvider(config.options);
+      return createSupabaseApiKeyProvider(config.options as any);
     default:
       throw new Error(`Unsupported api key provider type: ${config.type}`);
   }

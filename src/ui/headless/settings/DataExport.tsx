@@ -36,7 +36,7 @@ export function DataExport({ onComplete, render }: DataExportProps) {
   const { status, isLoading, error, requestExport, refreshStatus } = useDataExport();
 
   const initiateExport = async () => {
-    const res = await requestExport({ format: selectedFormat });
+    const res = await requestExport({ format: selectedFormat as any });
     if (res) {
       setProgress(res.status === ExportStatus.COMPLETED ? 100 : 50);
       if (res.downloadUrl) {

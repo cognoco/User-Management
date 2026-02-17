@@ -21,7 +21,7 @@ export function createSavedSearchProvider(config: {
 }): ISavedSearchDataProvider {
   switch (config.type) {
     case 'supabase':
-      return createSupabaseSavedSearchProvider(config.options);
+      return createSupabaseSavedSearchProvider(config.options as any);
     default:
       throw new Error(`Unsupported saved search provider type: ${config.type}`);
   }

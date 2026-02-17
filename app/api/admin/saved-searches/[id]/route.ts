@@ -9,7 +9,7 @@ import {
   errorHandlingMiddleware,
   routeAuthMiddleware,
   validationMiddleware,
-  type RouteAuthContext,
+  type AuthContext,
 } from "@/middleware/createMiddlewareChain";
 import { withSecurity } from "@/middleware/with-security";
 import { getApiSavedSearchService } from "@/services/saved-search/factory";
@@ -23,7 +23,7 @@ const updateSavedSearchSchema = z.object({
 
 async function getSavedSearch(
   _req: NextRequest,
-  auth: RouteAuthContext,
+  auth: AuthContext,
   { params }: { params: { id: string } },
 ) {
   if (!auth.userId) {
@@ -39,7 +39,7 @@ async function getSavedSearch(
 
 async function updateSavedSearch(
   _req: NextRequest,
-  auth: RouteAuthContext,
+  auth: AuthContext,
   data: z.infer<typeof updateSavedSearchSchema>,
   { params }: { params: { id: string } },
 ) {
@@ -62,7 +62,7 @@ async function updateSavedSearch(
 
 async function deleteSavedSearch(
   _req: NextRequest,
-  auth: RouteAuthContext,
+  auth: AuthContext,
   { params }: { params: { id: string } },
 ) {
   if (!auth.userId) {

@@ -15,7 +15,7 @@ export function createConsentProvider(config: {
 }): IConsentDataProvider {
   switch (config.type) {
     case 'supabase':
-      return createSupabaseConsentProvider(config.options);
+      return createSupabaseConsentProvider(config.options as any);
     default:
       throw new Error(`Unsupported consent provider type: ${config.type}`);
   }

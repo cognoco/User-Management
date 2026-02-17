@@ -4,7 +4,7 @@ import {
   errorHandlingMiddleware,
   routeAuthMiddleware,
   validationMiddleware,
-  type RouteAuthContext,
+  type AuthContext,
 } from "@/middleware/createMiddlewareChain";
 import { z } from "zod";
 import { getApiAdminService } from "@/services/admin/factory";
@@ -24,7 +24,7 @@ type QueryParams = z.infer<typeof querySchema>;
 
 async function handleGet(
   _req: NextRequest,
-  _auth: RouteAuthContext,
+  _auth: AuthContext,
   params: QueryParams,
 ) {
   const { page, limit, search, sortBy, sortOrder } = params;

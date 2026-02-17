@@ -83,7 +83,7 @@ class ErrorBoundaryClass extends Component<ErrorBoundaryProps, ErrorBoundaryStat
 /**
  * Functional wrapper for ErrorBoundary with React 19 hooks support
  */
-export function ErrorBoundary({ children, fallback, onError }: ErrorBoundaryProps): JSX.Element {
+export function ErrorBoundary({ children, fallback, onError }: ErrorBoundaryProps): React.ReactElement {
   const id = useId();
   
   return (

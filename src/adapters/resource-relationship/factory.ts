@@ -15,7 +15,7 @@ export function createResourceRelationshipProvider(config: {
 }): IResourceRelationshipDataProvider {
   switch (config.type) {
     case 'supabase':
-      return createSupabaseResourceRelationshipProvider(config.options);
+      return createSupabaseResourceRelationshipProvider(config.options as any);
     default:
       throw new Error(`Unsupported resource relationship provider type: ${config.type}`);
   }

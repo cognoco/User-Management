@@ -12,7 +12,7 @@ export function PermissionAuditDashboard(props: Omit<PermissionAuditDashboardPro
       {({ logs }) => (
         <div className="space-y-4">
           <PermissionSummary logs={logs} />
-          <PermissionLogTimeline logs={logs} />
+          <PermissionLogTimeline logs={logs} renderItem={(log) => <div key={log.id}>{String(log.createdAt)} - {log.action}</div>} />
           <PermissionHistoryView logs={logs} />
           {logs.length >= 2 && (
             <PermissionDiffViewer

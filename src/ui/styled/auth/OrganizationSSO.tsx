@@ -151,8 +151,7 @@ const OrganizationSSO: React.FC<OrganizationSSOProps> = ({ orgId }) => {
       )}
 
       <BusinessSSOSetup 
-        orgId={orgId} 
-        onSettingsChange={handleSettingsChange} 
+        organizationId={orgId} 
       />
 
       {ssoSettings.sso_enabled && ssoSettings.idp_type && (

@@ -83,7 +83,7 @@ export function createRouteHandler<T, C = any>(options: RouteHandlerOptions<T, C
           { 
             skipRateLimit, 
             requiredPermission: permission,
-            rateLimitOptions
+            ...(rateLimitOptions ? { rateLimitOptions } : {})
           }
         )(r);
     }

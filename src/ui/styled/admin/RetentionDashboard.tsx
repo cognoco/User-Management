@@ -54,7 +54,7 @@ export function RetentionDashboard() {
                   {metricsLoading ? (
                     <Skeleton className="h-7 w-16" />
                   ) : (
-                    <div className="text-2xl font-bold">{metrics?.warningUsers || 0}</div>
+                    <div className="text-2xl font-bold">{(metrics as any)?.warningUsers || 0}</div>
                   )}
                 </CardContent>
               </Card>
@@ -82,7 +82,7 @@ export function RetentionDashboard() {
                   {metricsLoading ? (
                     <Skeleton className="h-7 w-16" />
                   ) : (
-                    <div className="text-2xl font-bold">{metrics?.anonymizedUsers || 0}</div>
+                    <div className="text-2xl font-bold">{(metrics as any)?.anonymizedUsers || 0}</div>
                   )}
                 </CardContent>
               </Card>

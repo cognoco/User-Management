@@ -12,7 +12,7 @@ const PrivacySettingsUpdateSchema = profileSchema.shape.privacySettings;
 export const PATCH = createApiHandler(
   PrivacySettingsUpdateSchema,
   async (request: NextRequest, { userId }, settings, services) => {
-    const ipAddress = request.ip;
+    const ipAddress = request.headers.get("x-forwarded-for") || "unknown";
     const userAgent = request.headers.get('user-agent');
     const isRateLimited = await checkRateLimit(request);
     if (isRateLimited) {

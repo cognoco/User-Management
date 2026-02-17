@@ -32,7 +32,8 @@ interface Profile {
 
 export const useProfile = () => {
   const store = useProfileStore();
-  const { profile, isLoading, updatePrivacySettings } = store;
+  const { profile, isLoading } = store;
+  const updatePrivacySettings = (store as any).updatePrivacySettings;
 
   return {
     profile,

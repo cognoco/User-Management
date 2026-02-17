@@ -8,9 +8,9 @@ import {
   routeAuthMiddleware,
   rateLimitMiddleware,
 } from '@/middleware/createMiddlewareChain';
-import { type RouteAuthContext } from '@/middleware/auth';
+import type { AuthContext } from '@/core/config/interfaces';
 
-async function handleGet(_req: NextRequest, auth: RouteAuthContext) {
+async function handleGet(_req: NextRequest, auth: AuthContext) {
   try {
     // Authentication middleware attaches the Supabase user when valid
     if (!auth.user || !auth.userId) {
@@ -31,7 +31,7 @@ async function handleGet(_req: NextRequest, auth: RouteAuthContext) {
     const teamId = auth.user.app_metadata?.teamId || auth.user.user_metadata?.teamId;
 
     // Get team statistics
-    const teamStats = await prisma.teamMember.groupBy({
+    const teamStats = await prisma.team_members.groupBy({
       by: ['status'],
       _count: {
         _all: true

@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import type { User } from '@supabase/auth-js';
 import { NextRequest, NextResponse } from 'next/server';
-import { getApiAuthService } from '@/services/auth/factory';
+import { getApiAuthService, getSessionFromToken } from '@/services/auth/factory';
 import { getApiPermissionService } from '@/services/permission/factory';
 import type { Permission } from '@/core/permission/models';
 import { ApiError } from '@/lib/api/common/api-error';
@@ -55,10 +55,7 @@ export function withAuth(
         ? authHeader.split(' ')[1]
         : authHeader;
 
-      const authService = getApiAuthService();
-      const session = await authService.getSession(token);
-
-      const user = session?.user as User | undefined;
+      const user = await getSessionFromToken(token) as User | undefined;
       if (!user) {
         const err = createAuthApiError('INVALID_TOKEN');
         return res.status(err.status).json(err.toResponse());
@@ -125,7 +122,7 @@ export async function withRouteAuth(
 
     const permissionService = getApiPermissionService();
     const roles = await permissionService.getUserRoles(user.id);
-    const roleName = roles[0]?.roleName || roles[0]?.role?.name;
+    const roleName = roles[0]?.role?.name;
 
     const permissionsSet = new Set<string>();
     for (const r of roles) {
@@ -136,7 +133,7 @@ export async function withRouteAuth(
 
     if (options.requiredRoles?.length) {
       const hasRole = roles.some(r =>
-        options.requiredRoles!.includes(r.roleName || r.role?.name || '')
+        options.requiredRoles!.includes(r.role?.name || '')
       );
       if (!hasRole) {
         const err = createAuthApiError('INSUFFICIENT_PERMISSIONS', { reason: 'role' });
@@ -187,13 +184,14 @@ export async function withAuthRequest(
   permission?: Permission
 ): Promise<NextResponse> {
   return withRouteAuth(
-    (r, ctx) => {
+    async (r, ctx) => {
       if (!ctx.userId) {
         const err = createAuthApiError('MISSING_TOKEN');
         return createErrorResponse(err);
       }
 
-      if (permission && !ctx.permissions.includes(permission)) {
+      const perms = ctx.permissions ?? [];
+      if (permission && !perms.includes(permission)) {
         const err = createAuthApiError('INSUFFICIENT_PERMISSIONS');
         return createErrorResponse(err);
       }
@@ -201,7 +199,7 @@ export async function withAuthRequest(
       return handler(r, {
         userId: ctx.userId,
         role: ctx.role,
-        permissions: ctx.permissions,
+        permissions: perms,
       });
     },
     req,
