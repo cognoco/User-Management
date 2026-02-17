@@ -1,12 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { act } from '@testing-library/react';
 import { usePreferencesStore } from '@/lib/stores/preferences.store';
-import { useAuthStore } from '@/lib/stores/auth.store';
 import { api } from '../../api/axios';
 import type { UserPreferences } from '@/types/database';
 
-// Mock the auth store
-vi.mock('../auth.store');
+// Mock useAuth so preferences store gets the user ID without React context
+vi.mock('@/lib/hooks/useAuth', () => ({
+  useAuth: vi.fn(() => ({ user: { id: 'test-user-id' } })),
+}));
+import { useAuth } from '@/lib/hooks/useAuth';
 
 // Mock the api module
 vi.mock('../../api/axios', () => ({
@@ -23,6 +25,9 @@ const mockPreferences: UserPreferences = {
   language: 'en',
   theme: 'dark',
   notifications: { email: true, push: false, marketing: false },
+  itemsPerPage: 25,
+  timezone: 'UTC',
+  dateFormat: 'YYYY-MM-DD',
   createdAt: new Date(),
   updatedAt: new Date(),
 };
@@ -35,12 +40,17 @@ describe('usePreferencesStore', () => {
         preferences: null,
         isLoading: false,
         error: null,
+        _userId: mockUserId,
       });
     });
     // Mock authenticated user by default
-    (useAuthStore.getState as any).mockReturnValue({ user: { id: mockUserId } });
+    vi.mocked(useAuth).mockReturnValue({ user: { id: mockUserId } } as any);
     // Reset mocks
-    vi.clearAllMocks(); 
+    vi.clearAllMocks();
+    // Re-apply auth mock after clearAllMocks since clearAllMocks resets it
+    vi.mocked(useAuth).mockReturnValue({ user: { id: mockUserId } } as any);
+    // Re-apply userId to store after clear
+    usePreferencesStore.setState({ _userId: mockUserId });
   });
 
   it('should have correct initial state', () => {
@@ -81,7 +91,7 @@ describe('usePreferencesStore', () => {
     });
 
     it('should not fetch if user is not authenticated', async () => {
-        (useAuthStore.getState as any).mockReturnValue({ user: null }); // No user
+        vi.mocked(useAuth).mockReturnValue({ user: null } as any); usePreferencesStore.setState({ _userId: undefined }); // No user
         const consoleWarnSpy = vi.spyOn(console, 'warn');
 
         await act(async () => {
@@ -166,7 +176,7 @@ describe('usePreferencesStore', () => {
     });
 
     it('should not update if user is not authenticated', async () => {
-        (useAuthStore.getState as any).mockReturnValue({ user: null }); // No user
+        vi.mocked(useAuth).mockReturnValue({ user: null } as any); usePreferencesStore.setState({ _userId: undefined }); // No user
 
         let result;
         await act(async () => {

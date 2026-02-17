@@ -15,7 +15,7 @@ export class DefaultOAuthService implements OAuthService {
     }
     
     const { cookies } = await import("next/headers");
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     return createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -44,7 +44,7 @@ export class DefaultOAuthService implements OAuthService {
     }
     
     const { cookies } = await import("next/headers");
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const stateCookie = cookieStore.get(`oauth_state_${provider}`)?.value;
     if (!state || !stateCookie || state !== stateCookie) {
       await logUserAction({
@@ -104,12 +104,12 @@ export class DefaultOAuthService implements OAuthService {
       });
       if (error.message && error.message.toLowerCase().includes("revoked")) {
         throw new ApiError(
-          ERROR_CODES.OAUTH_ERROR,
+          ERROR_CODES.INVALID_REQUEST,
           "Access to your provider account has been revoked. Please re-link your account or use another login method.",
           400,
         );
       }
-      throw new ApiError(ERROR_CODES.OAUTH_ERROR, error.message, 400);
+      throw new ApiError(ERROR_CODES.INVALID_REQUEST, error.message, 400);
     }
 
     const { data: userData, error: userError } = await supabase.auth.getUser();
@@ -120,7 +120,7 @@ export class DefaultOAuthService implements OAuthService {
         details: { error: userError?.message || "user_fetch_failed" },
       });
       throw new ApiError(
-        ERROR_CODES.OAUTH_ERROR,
+        ERROR_CODES.INVALID_REQUEST,
         userError?.message || "Failed to fetch user data",
         400,
       );
@@ -136,7 +136,7 @@ export class DefaultOAuthService implements OAuthService {
         details: { error: "missing_identifier" },
       });
       throw new ApiError(
-        ERROR_CODES.OAUTH_ERROR,
+        ERROR_CODES.INVALID_REQUEST,
         "Provider did not return a unique identifier (email or provider user ID).",
         400,
       );
@@ -210,7 +210,7 @@ export class DefaultOAuthService implements OAuthService {
         details: { error: "email collision" },
       });
       throw new ApiError(
-        ERROR_CODES.CONFLICT,
+        ERROR_CODES.ALREADY_EXISTS,
         "An account with this email already exists. Please log in and link your provider from your account settings.",
         409,
         { collision: true },
@@ -273,7 +273,7 @@ export class DefaultOAuthService implements OAuthService {
     collision?: boolean;
   }> {
     try {
-      const supabase = this.createSupabase();
+      const supabase = await this.createSupabase();
       const {
         data: { user },
         error: authError,
@@ -390,7 +390,7 @@ export class DefaultOAuthService implements OAuthService {
     provider: OAuthProvider,
   ): Promise<{ success: boolean; error?: string; status?: number }> {
     try {
-      const supabase = this.createSupabase();
+      const supabase = await this.createSupabase();
       const {
         data: { user },
         error: authError,
@@ -525,7 +525,7 @@ export class DefaultOAuthService implements OAuthService {
     email: string,
   ): Promise<{ success: boolean; error?: string; status?: number }> {
     try {
-      const supabase = this.createSupabase();
+      const supabase = await this.createSupabase();
       const {
         data: { user },
         error: authError,

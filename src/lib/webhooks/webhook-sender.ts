@@ -235,7 +235,8 @@ export function createWebhookSender(
     webhookId: string,
     limit = 10
   ): Promise<WebhookDelivery[]> {
-    return provider.listDeliveries(userId, webhookId, limit);
+    const result = await provider.listDeliveries(userId, webhookId, limit);
+    return result.deliveries;
   }
 
   return { sendWebhookEvent, getWebhookDeliveries };

@@ -2,13 +2,15 @@ import { create } from 'zustand';
 import { api } from '@/lib/api/axios';
 import {
   SubscriptionState,
-  SubscriptionTier
+  SubscriptionTier,
+  SubscriptionStatus,
+  SubscriptionProviderConfig
 } from '@/types/subscription';
 import { useUserManagement } from '../auth/UserManagementProvider';
 
-type SubscriptionInternalState = Omit<SubscriptionState, 'hasFeature' | 'getTier'> & {
-  hasFeature: (cfg: any, featureName: string) => boolean;
-  getTier: (cfg: any) => SubscriptionTier;
+type SubscriptionInternalState = SubscriptionState & {
+  _subscriptionConfig: SubscriptionProviderConfig | null;
+  _setSubscriptionConfig: (config: SubscriptionProviderConfig | null) => void;
 };
 
 const subscriptionStoreBase = create<SubscriptionInternalState>((set, get) => ({
@@ -16,6 +18,8 @@ const subscriptionStoreBase = create<SubscriptionInternalState>((set, get) => ({
   userSubscription: null,
   isLoading: false,
   error: null,
+  _subscriptionConfig: null,
+  _setSubscriptionConfig: (config) => set({ _subscriptionConfig: config }),
 
   // Fetch available subscription plans
   fetchPlans: async () => {
@@ -46,7 +50,7 @@ const subscriptionStoreBase = create<SubscriptionInternalState>((set, get) => ({
         set({ userSubscription: null, isLoading: false });
         return null;
       }
-      
+
       set({
         error: error.response?.data?.error || error.response?.data?.message || (error instanceof Error ? error.message : 'Failed to fetch user subscription'),
         isLoading: false,
@@ -80,18 +84,18 @@ const subscriptionStoreBase = create<SubscriptionInternalState>((set, get) => ({
     try {
       set({ isLoading: true, error: null });
       await api.post(`/subscriptions/${subscriptionId}/cancel`, { immediate });
-      
+
       if (immediate) {
         set({ userSubscription: null, isLoading: false });
       } else {
         // Update status to canceled but maintain access until end date
-        set((state) => ({
-          userSubscription: state.userSubscription 
-            ? { 
-                ...state.userSubscription, 
-                status: 'canceled',
-                canceledAt: new Date().toISOString() 
-              } 
+        set((state: SubscriptionInternalState) => ({
+          userSubscription: state.userSubscription
+            ? {
+                ...state.userSubscription,
+                status: SubscriptionStatus.CANCELED,
+                canceledAt: new Date().toISOString()
+              }
             : null,
           isLoading: false,
         }));
@@ -128,40 +132,42 @@ const subscriptionStoreBase = create<SubscriptionInternalState>((set, get) => ({
 
     const isActive = userSubscription.status === 'active' || userSubscription.status === 'trial';
     const plan = get().plans.find(p => p.id === userSubscription.planId);
-    
-    return isActive && plan && plan.tier !== SubscriptionTier.FREE;
+
+    return Boolean(isActive && plan && plan.tier !== SubscriptionTier.FREE);
   },
 
   // Helper: Check if user has access to a specific feature
-  hasFeature: (cfg: any, featureName: string) => {
+  hasFeature: (featureName: string) => {
+    const cfg = get()._subscriptionConfig;
 
     // First check if there's a subscription config for the feature
-    const featureConfig = cfg?.subscription?.features?.[featureName];
-    
+    const featureConfig = cfg?.features?.[featureName];
+
     // If no configuration exists for this feature, assume it's available to all
     if (!featureConfig) return true;
-    
+
     // Get user's current tier
-    const currentTier = get().getTier(cfg);
-    
+    const currentTier = get().getTier();
+
     // Check if user's tier is high enough for this feature
     const tierValues = Object.values(SubscriptionTier);
     const featureTierIndex = tierValues.indexOf(featureConfig.tier);
     const userTierIndex = tierValues.indexOf(currentTier);
-    
+
     return userTierIndex >= featureTierIndex;
   },
 
   // Helper: Get user's current subscription tier
-  getTier: (cfg: any) => {
+  getTier: () => {
+    const cfg = get()._subscriptionConfig;
     const { userSubscription, plans } = get();
-    
+
     // If no subscription or not active, return default tier (usually FREE)
-    if (!userSubscription || 
+    if (!userSubscription ||
         (userSubscription.status !== 'active' && userSubscription.status !== 'trial')) {
-      return cfg?.subscription?.defaultTier || SubscriptionTier.FREE;
+      return cfg?.defaultTier || SubscriptionTier.FREE;
     }
-    
+
     // Find the plan to get its tier
     const plan = plans.find(p => p.id === userSubscription.planId);
     return plan?.tier || SubscriptionTier.FREE;
@@ -170,16 +176,16 @@ const subscriptionStoreBase = create<SubscriptionInternalState>((set, get) => ({
   // Helper: Get remaining trial days
   getRemainingTrialDays: () => {
     const { userSubscription } = get();
-    
+
     if (!userSubscription || userSubscription.status !== 'trial' || !userSubscription.endDate) {
       return null;
     }
-    
+
     const endDate = new Date(userSubscription.endDate);
     const today = new Date();
     const diffTime = endDate.getTime() - today.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
+
     return diffDays > 0 ? diffDays : 0;
   },
 
@@ -189,13 +195,22 @@ const subscriptionStoreBase = create<SubscriptionInternalState>((set, get) => ({
   },
 }));
 
-export function useSubscriptionStore(): SubscriptionState {
+function _useSubscriptionHook(): SubscriptionState {
   const store = subscriptionStoreBase();
-  const { userManagement } = useUserManagement();
+  const context = useUserManagement();
 
-  return {
-    ...store,
-    hasFeature: (featureName: string) => store.hasFeature(userManagement, featureName),
-    getTier: () => store.getTier(userManagement),
-  };
+  // Sync subscription config from context into the store state
+  const subscriptionConfig = context.subscription ?? null;
+  if (subscriptionStoreBase.getState()._subscriptionConfig !== subscriptionConfig) {
+    subscriptionStoreBase.setState({ _subscriptionConfig: subscriptionConfig });
+  }
+
+  return store;
 }
+
+// Export as a combined type: React hook + Zustand store static methods.
+// This allows both useSubscriptionStore() in components AND useSubscriptionStore.getState() in tests.
+export const useSubscriptionStore = Object.assign(
+  _useSubscriptionHook,
+  subscriptionStoreBase
+);

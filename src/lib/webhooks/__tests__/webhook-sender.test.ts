@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import type { Mocked } from 'vitest';
 import { createWebhookSender, verifySignature, DeliveryErrorType } from '../webhook-sender';
 import type { IWebhookDataProvider } from '@/core/webhooks';
 import crypto from 'crypto';
@@ -25,8 +26,20 @@ vi.mock('crypto', () => {
   };
 });
 
+/** Create a minimal valid Webhook test object */
+function mkWebhook(overrides: {
+  id: string; url: string; secret: string; events: string[]; isActive: boolean;
+}) {
+  return {
+    userId: 'user',
+    name: 'test-webhook',
+    createdAt: new Date().toISOString(),
+    ...overrides,
+  };
+}
+
 describe('webhook sender', () => {
-  let provider: IWebhookDataProvider & Record<string, any>;
+  let provider: Mocked<IWebhookDataProvider>;
   let sendWebhookEvent: ReturnType<typeof createWebhookSender>['sendWebhookEvent'];
   let getWebhookDeliveries: ReturnType<typeof createWebhookSender>['getWebhookDeliveries'];
 
@@ -39,8 +52,9 @@ describe('webhook sender', () => {
       updateWebhook: vi.fn(),
       deleteWebhook: vi.fn(),
       listDeliveries: vi.fn(),
-      recordDelivery: vi.fn()
-    } as unknown as IWebhookDataProvider & Record<string, any>;
+      recordDelivery: vi.fn(),
+      searchWebhooks: vi.fn(),
+    } as unknown as Mocked<IWebhookDataProvider>;
 
     ({ sendWebhookEvent, getWebhookDeliveries } = createWebhookSender(provider));
   });
@@ -57,8 +71,8 @@ describe('webhook sender', () => {
 
   it('sends events to matching webhooks', async () => {
     provider.listWebhooks.mockResolvedValueOnce([
-      { id: 'w1', url: 'https://a.com', secret: 's', events: ['user.created'], isActive: true },
-      { id: 'w2', url: 'https://b.com', secret: 's2', events: ['other'], isActive: true }
+      mkWebhook({ id: 'w1', url: 'https://a.com', secret: 's', events: ['user.created'], isActive: true }),
+      mkWebhook({ id: 'w2', url: 'https://b.com', secret: 's2', events: ['other'], isActive: true })
     ]);
     provider.recordDelivery.mockResolvedValue(undefined);
     (global.fetch as any).mockResolvedValue({ ok: true, status: 200, text: async () => 'ok' });
@@ -71,7 +85,7 @@ describe('webhook sender', () => {
 
   it('records failures', async () => {
     provider.listWebhooks.mockResolvedValueOnce([
-      { id: 'w1', url: 'https://a.com', secret: 's', events: ['user.created'], isActive: true }
+      mkWebhook({ id: 'w1', url: 'https://a.com', secret: 's', events: ['user.created'], isActive: true })
     ]);
     provider.recordDelivery.mockResolvedValue(undefined);
     (global.fetch as any).mockRejectedValue(new Error('fail'));
@@ -84,7 +98,7 @@ describe('webhook sender', () => {
 
   it('signs payload with secret', async () => {
     provider.listWebhooks.mockResolvedValueOnce([
-      { id: 'w1', url: 'https://a.com', secret: 'secret', events: ['e'], isActive: true }
+      mkWebhook({ id: 'w1', url: 'https://a.com', secret: 'secret', events: ['e'], isActive: true })
     ]);
     provider.recordDelivery.mockResolvedValue(undefined);
     (global.fetch as any).mockResolvedValue({ ok: true, status: 200, text: async () => '' });
@@ -95,7 +109,7 @@ describe('webhook sender', () => {
   });
 
   it('gets deliveries via provider', async () => {
-    provider.listDeliveries.mockResolvedValueOnce([{ id: 'd', webhookId: 'w', eventType: 'e', createdAt: '' }]);
+    provider.listDeliveries.mockResolvedValueOnce({ deliveries: [{ id: 'd', webhookId: 'w', eventType: 'e', createdAt: '' } as any], pagination: undefined });
     const res = await getWebhookDeliveries('user', 'w');
     expect(provider.listDeliveries).toHaveBeenCalledWith('user', 'w', 10);
     expect(res.length).toBe(1);
@@ -103,8 +117,8 @@ describe('webhook sender', () => {
 
   it('returns empty array when no active webhooks match event', async () => {
     provider.listWebhooks.mockResolvedValueOnce([
-      { id: 'w1', url: 'https://a.com', secret: 's', events: ['other'], isActive: true },
-      { id: 'w2', url: 'https://b.com', secret: 's', events: ['user.created'], isActive: false }
+      mkWebhook({ id: 'w1', url: 'https://a.com', secret: 's', events: ['other'], isActive: true }),
+      mkWebhook({ id: 'w2', url: 'https://b.com', secret: 's', events: ['user.created'], isActive: false })
     ]);
 
     const results = await sendWebhookEvent('user.created', {}, 'user');
@@ -114,7 +128,7 @@ describe('webhook sender', () => {
 
   it('marks delivery unsuccessful when status code not ok', async () => {
     provider.listWebhooks.mockResolvedValueOnce([
-      { id: 'w1', url: 'https://a.com', secret: 's', events: ['user.created'], isActive: true }
+      mkWebhook({ id: 'w1', url: 'https://a.com', secret: 's', events: ['user.created'], isActive: true })
     ]);
     provider.recordDelivery.mockResolvedValue(undefined);
     (global.fetch as any).mockResolvedValue({ ok: false, status: 500, text: async () => 'err' });
@@ -127,7 +141,7 @@ describe('webhook sender', () => {
 
   it('retries on server error', async () => {
     provider.listWebhooks.mockResolvedValueOnce([
-      { id: 'w1', url: 'https://a.com', secret: 's', events: ['e'], isActive: true }
+      mkWebhook({ id: 'w1', url: 'https://a.com', secret: 's', events: ['e'], isActive: true })
     ]);
     provider.recordDelivery.mockResolvedValue(undefined);
     (global.fetch as any)
@@ -141,7 +155,7 @@ describe('webhook sender', () => {
 
   it('returns invalid payload error', async () => {
     provider.listWebhooks.mockResolvedValueOnce([
-      { id: 'w1', url: 'https://a.com', secret: 's', events: [''], isActive: true }
+      mkWebhook({ id: 'w1', url: 'https://a.com', secret: 's', events: [''], isActive: true })
     ]);
 
     const results = await sendWebhookEvent('', {}, 'user');

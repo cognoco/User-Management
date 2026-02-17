@@ -16,15 +16,13 @@ vi.mock('../../api/axios', () => ({
 // Add a global mock for useUserManagement at the top of the file
 vi.mock('../../auth/UserManagementProvider', () => ({
   useUserManagement: () => ({
-    userManagement: {
-      subscription: {
-        enabled: true,
-        defaultTier: 'free',
-        features: {
-          premium_feature: {
-            tier: 'premium',
-            description: 'Premium feature',
-          },
+    subscription: {
+      enabled: true,
+      defaultTier: 'free',
+      features: {
+        premium_feature: {
+          tier: 'premium',
+          description: 'Premium feature',
         },
       },
     },
@@ -66,13 +64,26 @@ describe('useSubscriptionStore', () => {
     metadata: {},
   };
 
+  const mockSubscriptionConfig = {
+    enabled: true,
+    defaultTier: 'free',
+    features: {
+      premium_feature: {
+        tier: 'premium',
+        description: 'Premium feature',
+      },
+    },
+  };
+
   beforeEach(() => {
     vi.clearAllMocks();
-    const store = useSubscriptionStore.getState();
-    store.plans = [];
-    store.userSubscription = null;
-    store.error = null;
-    store.isLoading = false;
+    useSubscriptionStore.setState({
+      plans: [],
+      userSubscription: null,
+      error: null,
+      isLoading: false,
+      _subscriptionConfig: mockSubscriptionConfig as any,
+    });
   });
 
   describe('fetchPlans', () => {

@@ -28,8 +28,11 @@ viMock.mock('@/lib/database/supabase', () => ({
 }));
 
 import { useAuth } from '@/hooks/auth/useAuth';
+import type { createMockAuthStore } from '../../../tests/mocks/auth.store.mock';
 
-const useAuthStore = useAuth;
+// Cast to the mock store type so TypeScript knows about .getState() and .setState()
+// At runtime, viMock.mock above replaces useAuth with the return value of createMockAuthStore()
+const useAuthStore = useAuth as unknown as ReturnType<typeof createMockAuthStore>;
 import { User, RegistrationPayload, LoginPayload, AuthResult } from '@/core/auth/models';
 import { api } from '../../api/axios';
 import { act } from '@testing-library/react';
@@ -301,13 +304,15 @@ describe('Auth Store', () => {
   // --- DeleteAccount Tests --- 
   describe('deleteAccount', () => {
     const initialUser: User = { id: 'user-123', email: 'test@example.com' };
-    let originalLocation: Location;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let originalLocation: any;
 
     beforeEach(() => {
       originalLocation = window.location;
       //@ts-expect-error: Needed to delete window.location for mocking in tests
       delete window.location;
-      window.location = { href: '', assign: vi.fn(), replace: vi.fn() } as unknown as Location;
+      //@ts-expect-error: Mocking window.location for tests
+      window.location = { href: '', assign: vi.fn(), replace: vi.fn() };
       act(() => {
         useAuthStore.setState({ user: initialUser, isAuthenticated: true });
       });
