@@ -1,3 +1,5 @@
+vi.unmock('@/hooks/auth/useAuth');
+
 import { renderHook, act } from "@testing-library/react";
 import React from "react";
 import { describe, it, beforeEach, expect, vi } from "vitest";
@@ -33,6 +35,7 @@ beforeEach(async () => {
     onAuthEvent: vi.fn(),
   } as any;
 
+  (mockAuthService.isAuthenticated as any).mockReturnValue(false);
   (mockAuthService.getCurrentUser as any).mockResolvedValue(null);
   (mockAuthService.onAuthStateChanged as any).mockImplementation(
     () => () => {},
@@ -40,8 +43,9 @@ beforeEach(async () => {
 });
 
 describe("useAuth hook", () => {
-  it("initializes with default state", () => {
+  it("initializes with default state", async () => {
     const { result } = renderHook(() => useAuth(), { wrapper });
+    await act(async () => {});
     expect(result.current.user).toBeNull();
     expect(result.current.token).toBeNull();
     expect(result.current.loading).toBe(false);
@@ -245,6 +249,8 @@ describe("useAuth hook", () => {
 
   it("clears messages", async () => {
     const { result } = renderHook(() => useAuth(), { wrapper });
+    // Flush initial effects (getCurrentUser resolves with null) before setting state
+    await act(async () => {});
     await act(async () => {
       result.current.setUser({ id: "x", email: "e" } as any);
       result.current.setToken("a");

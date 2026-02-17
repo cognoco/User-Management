@@ -2,21 +2,13 @@ import { renderHook, waitFor, act } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { useTeamInvite } from '../useTeamInvite';
-import { toast } from 'sonner';
 import { UserManagementConfiguration } from '@/core/config';
 import type { TeamService } from '@/core/team/interfaces';
+import React from 'react';
 
 const mockTeamService: TeamService = {
   inviteToTeam: vi.fn(),
 } as unknown as TeamService;
-
-// Mock toast
-vi.mock('sonner', () => ({
-  toast: {
-    success: vi.fn(),
-    error: vi.fn(),
-  },
-}));
 
 // Test wrapper with QueryClientProvider
 function createWrapper() {
@@ -64,12 +56,10 @@ describe('useTeamInvite', () => {
     });
 
     await waitFor(() => {
-      expect(result.current.isSuccess).toBe(true);
+      expect(result.current.successMessage).toBe('Invitation sent successfully');
     });
 
     expect(mockTeamService.inviteToTeam).toHaveBeenCalledWith('license-123', inviteData);
-
-    expect(toast.success).toHaveBeenCalledWith('Invitation sent successfully');
   });
 
   it('should handle invitation failure', async () => {
@@ -85,11 +75,10 @@ describe('useTeamInvite', () => {
     });
 
     await waitFor(() => {
-      expect(result.current.isError).toBe(true);
+      expect(result.current.error).toBe(errorMessage);
     });
 
     expect(mockTeamService.inviteToTeam).toHaveBeenCalledWith('license-123', inviteData);
-    expect(toast.error).toHaveBeenCalledWith(errorMessage);
   });
 
   it('should handle network errors', async () => {
@@ -104,10 +93,9 @@ describe('useTeamInvite', () => {
     });
 
     await waitFor(() => {
-      expect(result.current.isError).toBe(true);
+      expect(result.current.error).toBe('Network error');
     });
 
     expect(mockTeamService.inviteToTeam).toHaveBeenCalledWith('license-123', inviteData);
-    expect(toast.error).toHaveBeenCalledWith('Network error');
   });
 });

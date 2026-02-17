@@ -65,17 +65,20 @@ describe('useSession', () => {
   });
 
   it('terminates all other sessions', async () => {
+    (mockService.listUserSessions as any).mockResolvedValue([
+      { id: '1', is_current: true },
+      { id: '2', is_current: false },
+    ]);
     (mockService.revokeUserSession as any).mockResolvedValue(undefined);
     const { result } = renderHook(() => useSession(), { wrapper });
-    result.current['sessions'] = [
-      { id: '1', is_current: true } as any,
-      { id: '2', is_current: false } as any,
-    ];
-    result.current['currentSession'] = { id: '1', is_current: true } as any;
+    // Populate sessions and currentSession via fetchSessions
+    await act(async () => {
+      await result.current.fetchSessions();
+    });
     await act(async () => {
       await result.current.terminateAllOtherSessions();
     });
     expect(mockService.revokeUserSession).toHaveBeenCalledWith('me', '2');
-    expect(result.current.sessions).toEqual([{ id: '1', is_current: true } as any]);
+    expect(result.current.sessions).toEqual([{ id: '1', is_current: true }]);
   });
 });

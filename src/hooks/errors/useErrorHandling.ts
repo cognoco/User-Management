@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
-import { ApplicationError, SERVER_ERROR, createError } from '@/core/common/errors';
+import { ApplicationError, createError } from '@/core/common/errors';
+import { SERVER_ERROR } from '@/core/common/error-codes';
 
 export interface RetryStrategy {
   (attempt: number): number;

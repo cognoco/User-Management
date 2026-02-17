@@ -22,12 +22,14 @@ describe('useErrorHandling', () => {
       .mockRejectedValueOnce(new Error('fail'))
       .mockResolvedValue(undefined);
     const { result } = renderHook(() => useErrorHandling({ retryFn: fn }));
-    const promise = act(async () => {
-      const p = result.current.retry();
-      vi.runAllTimers();
-      await p;
+
+    await act(async () => {
+      // Start the retry in the background
+      result.current.retry();
+      // Use runAllTimersAsync to properly advance timers and flush promises
+      await vi.runAllTimersAsync();
     });
-    await promise;
+
     expect(fn).toHaveBeenCalledTimes(2);
     expect(result.current.error).toBeNull();
     expect(result.current.retryCount).toBe(0);

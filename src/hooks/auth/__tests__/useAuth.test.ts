@@ -1,3 +1,12 @@
+vi.unmock('@/hooks/auth/useAuth');
+// Allow the hook to run without an AuthProvider by returning null from useAuthService.
+// The hook falls back to UserManagementConfiguration.getServiceProvider() in that case.
+vi.mock('@/lib/context/AuthContext', () => ({
+  useAuthService: () => null,
+  default: ({ children }: any) => children,
+  AuthProvider: ({ children }: any) => children,
+}));
+
 import { renderHook, act } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { useAuth } from "../useAuth";
@@ -22,7 +31,7 @@ const mockAuthService: AuthService = {
   refreshToken: vi.fn(),
   handleSessionTimeout: vi.fn(),
   onAuthStateChanged: vi.fn(),
-};
+} as any;
 
 describe("useAuth", () => {
   beforeEach(() => {
@@ -31,9 +40,9 @@ describe("useAuth", () => {
     UserManagementConfiguration.configureServiceProviders({
       authService: mockAuthService,
     });
-    mockAuthService.getCurrentUser.mockResolvedValue(null);
-    mockAuthService.isAuthenticated.mockReturnValue(false);
-    mockAuthService.onAuthStateChanged.mockImplementation(() => () => {});
+    (mockAuthService.getCurrentUser as any).mockResolvedValue(null);
+    (mockAuthService.isAuthenticated as any).mockReturnValue(false);
+    (mockAuthService.onAuthStateChanged as any).mockImplementation(() => () => {});
   });
 
   afterEach(() => {
@@ -41,7 +50,7 @@ describe("useAuth", () => {
   });
 
   it("logs in successfully", async () => {
-    const user: User = { id: "1", email: "test@example.com" };
+    const user: User = { id: "1", email: "test@example.com" } as any;
     vi.mocked(mockAuthService.login).mockResolvedValue({ success: true, user });
 
     const { result } = renderHook(() => useAuth());
@@ -53,6 +62,7 @@ describe("useAuth", () => {
     expect(mockAuthService.login).toHaveBeenCalledWith({
       email: "test@example.com",
       password: "pass",
+      rememberMe: false,
     });
     expect(result.current.user).toEqual(user);
     expect(result.current.isAuthenticated).toBe(true);
@@ -85,7 +95,7 @@ describe("useAuth", () => {
 
     expect(mockAuthService.sendVerificationEmail).toHaveBeenCalledWith("a@test.com");
 
-    vi.mocked(mockAuthService.verifyEmail).mockResolvedValue();
+    vi.mocked(mockAuthService.verifyEmail).mockResolvedValue(undefined);
 
     await act(async () => {
       const res = await result.current.verifyEmail("token");
