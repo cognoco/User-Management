@@ -81,7 +81,7 @@ export default function TeamDashboardPageClient() {
               <CardDescription>Create a new team and invite members</CardDescription>
             </CardHeader>
             <CardContent>
-              <TeamCreator onCreateTeam={createTeam} />
+              <TeamCreator />
             </CardContent>
           </Card>
           

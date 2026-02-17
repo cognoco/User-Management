@@ -46,6 +46,11 @@ export interface UserProfile {
    * URL to the user's profile picture (optional)
    */
   profilePictureUrl?: string;
+
+  /**
+   * URL to the user's avatar (alias for profilePictureUrl)
+   */
+  avatarUrl?: string;
   
   /**
    * Whether the user account is active
@@ -140,6 +145,17 @@ export interface ProfileVisibility {
    * Who can see the user's last login time
    */
   lastLogin: VisibilityLevel;
+
+  /** Whether email is visible (boolean shorthand) */
+  emailVisible?: boolean;
+  /** Whether name is visible (boolean shorthand) */
+  nameVisible?: boolean;
+  /** Whether bio is visible (boolean shorthand) */
+  bioVisible?: boolean;
+  /** Whether location is visible (boolean shorthand) */
+  locationVisible?: boolean;
+  /** Whether website is visible (boolean shorthand) */
+  websiteVisible?: boolean;
 }
 
 /**
@@ -255,6 +271,36 @@ export interface ProfileUpdatePayload {
   };
   
   /**
+   * Display name (optional shorthand for firstName + lastName)
+   */
+  displayName?: string;
+
+  /**
+   * User's bio / about text (optional)
+   */
+  bio?: string;
+
+  /**
+   * User's location (optional)
+   */
+  location?: string;
+
+  /**
+   * User's website URL (optional)
+   */
+  website?: string;
+
+  /**
+   * URL to the user's avatar (optional)
+   */
+  avatarUrl?: string;
+
+  /**
+   * Profile visibility settings (optional)
+   */
+  visibility?: ProfileVisibility;
+
+  /**
    * Additional metadata for the user (optional)
    */
   metadata?: Record<string, any>;
@@ -318,6 +364,21 @@ export interface PreferencesUpdatePayload {
    * Additional preference settings (optional)
    */
   additionalSettings?: Record<string, any>;
+
+  /**
+   * User's preferred timezone (optional)
+   */
+  timezone?: string;
+
+  /**
+   * User's preferred date format (optional)
+   */
+  dateFormat?: string;
+
+  /**
+   * User's preferred time format (optional)
+   */
+  timeFormat?: string;
 }
 
 /**
@@ -388,6 +449,16 @@ export interface UserSearchParams {
    * Pagination: items per page
    */
   limit?: number;
+
+  /**
+   * Alias for limit (items per page)
+   */
+  pageSize?: number;
+
+  /**
+   * Additional filter criteria (key-value pairs)
+   */
+  filters?: Record<string, any>;
 }
 
 /**

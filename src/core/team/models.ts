@@ -242,6 +242,16 @@ export interface TeamCreatePayload {
   memberLimit?: number;
   
   /**
+   * Whether the team is public (optional)
+   */
+  isPublic?: boolean;
+
+  /**
+   * Team settings (optional)
+   */
+  settings?: Record<string, any>;
+
+  /**
    * Additional metadata for the team (optional)
    */
   metadata?: Record<string, any>;
@@ -270,6 +280,16 @@ export interface TeamUpdatePayload {
    * Maximum number of members allowed (optional)
    */
   memberLimit?: number;
+
+  /**
+   * Whether the team is public (optional)
+   */
+  isPublic?: boolean;
+
+  /**
+   * Team settings (optional)
+   */
+  settings?: Record<string, any>;
   
   /**
    * Additional metadata for the team (optional)
@@ -320,6 +340,16 @@ export interface TeamInvitationPayload {
    * Expiration time in hours (optional, defaults to 48)
    */
   expirationHours?: number;
+
+  /**
+   * ID of the user sending the invitation (optional)
+   */
+  invitedBy?: string;
+
+  /**
+   * Explicit expiration date for the invitation (optional)
+   */
+  expiresAt?: Date;
 }
 
 /**
@@ -430,6 +460,16 @@ export interface TeamSearchParams {
    * Pagination: items per page
    */
   limit?: number;
+
+  /**
+   * Alias for limit (items per page)
+   */
+  pageSize?: number;
+
+  /**
+   * Additional filter criteria (key-value pairs)
+   */
+  filters?: Record<string, any>;
 }
 
 /**

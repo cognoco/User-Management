@@ -127,9 +127,22 @@ export function AccountSettings({
   const { user } = useAuth();
   
   // Default preferences
-  const defaultPreferences = {
+  const defaultPreferences: {
+    language: string;
+    theme: 'light' | 'dark' | 'system';
+    emailNotifications: {
+      marketing: boolean;
+      securityAlerts: boolean;
+      accountUpdates: boolean;
+      teamInvitations: boolean;
+    };
+    pushNotifications: {
+      enabled: boolean;
+      events: string[];
+    };
+  } = {
     language: 'en',
-    theme: 'system' as const,
+    theme: 'system',
     emailNotifications: {
       marketing: false,
       securityAlerts: true,
@@ -138,7 +151,7 @@ export function AccountSettings({
     },
     pushNotifications: {
       enabled: false,
-      events: [],
+      events: [] as string[],
     },
   };
   
@@ -340,9 +353,9 @@ export function AccountSettings({
     isSubmitting: isLoading,
     errors: {
       ...errors,
-      form: errors.form || formError
+      form: errors.form || formError || undefined
     },
-    successMessage: formSuccessMessage,
+    successMessage: formSuccessMessage ?? undefined,
     availableLanguages,
     availableThemes,
     availableVisibilityLevels
@@ -350,7 +363,7 @@ export function AccountSettings({
 }
 
 // Helper function to update profile (not exported)
-async function updateProfile(_userId: string, _data: any) {
+async function updateProfile(_userId: string, _data: any): Promise<{ success: boolean; error?: string }> {
   // This is a placeholder function to avoid circular dependencies
   // In a real implementation, we would use the UserService directly
   return { success: true };

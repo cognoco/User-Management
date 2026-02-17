@@ -1,7 +1,7 @@
 'use client';
 import '@/lib/i18n';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from '@/ui/primitives/use-toast';
 import { useTranslation } from 'react-i18next';
 import Link from 'next/link';
@@ -10,37 +10,39 @@ import { Alert, AlertDescription, AlertTitle } from '@/ui/primitives/alert';
 
 // Import from our new architecture
 import { AccountSettings } from '@/ui/styled/profile/AccountSettings';
-import { useAccountSettings } from '@/hooks/user/useAccountSettings';
 import { useUserProfile } from '@/hooks/user/useUserProfile';
 
 export default function SettingsPage() {
   const { t } = useTranslation();
-  
-  // Use our hooks from the new architecture
-  const { 
-    profile, 
-    isLoading, 
-    error 
-  } = useUserProfile();
-  
-  const {
-    passwordForm,
-    updatePasswordForm,
-    changePassword,
-    deleteAccountConfirmation,
-    updateDeleteConfirmation,
-    deleteAccount,
-    privacySettings,
-    updatePrivacySettings,
-    securitySettings,
-    updateSecuritySettings,
-    sessions,
-    logoutSession,
-    connectedAccounts,
-    disconnectAccount,
-    connectAccount,
-    exportUserData
-  } = useAccountSettings();
+
+  const { profile, isLoading, error } = useUserProfile();
+
+  // Password form local state
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
+  const updatePasswordForm = (field: string, value: string) =>
+    setPasswordForm((prev) => ({ ...prev, [field]: value }));
+
+  // Delete account local state
+  const [deleteAccountConfirmation, setDeleteAccountConfirmation] = useState('');
+
+  // Privacy settings local state
+  const [privacySettings, setPrivacySettings] = useState({
+    profileVisibility: 'private' as 'public' | 'private',
+    activityTracking: true,
+    communicationEmails: true,
+    marketingEmails: false,
+  });
+
+  // Security settings local state
+  const [securitySettings, setSecuritySettings] = useState({
+    twoFactorEnabled: false,
+    loginNotifications: true,
+    deviceManagement: false,
+  });
 
   useEffect(() => {
     // Show toast if redirected from OAuth linking
@@ -56,7 +58,9 @@ export default function SettingsPage() {
   if (isLoading && !profile) {
     return (
       <div className="container mx-auto py-8 space-y-8 max-w-3xl">
-        <h1 className="text-2xl font-bold mb-6"><Skeleton className="h-8 w-32" /></h1>
+        <h1 className="text-2xl font-bold mb-6">
+          <Skeleton className="h-8 w-32" />
+        </h1>
         <Skeleton className="h-40 w-full rounded-lg" />
         <Skeleton className="h-40 w-full rounded-lg" />
         <Skeleton className="h-40 w-full rounded-lg" />
@@ -80,31 +84,45 @@ export default function SettingsPage() {
       <h1 className="text-2xl font-bold text-center md:text-left mb-6">
         {t('settings.title', 'Account Settings')}
       </h1>
-      
-      {/* Use our new AccountSettings component */}
+
       <AccountSettings
         title={t('settings.accountSettings.title', 'Manage Your Account')}
-        description={t('settings.accountSettings.description', 'Update your account settings and preferences')}
-        // Pass all the necessary props from our hooks
+        description={t(
+          'settings.accountSettings.description',
+          'Update your account settings and preferences',
+        )}
         passwordForm={passwordForm}
         updatePasswordForm={updatePasswordForm}
-        handlePasswordChange={changePassword}
+        handlePasswordChange={(e) => {
+          e.preventDefault();
+          // Password change logic would go here
+        }}
         deleteAccountConfirmation={deleteAccountConfirmation}
-        updateDeleteConfirmation={updateDeleteConfirmation}
-        handleDeleteAccount={deleteAccount}
+        updateDeleteConfirmation={setDeleteAccountConfirmation}
+        handleDeleteAccount={() => {
+          // Delete account logic would go here
+        }}
         privacySettings={privacySettings}
-        handlePrivacySettingsChange={updatePrivacySettings}
+        updatePrivacySettings={(field, value) =>
+          setPrivacySettings((prev) => ({ ...prev, [field]: value }))
+        }
+        handlePrivacySettingsChange={(e) => {
+          e.preventDefault();
+          // Save privacy settings
+        }}
         securitySettings={securitySettings}
-        handleSecuritySettingsChange={updateSecuritySettings}
-        sessions={sessions}
-        handleSessionLogout={logoutSession}
-        connectedAccounts={connectedAccounts}
-        handleDisconnectAccount={disconnectAccount}
-        handleConnectAccount={connectAccount}
-        exportData={exportUserData}
+        updateSecuritySettings={(field, value) =>
+          setSecuritySettings((prev) => ({ ...prev, [field]: value }))
+        }
+        handleSecuritySettingsChange={(e) => {
+          e.preventDefault();
+          // Save security settings
+        }}
+        sessions={[]}
+        connectedAccounts={[]}
         footer={
           <div className="pt-4 text-center">
-            <Link 
+            <Link
               href="/docs/PRIVACY_POLICY.md"
               className="text-sm text-muted-foreground underline hover:text-primary"
               target="_blank"

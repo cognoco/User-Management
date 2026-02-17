@@ -80,32 +80,41 @@ export function PermissionEditor({
   const error = externalError !== undefined ? externalError : permissionsError;
   const successMessage = externalSuccessMessage !== undefined ? externalSuccessMessage : permissionsSuccessMessage;
   
+  // Derive a human-readable group name from a permission key string
+  const getPermissionGroup = (permission: Permission): string => {
+    const key = permission as string;
+    if (key.includes('ADMIN') || key.includes('ACCESS_ADMIN')) return 'Administration';
+    if (key.includes('USER') || key.includes('EDIT_USER') || key.includes('DELETE_USER')) return 'Users';
+    if (key.includes('ROLE') || key.includes('MANAGE_ROLES')) return 'Roles';
+    if (key.includes('TEAM') || key.includes('INVITE')) return 'Teams';
+    if (key.includes('ANALYTIC') || key.includes('EXPORT')) return 'Analytics';
+    if (key.includes('BILLING') || key.includes('SUBSCRIPTION') || key.includes('INVOICE')) return 'Billing';
+    if (key.includes('PROJECT')) return 'Projects';
+    if (key.includes('SETTING') || key.includes('API_KEY')) return 'Settings';
+    return 'General';
+  };
+
   // Filter permissions based on search term
   const filteredPermissions = permissions.filter(permission => {
     const searchTerm = filterValue.toLowerCase();
-    return (
-      permission.name.toLowerCase().includes(searchTerm) ||
-      permission.description?.toLowerCase().includes(searchTerm) ||
-      permission.resource?.toLowerCase().includes(searchTerm) ||
-      permission.action?.toLowerCase().includes(searchTerm)
-    );
+    return (permission as string).toLowerCase().includes(searchTerm);
   });
   
-  // Group permissions by resource
+  // Group permissions by derived resource group
   const permissionGroups = useMemo(() => {
     const groups: { [key: string]: Permission[] } = {};
     
     filteredPermissions.forEach(permission => {
-      const groupName = permission.resource || 'General';
+      const groupName = getPermissionGroup(permission);
       if (!groups[groupName]) {
         groups[groupName] = [];
       }
       groups[groupName].push(permission);
     });
     
-    return Object.entries(groups).map(([name, permissions]) => ({
+    return Object.entries(groups).map(([name, perms]) => ({
       name,
-      permissions: permissions.sort((a, b) => a.name.localeCompare(b.name))
+      permissions: [...perms].sort((a, b) => (a as string).localeCompare(b as string))
     })).sort((a, b) => a.name.localeCompare(b.name));
   }, [filteredPermissions]);
   
@@ -162,8 +171,8 @@ export function PermissionEditor({
     
     // General state
     isLoading,
-    error,
-    successMessage
+    error: error ?? undefined,
+    successMessage: successMessage ?? undefined
   });
 }
 

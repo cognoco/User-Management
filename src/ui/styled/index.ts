@@ -21,7 +21,7 @@ export * from './company/AddressDialog';
 export * from './company/CompanyProfileForm';
 export * from './company/OrganizationSessionManager';
 export * from './company/AddressCard';
-export * from './user/ProfileForm';
+export { ProfileForm as UserProfileForm } from './user/ProfileForm';
 export * from './user/AvatarUpload';
 export * from './user/Profile';
 export * from './sharing/SocialSharingComponent';

@@ -185,8 +185,8 @@ export function ProfileForm({
     formValues.lastName.trim() !== '' &&
     (profileType === 'personal' || formValues.company.name.trim() !== '');
 
-  const loading = externalLoading ?? profileLoading || isSubmitting;
-  const formError = externalError ?? profileError;
+  const loading = (externalLoading ?? profileLoading) || isSubmitting;
+  const formError = externalError ?? profileError ?? undefined;
 
   return (
     <>{render({
@@ -195,7 +195,7 @@ export function ProfileForm({
       setCompanyFieldValue,
       handleSubmit,
       handleCancel,
-      errors: { ...errors, form: errors.form || formError },
+      errors: { ...errors, form: errors.form || formError || undefined },
       isSubmitting: loading,
       isValid,
     })}</>

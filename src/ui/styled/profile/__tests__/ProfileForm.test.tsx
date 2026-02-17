@@ -8,7 +8,7 @@ const fetchProfileMock = vi.fn();
 const updateProfileMock = vi.fn();
 
 vi.mock('@/lib/stores/profile.store', () => ({
-  useProfileStore: (selector) => {
+  useProfileStore: (selector?: (s: any) => any) => {
     // Create a mock store object
     const store = {
       profile: {

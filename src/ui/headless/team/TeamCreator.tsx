@@ -8,7 +8,7 @@
 import { useState, FormEvent, useEffect } from 'react';
 import { useTeams } from '@/hooks/team/useTeams';
 import { useAuth } from '@/hooks/auth/useAuth';
-import { TeamCreatePayload } from '@/core/team/models';
+import { TeamCreatePayload, TeamVisibility } from '@/core/team/models';
 import { z } from 'zod';
 
 export interface TeamCreatorProps {
@@ -198,7 +198,7 @@ export function TeamCreator({
     const teamData: TeamCreatePayload = {
       name: nameValue,
       description: descriptionValue || undefined,
-      isPublic: isPublicValue
+      visibility: isPublicValue ? TeamVisibility.PUBLIC : TeamVisibility.PRIVATE
     };
     
     // Submit form
@@ -247,9 +247,9 @@ export function TeamCreator({
     isValid,
     errors: {
       ...errors,
-      form: errors.form || formError
+      form: errors.form || formError || undefined
     },
-    successMessage: formSuccessMessage,
+    successMessage: formSuccessMessage ?? undefined,
     touched,
     handleBlur,
     resetForm

@@ -305,3 +305,9 @@ export function useProfileStore() {
     fetchProfile: () => store.fetchProfile(user?.id),
   };
 }
+
+/**
+ * Direct access to the profile store for use outside of React hooks
+ * (e.g. reading or setting state imperatively in callbacks).
+ */
+export const profileStore = profileStoreBase;

@@ -405,8 +405,8 @@ export function InvitationManager({
     
     // General state
     isLoading,
-    error,
-    successMessage,
+    error: error ?? undefined,
+    successMessage: successMessage ?? undefined,
     availableRoles
   });
 }

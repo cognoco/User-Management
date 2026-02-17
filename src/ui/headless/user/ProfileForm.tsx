@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useProfileStore } from '@/lib/stores/profile.store';
+import { useProfileStore, profileStore } from '@/lib/stores/profile.store';
 import { useAuth } from '@/hooks/auth/useAuth';
 import { profileSchema, ProfileFormData } from '@/types/profile';
 import { api } from '@/lib/api/axios';
@@ -14,11 +14,11 @@ export interface ProfileFormRenderProps {
   isEditing: boolean;
   errors: Record<string, any>;
   isDirty: boolean;
-  register: ReturnType<typeof useForm>['register'];
-  watch: ReturnType<typeof useForm>['watch'];
+  register: (...args: any[]) => any;
+  watch: (...args: any[]) => any;
   handleSubmit: (onSubmit: (data: ProfileFormData) => Promise<void>) => (e: React.FormEvent) => void;
   handleEditToggle: () => void;
-  handlePrivacyChange: (checked: boolean) => Promise<void>;
+  handlePrivacyChange: (checked: boolean) => Promise<any>;
   onSubmit: (data: ProfileFormData) => Promise<void>;
   userEmail: string | undefined;
 }
@@ -28,17 +28,14 @@ export interface ProfileFormProps {
 }
 
 /**
- * Headless ProfileForm component that contains all the business logic for profile form management
- * Follows the render props pattern to allow for custom UI implementation
+ * Headless ProfileForm component that contains all the business logic for profile form management.
+ * Follows the render props pattern to allow for custom UI implementation.
  */
 export default function ProfileForm({ children }: ProfileFormProps) {
-  const profile = useProfileStore(state => state.profile);
-  const isProfileLoading = useProfileStore(state => state.isLoading);
-  const fetchProfile = useProfileStore(state => state.fetchProfile);
-  const updateProfile = useProfileStore(state => state.updateProfile);
-  
+  const { profile, isLoading: isProfileLoading, fetchProfile, updateProfile, error } = useProfileStore();
+
   const userEmail = useAuth().user?.email;
-  
+
   const [isEditing, setIsEditing] = useState(false);
   const [isPrivacyLoading, setIsPrivacyLoading] = useState(false);
 
@@ -56,17 +53,17 @@ export default function ProfileForm({ children }: ProfileFormProps) {
   >({
     resolver: zodResolver(profileSchema),
     defaultValues: {
-        bio: '',
-        gender: '',
-        address: '',
-        city: '',
-        state: '',
-        country: '',
-        postal_code: '',
-        phone_number: '',
-        website: '',
-        is_public: true,
-    }
+      bio: '',
+      gender: '',
+      address: '',
+      city: '',
+      state: '',
+      country: '',
+      postal_code: '',
+      phone_number: '',
+      website: '',
+      is_public: true,
+    },
   });
 
   useEffect(() => {
@@ -75,57 +72,66 @@ export default function ProfileForm({ children }: ProfileFormProps) {
 
   useEffect(() => {
     if (profile) {
+      const p = profile as any;
+      // Support both flat (Profile from profile.ts) and nested (DbProfile from database.ts) shapes
       reset({
-        bio: profile.bio ?? '',
-        gender: profile.gender ?? '',
-        address: profile.address ?? '',
-        city: profile.city ?? '',
-        state: profile.state ?? '',
-        country: profile.country ?? '',
-        postal_code: profile.postal_code ?? '',
-        phone_number: profile.phone_number ?? '',
-        website: profile.website ?? '',
-        is_public: profile.is_public ?? true,
+        bio: p.bio ?? '',
+        gender: p.gender ?? '',
+        address: typeof p.address === 'string' ? p.address : (p.address?.street_line1 ?? ''),
+        city: p.city ?? p.address?.city ?? '',
+        state: p.state ?? p.address?.state ?? '',
+        country: p.country ?? p.address?.country ?? '',
+        postal_code: p.postal_code ?? p.address?.postal_code ?? '',
+        phone_number: p.phone_number ?? p.phoneNumber ?? '',
+        website: p.website ?? '',
+        is_public: p.is_public ?? (p.privacySettings?.profileVisibility === 'public') ?? true,
       });
     }
   }, [profile, reset, isEditing]);
 
   const handleEditToggle = useCallback(() => {
-    setIsEditing(!isEditing);
-  }, [isEditing]);
+    setIsEditing((prev) => !prev);
+  }, []);
 
-  const onSubmit = useCallback(async (data: ProfileFormData) => {
-    try {
-      await updateProfile(data);
-      if (!useProfileStore.getState().error) { 
-        setIsEditing(false);
+  const onSubmit = useCallback(
+    async (data: ProfileFormData) => {
+      try {
+        await updateProfile(data as any);
+        // If no error in store after update, close edit mode
+        if (!profileStore.getState().error) {
+          setIsEditing(false);
+        }
+      } catch (err) {
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Error updating profile:', err);
+        }
       }
-    } catch (error) {
-      if (process.env.NODE_ENV === 'development') { 
-        console.error("Error updating profile:", error);
-      }
-    }
-  }, [updateProfile]);
+    },
+    [updateProfile],
+  );
 
-  const handlePrivacyChange = useCallback(async (checked: boolean) => {
-    setIsPrivacyLoading(true);
-    try {
-      const response = await api.put('/api/profile/privacy', { is_public: checked });
-      setValue('is_public', response.data.is_public, { shouldDirty: false });
-      useProfileStore.setState(state => ({
-        profile: state.profile ? { ...state.profile, is_public: response.data.is_public } : null
-      }));
-      // Toast notification will be handled by the styled component
-      return response.data;
-    } catch (err: any) {
-      if (process.env.NODE_ENV === 'development') { 
-        console.error("Privacy update error:", err);
+  const handlePrivacyChange = useCallback(
+    async (checked: boolean) => {
+      setIsPrivacyLoading(true);
+      try {
+        const response = await api.put('/api/profile/privacy', { is_public: checked });
+        setValue('is_public', response.data.is_public, { shouldDirty: false });
+        profileStore.setState((state) => ({
+          ...state,
+          profile: state.profile ? { ...state.profile, is_public: response.data.is_public } : null,
+        }));
+        return response.data;
+      } catch (err: any) {
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Privacy update error:', err);
+        }
+        throw err;
+      } finally {
+        setIsPrivacyLoading(false);
       }
-      throw err;
-    } finally {
-      setIsPrivacyLoading(false);
-    }
-  }, [setValue]);
+    },
+    [setValue],
+  );
 
   return children({
     profile,
@@ -140,6 +146,6 @@ export default function ProfileForm({ children }: ProfileFormProps) {
     handleEditToggle,
     handlePrivacyChange,
     onSubmit,
-    userEmail
+    userEmail,
   });
 }

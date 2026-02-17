@@ -1,6 +1,6 @@
 /**
  * Styled Invitation Manager Component
- * 
+ *
  * This component provides a default styled implementation of the headless InvitationManager.
  * It uses the headless component for behavior and adds UI rendering with Shadcn UI components.
  */
@@ -15,25 +15,25 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/ui/primitives/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/ui/primitives/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/ui/primitives/table';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/ui/primitives/dialog';
 import { ExclamationTriangleIcon, CheckCircledIcon } from '@radix-ui/react-icons';
+import { TeamInvitation } from '@/core/team/models';
 
 export interface StyledInvitationManagerProps extends Omit<InvitationManagerProps, 'render'> {
   /**
    * Optional title for the invitation manager
    */
   title?: string;
-  
+
   /**
    * Optional description for the invitation manager
    */
   description?: string;
-  
+
   /**
    * Optional footer content
    */
   footer?: React.ReactNode;
-  
+
   /**
    * Optional className for styling
    */
@@ -51,24 +51,27 @@ export function InvitationManager({
     <HeadlessInvitationManager
       {...headlessProps}
       render={({
-        pendingInvitations,
-        sentInvitations,
-        availableRoles,
-        newInvitation,
-        updateNewInvitation,
         handleSendInvitation,
-        handleResendInvitation,
+        emailValue,
+        setEmailValue,
+        roleValue,
+        setRoleValue,
+        isSubmitting,
+        isValid,
+        formErrors,
+        touched,
+        handleBlur,
+        teamInvitations,
+        userInvitations,
+        acceptInvitation,
+        declineInvitation,
+        cancelInvitation,
+        resendInvitation,
+        refreshInvitations,
         isLoading,
         error,
-        isSuccess,
         successMessage,
-        confirmationState,
-        setConfirmationState,
-        handleConfirmCancel,
-        cancelConfirmation,
-        addInvitee,
-        removeInvitee,
-        updateInvitee
+        availableRoles,
       }) => (
         <Card className={className}>
           <CardHeader>
@@ -76,289 +79,213 @@ export function InvitationManager({
             <CardDescription>{description}</CardDescription>
           </CardHeader>
           <CardContent>
-            {isSuccess && (
+            {successMessage && (
               <Alert className="mb-6 bg-green-50 border-green-200">
                 <CheckCircledIcon className="h-4 w-4 text-green-600" />
                 <AlertDescription className="text-green-800">
-                  {successMessage || 'Operation completed successfully'}
+                  {successMessage}
                 </AlertDescription>
               </Alert>
             )}
-            
+
             {error && (
               <Alert variant="destructive" className="mb-6">
                 <ExclamationTriangleIcon className="h-4 w-4" />
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
-            
+
             <Tabs defaultValue="send" className="w-full">
               <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="send">Send Invitations</TabsTrigger>
-                <TabsTrigger value="pending">Pending ({pendingInvitations.length})</TabsTrigger>
-                <TabsTrigger value="sent">Sent ({sentInvitations.length})</TabsTrigger>
+                <TabsTrigger value="send">Send Invitation</TabsTrigger>
+                <TabsTrigger value="team">
+                  Team Invitations ({teamInvitations.length})
+                </TabsTrigger>
+                <TabsTrigger value="user">
+                  My Invitations ({userInvitations.length})
+                </TabsTrigger>
               </TabsList>
-              
-              {/* Send Invitations Tab */}
+
+              {/* Send Invitation Tab */}
               <TabsContent value="send" className="space-y-6 pt-4">
-                <div className="space-y-4">
-                  <div className="flex flex-col space-y-2">
-                    <h3 className="text-lg font-medium">Invite New Members</h3>
-                    <p className="text-sm text-gray-500">
-                      Send invitations to join your team
-                    </p>
-                  </div>
-                  
-                  <div className="space-y-4">
-                    {newInvitation.invitees.map((invitee, index) => (
-                      <div key={index} className="flex items-start space-x-2">
-                        <div className="flex-1 space-y-2">
-                          <Label htmlFor={`invitee-email-${index}`}>Email</Label>
-                          <Input
-                            id={`invitee-email-${index}`}
-                            type="email"
-                            value={invitee.email}
-                            onChange={(e) => updateInvitee(index, 'email', e.target.value)}
-                            disabled={isLoading}
-                            placeholder="colleague@example.com"
-                          />
-                          {invitee.error && (
-                            <p className="text-sm text-red-500">{invitee.error}</p>
-                          )}
-                        </div>
-                        
-                        <div className="flex-1 space-y-2">
-                          <Label htmlFor={`invitee-role-${index}`}>Role</Label>
-                          <Select
-                            value={invitee.role}
-                            onValueChange={(value) => updateInvitee(index, 'role', value)}
-                            disabled={isLoading}
-                          >
-                            <SelectTrigger id={`invitee-role-${index}`}>
-                              <SelectValue placeholder="Select role" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {availableRoles.map((role) => (
-                                <SelectItem key={role.value} value={role.value}>
-                                  {role.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="icon"
-                          className="mt-8"
-                          onClick={() => removeInvitee(index)}
-                          disabled={isLoading || newInvitation.invitees.length <= 1}
-                          aria-label="Remove invitee"
-                        >
-                          ✕<span className="sr-only">Remove</span>
-                        </Button>
-                      </div>
-                    ))}
-                    
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={addInvitee}
-                      disabled={isLoading}
-                      className="w-full"
-                    >
-                      Add Another Invitee
-                    </Button>
-                  </div>
-                  
+                <form onSubmit={handleSendInvitation} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="message">Personal Message (Optional)</Label>
-                    <textarea
-                      id="message"
-                      value={newInvitation.message}
-                      onChange={(e) => updateNewInvitation('message', e.target.value)}
-                      disabled={isLoading}
-                      className="w-full min-h-[100px] p-2 border rounded-md"
-                      placeholder="Add a personal message to your invitation..."
+                    <Label htmlFor="inviteEmail">Email Address</Label>
+                    <Input
+                      id="inviteEmail"
+                      type="email"
+                      value={emailValue}
+                      onChange={(e) => setEmailValue(e.target.value)}
+                      onBlur={() => handleBlur('email')}
+                      disabled={isLoading || isSubmitting}
+                      placeholder="colleague@example.com"
+                      aria-invalid={touched.email && !!formErrors.email}
+                      className={touched.email && formErrors.email ? 'border-red-500' : ''}
                     />
+                    {touched.email && formErrors.email && (
+                      <p className="text-sm text-red-500">{formErrors.email}</p>
+                    )}
                   </div>
-                  
-                  <div className="flex justify-end">
-                    <Button 
-                      onClick={handleSendInvitation}
-                      disabled={isLoading || newInvitation.invitees.some(i => !i.email)}
+
+                  <div className="space-y-2">
+                    <Label htmlFor="inviteRole">Role</Label>
+                    <Select
+                      value={roleValue}
+                      onValueChange={(value) => setRoleValue(value)}
+                      disabled={isLoading || isSubmitting}
                     >
-                      {isLoading ? 'Sending...' : 'Send Invitations'}
+                      <SelectTrigger id="inviteRole">
+                        <SelectValue placeholder="Select a role" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableRoles.map((role) => (
+                          <SelectItem key={role.value} value={role.value}>
+                            {role.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {touched.role && formErrors.role && (
+                      <p className="text-sm text-red-500">{formErrors.role}</p>
+                    )}
+                  </div>
+
+                  {formErrors.form && (
+                    <Alert variant="destructive">
+                      <ExclamationTriangleIcon className="h-4 w-4" />
+                      <AlertDescription>{formErrors.form}</AlertDescription>
+                    </Alert>
+                  )}
+
+                  <div className="flex justify-end">
+                    <Button
+                      type="submit"
+                      disabled={isLoading || isSubmitting || !isValid}
+                    >
+                      {isSubmitting ? 'Sending…' : 'Send Invitation'}
                     </Button>
                   </div>
-                </div>
+                </form>
               </TabsContent>
-              
-              {/* Pending Invitations Tab */}
-              <TabsContent value="pending" className="space-y-6 pt-4">
-                <div className="space-y-4">
-                  <div className="flex flex-col space-y-2">
-                    <h3 className="text-lg font-medium">Pending Invitations</h3>
-                    <p className="text-sm text-gray-500">
-                      Invitations that have been sent but not yet accepted
-                    </p>
-                  </div>
-                  
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Role</TableHead>
-                        <TableHead>Sent</TableHead>
-                        <TableHead>Expires</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {pendingInvitations.map((invitation) => (
-                        <TableRow key={invitation.id}>
-                          <TableCell>{invitation.email}</TableCell>
-                          <TableCell>
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                              {invitation.role}
-                            </span>
-                          </TableCell>
-                          <TableCell>{invitation.sentAt}</TableCell>
-                          <TableCell>{invitation.expiresAt}</TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex justify-end space-x-2">
+
+              {/* Team Invitations Tab */}
+              <TabsContent value="team" className="pt-4">
+                <div className="flex justify-end mb-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={refreshInvitations}
+                    disabled={isLoading}
+                  >
+                    Refresh
+                  </Button>
+                </div>
+                {teamInvitations.length === 0 ? (
+                  <p className="text-sm text-gray-500 text-center py-6">
+                    No team invitations found.
+                  </p>
+                ) : (
+                  <div className="border rounded-md overflow-hidden">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Email</TableHead>
+                          <TableHead>Role</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead className="text-right">Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {teamInvitations.map((invitation: TeamInvitation) => (
+                          <TableRow key={invitation.id}>
+                            <TableCell>{invitation.email}</TableCell>
+                            <TableCell>{invitation.role}</TableCell>
+                            <TableCell>
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                {invitation.status}
+                              </span>
+                            </TableCell>
+                            <TableCell className="text-right space-x-2">
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => handleResendInvitation(invitation.id)}
+                                onClick={() => resendInvitation(invitation.id)}
                                 disabled={isLoading}
                               >
                                 Resend
                               </Button>
-                              
-                              <Dialog>
-                                <DialogTrigger asChild>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    disabled={isLoading}
-                                    onClick={() => setConfirmationState({ 
-                                      invitationId: invitation.id, 
-                                      email: invitation.email,
-                                      isOpen: true 
-                                    })}
-                                  >
-                                    Cancel
-                                  </Button>
-                                </DialogTrigger>
-                                {confirmationState.isOpen && confirmationState.invitationId === invitation.id && (
-                                  <DialogContent>
-                                    <DialogHeader>
-                                      <DialogTitle>Cancel Invitation</DialogTitle>
-                                      <DialogDescription>
-                                        Are you sure you want to cancel the invitation sent to {confirmationState.email}? This action cannot be undone.
-                                      </DialogDescription>
-                                    </DialogHeader>
-                                    <DialogFooter className="flex space-x-2 justify-end">
-                                      <Button
-                                        variant="outline"
-                                        onClick={cancelConfirmation}
-                                      >
-                                        No, Keep Invitation
-                                      </Button>
-                                      <Button
-                                        variant="destructive"
-                                        onClick={() => handleConfirmCancel(invitation.id)}
-                                      >
-                                        Yes, Cancel Invitation
-                                      </Button>
-                                    </DialogFooter>
-                                  </DialogContent>
-                                )}
-                              </Dialog>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                      
-                      {pendingInvitations.length === 0 && (
-                        <TableRow>
-                          <TableCell colSpan={5} className="text-center py-6 text-gray-500">
-                            No pending invitations
-                          </TableCell>
-                        </TableRow>
-                      )}
-                    </TableBody>
-                  </Table>
-                </div>
-              </TabsContent>
-              
-              {/* Sent Invitations Tab */}
-              <TabsContent value="sent" className="space-y-6 pt-4">
-                <div className="space-y-4">
-                  <div className="flex flex-col space-y-2">
-                    <h3 className="text-lg font-medium">Sent Invitations</h3>
-                    <p className="text-sm text-gray-500">
-                      History of invitations that have been accepted or expired
-                    </p>
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => cancelInvitation(invitation.id)}
+                                disabled={isLoading}
+                              >
+                                Cancel
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
                   </div>
-                  
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Role</TableHead>
-                        <TableHead>Sent</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Completed</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {sentInvitations.map((invitation) => (
-                        <TableRow key={invitation.id}>
-                          <TableCell>{invitation.email}</TableCell>
-                          <TableCell>
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                              {invitation.role}
-                            </span>
-                          </TableCell>
-                          <TableCell>{invitation.sentAt}</TableCell>
-                          <TableCell>
-                            {invitation.status === 'accepted' && (
-                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                Accepted
-                              </span>
-                            )}
-                            {invitation.status === 'expired' && (
-                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                Expired
-                              </span>
-                            )}
-                            {invitation.status === 'cancelled' && (
-                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                Cancelled
-                              </span>
-                            )}
-                          </TableCell>
-                          <TableCell>{invitation.completedAt || '-'}</TableCell>
-                        </TableRow>
-                      ))}
-                      
-                      {sentInvitations.length === 0 && (
+                )}
+              </TabsContent>
+
+              {/* User Invitations Tab */}
+              <TabsContent value="user" className="pt-4">
+                {userInvitations.length === 0 ? (
+                  <p className="text-sm text-gray-500 text-center py-6">
+                    No pending invitations for you.
+                  </p>
+                ) : (
+                  <div className="border rounded-md overflow-hidden">
+                    <Table>
+                      <TableHeader>
                         <TableRow>
-                          <TableCell colSpan={5} className="text-center py-6 text-gray-500">
-                            No sent invitations history
-                          </TableCell>
+                          <TableHead>Team</TableHead>
+                          <TableHead>Role</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
-                      )}
-                    </TableBody>
-                  </Table>
-                </div>
+                      </TableHeader>
+                      <TableBody>
+                        {userInvitations.map((invitation: TeamInvitation) => (
+                          <TableRow key={invitation.id}>
+                            <TableCell>{invitation.teamId}</TableCell>
+                            <TableCell>{invitation.role}</TableCell>
+                            <TableCell>
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                {invitation.status}
+                              </span>
+                            </TableCell>
+                            <TableCell className="text-right space-x-2">
+                              <Button
+                                variant="default"
+                                size="sm"
+                                onClick={() => acceptInvitation(invitation.id)}
+                                disabled={isLoading}
+                              >
+                                Accept
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => declineInvitation(invitation.id)}
+                                disabled={isLoading}
+                              >
+                                Decline
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
               </TabsContent>
             </Tabs>
           </CardContent>
-          
+
           {footer && <CardFooter>{footer}</CardFooter>}
         </Card>
       )}

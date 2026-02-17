@@ -10,6 +10,7 @@ import { PermissionService } from '@/core/permission/interfaces';
 import { 
   Role, 
   RoleWithPermissions, 
+  UserRole,
   RoleCreationPayload, 
   RoleUpdatePayload 
 } from '@/core/permission/models';
@@ -90,21 +91,15 @@ export function useRoles() {
     setError(null);
     
     try {
-      const result = await permissionService.createRole(roleData);
+      const role = await permissionService.createRole(roleData);
       
       setIsLoading(false);
       
-      if (result.success && result.role) {
-        // Add the new role to the roles list
-        setRoles(prevRoles => [...prevRoles, result.role!]);
-        setCurrentRole(result.role);
-        setSuccessMessage('Role created successfully');
-        return result.role;
-      } else if (result.error) {
-        setError(result.error);
-      }
-      
-      return null;
+      // Add the new role to the roles list
+      setRoles(prevRoles => [...prevRoles, role]);
+      setCurrentRole(role);
+      setSuccessMessage('Role created successfully');
+      return role;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to create role';
       
@@ -121,28 +116,22 @@ export function useRoles() {
     setError(null);
     
     try {
-      const result = await permissionService.updateRole(roleId, roleData);
+      const role = await permissionService.updateRole(roleId, roleData);
       
       setIsLoading(false);
       
-      if (result.success && result.role) {
-        // Update the role in the roles list
-        setRoles(prevRoles => 
-          prevRoles.map(role => role.id === roleId ? result.role! : role)
-        );
-        
-        // Update current role if it's the one being updated
-        if (currentRole && currentRole.id === roleId) {
-          setCurrentRole(result.role);
-        }
-        
-        setSuccessMessage('Role updated successfully');
-        return result.role;
-      } else if (result.error) {
-        setError(result.error);
+      // Update the role in the roles list
+      setRoles(prevRoles => 
+        prevRoles.map(r => r.id === roleId ? role : r)
+      );
+      
+      // Update current role if it's the one being updated
+      if (currentRole && currentRole.id === roleId) {
+        setCurrentRole(role);
       }
       
-      return null;
+      setSuccessMessage('Role updated successfully');
+      return role;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to update role';
       
@@ -220,18 +209,12 @@ export function useRoles() {
     setError(null);
     
     try {
-      const result = await permissionService.assignRoleToUser(userId, roleId, assignedBy, expiresAt);
+      await permissionService.assignRoleToUser(userId, roleId, assignedBy, expiresAt);
       
       setIsLoading(false);
       
-      if (result.success) {
-        setSuccessMessage('Role assigned successfully');
-        return true;
-      } else if (result.error) {
-        setError(result.error);
-      }
-      
-      return false;
+      setSuccessMessage('Role assigned successfully');
+      return true;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to assign role to user';
       
