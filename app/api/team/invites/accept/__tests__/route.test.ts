@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { POST } from '../route';
 import { prisma } from '@/lib/database/prisma';
 import { withRouteAuth } from '@/middleware/auth';
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { ERROR_CODES } from '@/lib/api/common';
 
 // Mock dependencies
@@ -56,7 +56,7 @@ describe('POST /api/team/invites/accept', () => {
   });
 
   it('accepts a valid invite', async () => {
-    const request = new Request('http://localhost:3000/api/team/invites/accept', {
+    const request = new NextRequest('http://localhost:3000/api/team/invites/accept', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -89,7 +89,7 @@ describe('POST /api/team/invites/accept', () => {
   it('returns 401 when user is not authenticated', async () => {
     vi.mocked(withRouteAuth).mockResolvedValueOnce(new NextResponse('unauth', { status: 401 }));
 
-    const request = new Request('http://localhost:3000/api/team/invites/accept', {
+    const request = new NextRequest('http://localhost:3000/api/team/invites/accept', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -107,7 +107,7 @@ describe('POST /api/team/invites/accept', () => {
   it('returns 400 when invite token is invalid', async () => {
     (prisma.teamMember.findUnique as any).mockResolvedValue(null);
 
-    const request = new Request('http://localhost:3000/api/team/invites/accept', {
+    const request = new NextRequest('http://localhost:3000/api/team/invites/accept', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -128,7 +128,7 @@ describe('POST /api/team/invites/accept', () => {
       inviteExpires: new Date(Date.now() - 24 * 60 * 60 * 1000), // 1 day ago
     });
 
-    const request = new Request('http://localhost:3000/api/team/invites/accept', {
+    const request = new NextRequest('http://localhost:3000/api/team/invites/accept', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -149,7 +149,7 @@ describe('POST /api/team/invites/accept', () => {
       invitedEmail: 'different@example.com',
     });
 
-    const request = new Request('http://localhost:3000/api/team/invites/accept', {
+    const request = new NextRequest('http://localhost:3000/api/team/invites/accept', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -166,7 +166,7 @@ describe('POST /api/team/invites/accept', () => {
 
   it('should return 400 when request body is invalid', async () => {
 
-    const response = await POST(new Request('http://localhost', {
+    const response = await POST(new NextRequest('http://localhost', {
       method: 'POST',
       body: JSON.stringify({
         // Missing token field
@@ -183,7 +183,7 @@ describe('POST /api/team/invites/accept', () => {
 
     vi.mocked(prisma.teamMember.findUnique).mockRejectedValue(new Error('Database error'));
 
-    const response = await POST(new Request('http://localhost', {
+    const response = await POST(new NextRequest('http://localhost', {
       method: 'POST',
       body: JSON.stringify({
         token: 'valid-token'

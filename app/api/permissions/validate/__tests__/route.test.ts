@@ -1,3 +1,4 @@
+import { NextRequest } from 'next/server';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { GET } from '../route';
 
@@ -36,7 +37,7 @@ describe('GET /api/permissions/validate', () => {
     mockPermissionService.hasPermission.mockResolvedValue(true);
     mockPermissionService.getUserRoles.mockResolvedValue([{ roleId: 'r1' }]);
     mockRoleService.getEffectivePermissions.mockResolvedValue(['VIEW']);
-    const req = new Request('http://localhost/api/permissions/validate?userId=u1&permission=VIEW');
+    const req = new NextRequest('http://localhost/api/permissions/validate?userId=u1&permission=VIEW');
     const res = await GET(req as any);
     const body = await res.json();
     expect(body.data.allowed).toBe(true);

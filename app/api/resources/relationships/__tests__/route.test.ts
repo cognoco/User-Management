@@ -1,3 +1,4 @@
+import { NextRequest } from 'next/server';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { GET, POST } from '../route';
 import { createResourceRelationshipService } from '@/services/resource-relationship/factory';
@@ -36,7 +37,7 @@ beforeEach(() => {
 describe('resource relationships API', () => {
   it('GET fetches children', async () => {
     service.getChildResources.mockResolvedValue([{ id: '1' }]);
-    const req = new Request('http://test?parentType=project&parentId=p1');
+    const req = new NextRequest('http://test?parentType=project&parentId=p1');
     const res = await GET(req as any);
     const body = await res.json();
     expect(body.data.relationships).toEqual([{ id: '1' }]);
@@ -44,7 +45,7 @@ describe('resource relationships API', () => {
 
   it('GET fetches parents', async () => {
     service.getParentResources.mockResolvedValue([{ id: '2' }]);
-    const req = new Request('http://test?childType=task&childId=t1');
+    const req = new NextRequest('http://test?childType=task&childId=t1');
     const res = await GET(req as any);
     const body = await res.json();
     expect(body.data.relationships).toEqual([{ id: '2' }]);
@@ -52,7 +53,7 @@ describe('resource relationships API', () => {
 
   it('POST creates relationship', async () => {
     service.createRelationship.mockResolvedValue({ id: '3' });
-    const req = new Request('http://test', { method: 'POST' });
+    const req = new NextRequest('http://test', { method: 'POST' });
     const res = await POST(req as any, { userId: 'u1' } as any, {
       parentType: 'project',
       parentId: 'p1',

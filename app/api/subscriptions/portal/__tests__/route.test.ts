@@ -1,3 +1,4 @@
+import { NextRequest } from 'next/server';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { POST } from '../route';
 import { createBillingPortalSession } from '@/lib/payments/stripe';
@@ -17,7 +18,7 @@ describe('subscriptions portal API', () => {
 
   it('creates portal session', async () => {
     vi.mocked(createBillingPortalSession).mockResolvedValue({ url: 'https://portal.test' } as any);
-    const req = new Request('http://test', { method: 'POST', body: JSON.stringify({ customerId: 'cus_123' }) });
+    const req = new NextRequest('http://test', { method: 'POST', body: JSON.stringify({ customerId: 'cus_123' }) });
     const res = await POST(req as any);
     expect(res.status).toBe(200);
     const json = await res.json();
@@ -26,7 +27,7 @@ describe('subscriptions portal API', () => {
   });
 
   it('returns 400 on invalid payload', async () => {
-    const req = new Request('http://test', { method: 'POST', body: JSON.stringify({}) });
+    const req = new NextRequest('http://test', { method: 'POST', body: JSON.stringify({}) });
     const res = await POST(req as any);
     expect(res.status).toBe(400);
   });

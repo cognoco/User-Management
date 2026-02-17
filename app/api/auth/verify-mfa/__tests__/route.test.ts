@@ -1,3 +1,4 @@
+import { NextRequest } from 'next/server';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { POST } from '../route';
 import { getApiAuthService } from '@/services/auth/factory';
@@ -12,7 +13,7 @@ vi.mock('@/middleware/with-security', () => ({
 
 describe('POST /api/auth/verify-mfa', () => {
   const mockAuthService = { verifyMFA: vi.fn() };
-  const createRequest = (code?: string) => new Request('http://localhost/api/auth/verify-mfa', {
+  const createRequest = (code?: string) => new NextRequest('http://localhost/api/auth/verify-mfa', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: code ? JSON.stringify({ code }) : undefined

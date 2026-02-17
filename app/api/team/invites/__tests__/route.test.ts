@@ -1,3 +1,4 @@
+import { NextRequest } from 'next/server';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { POST } from '../route';
 import { prisma } from '@/lib/database/prisma';
@@ -69,7 +70,7 @@ describe('POST /api/team/invites', () => {
   });
 
   it('creates a new team invite successfully', async () => {
-    const request = new Request('http://localhost:3000/api/team/invites', {
+    const request = new NextRequest('http://localhost:3000/api/team/invites', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -101,7 +102,7 @@ describe('POST /api/team/invites', () => {
   it('returns 401 when user is not authenticated', async () => {
     vi.mocked(withRouteAuth).mockResolvedValueOnce(new NextResponse('unauth', { status: 401 }));
 
-    const request = new Request('http://localhost:3000/api/team/invites', {
+    const request = new NextRequest('http://localhost:3000/api/team/invites', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -121,7 +122,7 @@ describe('POST /api/team/invites', () => {
   it('returns 400 when team license is not found', async () => {
     (prisma.teamLicense.findUnique as any).mockResolvedValue(null);
 
-    const request = new Request('http://localhost:3000/api/team/invites', {
+    const request = new NextRequest('http://localhost:3000/api/team/invites', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -141,7 +142,7 @@ describe('POST /api/team/invites', () => {
   it('returns 403 when team has reached seat limit', async () => {
     (prisma.teamMember.count as any).mockResolvedValue(5); // All seats taken
 
-    const request = new Request('http://localhost:3000/api/team/invites', {
+    const request = new NextRequest('http://localhost:3000/api/team/invites', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -159,7 +160,7 @@ describe('POST /api/team/invites', () => {
   });
 
   it('returns 400 when email validation fails', async () => {
-    const request = new Request('http://localhost:3000/api/team/invites', {
+    const request = new NextRequest('http://localhost:3000/api/team/invites', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -177,7 +178,7 @@ describe('POST /api/team/invites', () => {
   });
 
   it('returns 400 when role validation fails', async () => {
-    const request = new Request('http://localhost:3000/api/team/invites', {
+    const request = new NextRequest('http://localhost:3000/api/team/invites', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

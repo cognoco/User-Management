@@ -1,7 +1,8 @@
+import { NextRequest } from 'next/server';
 import { describe, it, expect } from 'vitest';
 import { GET, POST } from '../route';
 
-const mockRequest = (body: any) => new Request('http://localhost', { method: 'POST', body: JSON.stringify(body) });
+const mockRequest = (body: any) => new NextRequest('http://localhost', { method: 'POST', body: JSON.stringify(body) });
 
 describe('/api/subscription', () => {
   it('GET returns subscriptions array', async () => {

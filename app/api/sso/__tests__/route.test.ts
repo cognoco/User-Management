@@ -1,3 +1,4 @@
+import { NextRequest } from 'next/server';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { GET, POST } from '../route';
 import { getApiSsoService } from '@/services/sso/factory';
@@ -7,7 +8,7 @@ vi.mock('@/services/sso/factory', () => ({
 }));
 
 const mockRequest = (body: any) =>
-  new Request('http://localhost/api/sso', {
+  new NextRequest('http://localhost/api/sso', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
@@ -33,7 +34,7 @@ describe('/api/sso', () => {
     });
   });
   it('GET returns providers array', async () => {
-    const res = await GET(new Request('http://localhost/api/sso?organizationId=org1'));
+    const res = await GET(new NextRequest('http://localhost/api/sso?organizationId=org1'));
     const json = await res.json();
     expect(Array.isArray(json.providers)).toBe(true);
     expect(mockService.getProviders).toHaveBeenCalledWith('org1');

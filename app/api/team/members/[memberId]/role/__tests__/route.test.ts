@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { PATCH } from '../route';
 import { prisma } from '@/lib/database/prisma';
 import { withRouteAuth } from '@/middleware/auth';
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
 // Mock dependencies
 vi.mock('@/middleware/auth', () => ({
@@ -48,7 +48,7 @@ describe('PATCH /api/team/members/[memberId]/role', () => {
   });
 
   it('updates member role successfully', async () => {
-    const request = new Request(
+    const request = new NextRequest(
       'http://localhost:3000/api/team/members/member-1/role',
       {
         method: 'PATCH',
@@ -81,7 +81,7 @@ describe('PATCH /api/team/members/[memberId]/role', () => {
       new NextResponse('unauth', { status: 401 })
     );
 
-    const request = new Request(
+    const request = new NextRequest(
       'http://localhost:3000/api/team/members/member-1/role',
       {
         method: 'PATCH',
@@ -107,7 +107,7 @@ describe('PATCH /api/team/members/[memberId]/role', () => {
       role: 'member',
     });
 
-    const request = new Request(
+    const request = new NextRequest(
       'http://localhost:3000/api/team/members/member-1/role',
       {
         method: 'PATCH',
@@ -128,7 +128,7 @@ describe('PATCH /api/team/members/[memberId]/role', () => {
   });
 
   it('returns 400 when role is invalid', async () => {
-    const request = new Request(
+    const request = new NextRequest(
       'http://localhost:3000/api/team/members/member-1/role',
       {
         method: 'PATCH',
@@ -155,7 +155,7 @@ describe('PATCH /api/team/members/[memberId]/role', () => {
     });
     (prisma.teamMember.findFirst as any).mockResolvedValue(null);
 
-    const request = new Request(
+    const request = new NextRequest(
       'http://localhost:3000/api/team/members/member-1/role',
       {
         method: 'PATCH',
@@ -172,7 +172,7 @@ describe('PATCH /api/team/members/[memberId]/role', () => {
   it('returns 404 when member is not found', async () => {
     (prisma.teamMember.update as any).mockRejectedValue(new Error('Not found'));
 
-    const request = new Request(
+    const request = new NextRequest(
       'http://localhost:3000/api/team/members/invalid-member/role',
       {
         method: 'PATCH',

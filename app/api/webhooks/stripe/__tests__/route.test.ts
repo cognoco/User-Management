@@ -1,3 +1,4 @@
+import { NextRequest } from 'next/server';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { POST } from '../route';
 
@@ -21,7 +22,7 @@ import { checkRateLimit } from '@/middleware/rate-limit';
 import { logUserAction } from '@/lib/audit/auditLogger';
 
 function createRequest(body: any, signature = 'sig') {
-  return new Request('http://localhost', {
+  return new NextRequest('http://localhost', {
     method: 'POST',
     headers: { 'stripe-signature': signature },
     body: JSON.stringify(body)

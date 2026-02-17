@@ -1,3 +1,4 @@
+import { NextRequest } from 'next/server';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { POST } from '../route';
 import { getApiTwoFactorService } from '@/services/two-factor/factory';
@@ -17,7 +18,7 @@ vi.mock('@/middleware/createMiddlewareChain', async () => {
 vi.mock('@/lib/audit/auditLogger', () => ({ logUserAction: vi.fn() }));
 
 const createRequest = (body: any) =>
-  new Request('http://localhost/api/2fa/webauthn/register', {
+  new NextRequest('http://localhost/api/2fa/webauthn/register', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'User-Agent': 'test' },
     body: JSON.stringify(body)

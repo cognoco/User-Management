@@ -1,3 +1,4 @@
+import { NextRequest } from 'next/server';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { GET } from '../route';
 import { getApiSubscriptionService } from '@/services/subscription/factory';
@@ -20,7 +21,7 @@ describe('subscriptions plans API', () => {
 
   it('returns plans list', async () => {
     service.getPlans.mockResolvedValue([{ id: 'plan1' }]);
-    const req = new Request('http://test');
+    const req = new NextRequest('http://test');
     const res = await GET(req as any);
     expect(res.status).toBe(200);
     const json = await res.json();

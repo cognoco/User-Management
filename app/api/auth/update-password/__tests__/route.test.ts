@@ -1,3 +1,4 @@
+import { NextRequest } from 'next/server';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { POST } from '../route';
 import { getApiAuthService } from '@/services/auth/factory';
@@ -18,7 +19,7 @@ describe('POST /api/auth/update-password', () => {
     updatePasswordWithToken: vi.fn(),
   };
   const createRequest = (body?: any) =>
-    new Request('http://localhost/api/auth/update-password', {
+    new NextRequest('http://localhost/api/auth/update-password', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: body ? JSON.stringify(body) : undefined,

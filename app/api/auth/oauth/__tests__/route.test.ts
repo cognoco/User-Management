@@ -1,6 +1,6 @@
 let POST: (req: Request) => Promise<Response>;
 // import { cookies } from 'next/headers';
-// import { NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { OAuthProvider } from "@/types/oauth";
 import { describe, it, expect, vi, beforeEach, type Mock } from "vitest";
 import { getServiceContainer } from '@/lib/config/service-container';
@@ -112,7 +112,7 @@ describe("POST /api/auth/oauth", () => {
 
   it("should return authorization URL and state for a valid provider (Google)", async () => {
     const requestBody = JSON.stringify({ provider: OAuthProvider.GOOGLE });
-    const request = new Request("http://localhost/api/auth/oauth", {
+    const request = new NextRequest("http://localhost/api/auth/oauth", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: requestBody,
@@ -146,7 +146,7 @@ describe("POST /api/auth/oauth", () => {
 
   it("should return 400 if provider is missing", async () => {
     const requestBody = JSON.stringify({}); // Missing provider
-    const request = new Request("http://localhost/api/auth/oauth", {
+    const request = new NextRequest("http://localhost/api/auth/oauth", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: requestBody,
@@ -163,7 +163,7 @@ describe("POST /api/auth/oauth", () => {
 
   it("should return 400 if provider is invalid", async () => {
     const requestBody = JSON.stringify({ provider: "invalid-provider" });
-    const request = new Request("http://localhost/api/auth/oauth", {
+    const request = new NextRequest("http://localhost/api/auth/oauth", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: requestBody,
@@ -180,7 +180,7 @@ describe("POST /api/auth/oauth", () => {
 
   it("should return 400 if provider is not enabled (e.g., Facebook)", async () => {
     const requestBody = JSON.stringify({ provider: OAuthProvider.FACEBOOK });
-    const request = new Request("http://localhost/api/auth/oauth", {
+    const request = new NextRequest("http://localhost/api/auth/oauth", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: requestBody,
@@ -199,7 +199,7 @@ describe("POST /api/auth/oauth", () => {
 
   it("should handle JSON parsing errors", async () => {
     const requestBody = "invalid json";
-    const request = new Request("http://localhost/api/auth/oauth", {
+    const request = new NextRequest("http://localhost/api/auth/oauth", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: requestBody,

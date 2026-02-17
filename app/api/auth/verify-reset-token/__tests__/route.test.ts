@@ -1,3 +1,4 @@
+import { NextRequest } from 'next/server';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { POST } from '../route';
 import { getApiAuthService } from '@/services/auth/factory';
@@ -13,7 +14,7 @@ vi.mock('@/middleware/with-security', () => ({ withSecurity: (h: any) => h }));
 describe('POST /api/auth/verify-reset-token', () => {
   const mockAuthService = { verifyPasswordResetToken: vi.fn() };
   const createRequest = (token?: string) =>
-    new Request('http://localhost/api/auth/verify-reset-token', {
+    new NextRequest('http://localhost/api/auth/verify-reset-token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: token ? JSON.stringify({ token }) : undefined,

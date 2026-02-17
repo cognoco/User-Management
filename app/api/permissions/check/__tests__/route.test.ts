@@ -1,3 +1,4 @@
+import { NextRequest } from 'next/server';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { GET, POST } from '../route';
 
@@ -29,7 +30,7 @@ beforeEach(() => {
 describe('GET /api/permissions/check', () => {
   it('returns permission result when valid', async () => {
     mockPermissionService.hasPermission.mockResolvedValue(true);
-    const req = new Request('http://localhost/api/permissions/check?permission=VIEW_PROJECTS');
+    const req = new NextRequest('http://localhost/api/permissions/check?permission=VIEW_PROJECTS');
     const res = await GET(req as any);
     expect(res.status).toBe(200);
     const body = await res.json();
@@ -39,14 +40,14 @@ describe('GET /api/permissions/check', () => {
 
   it('checks resource permission', async () => {
     mockPermissionService.hasResourcePermission.mockResolvedValue(true);
-    const req = new Request('http://localhost/api/permissions/check?permission=VIEW_PROJECTS&resource=project&resourceId=p1');
+    const req = new NextRequest('http://localhost/api/permissions/check?permission=VIEW_PROJECTS&resource=project&resourceId=p1');
     const res = await GET(req as any);
     expect(res.status).toBe(200);
     expect(mockPermissionService.hasResourcePermission).toHaveBeenCalledWith('user-1', 'VIEW_PROJECTS', 'project', 'p1');
   });
 
   it('returns 404 for invalid permission', async () => {
-    const req = new Request('http://localhost/api/permissions/check?permission=UNKNOWN');
+    const req = new NextRequest('http://localhost/api/permissions/check?permission=UNKNOWN');
     const res = await GET(req as any);
     expect(res.status).toBe(404);
     const body = await res.json();
@@ -54,7 +55,7 @@ describe('GET /api/permissions/check', () => {
   });
 
   it('returns 400 when permission missing', async () => {
-    const req = new Request('http://localhost/api/permissions/check');
+    const req = new NextRequest('http://localhost/api/permissions/check');
     const res = await GET(req as any);
     expect(res.status).toBe(400);
     const body = await res.json();
@@ -66,7 +67,7 @@ describe('GET /api/permissions/check', () => {
     (withRouteAuth as any).mockImplementationOnce((handler: any, req: any) =>
       handler(req, { userId: 'user-1', user: { id: 'user-1', app_metadata: {} } })
     );
-    const req = new Request('http://localhost/api/permissions/check?permission=VIEW_PROJECTS');
+    const req = new NextRequest('http://localhost/api/permissions/check?permission=VIEW_PROJECTS');
     const res = await GET(req as any);
     expect(res.status).toBe(404);
     const body = await res.json();
@@ -77,7 +78,7 @@ describe('GET /api/permissions/check', () => {
 describe('POST /api/permissions/check', () => {
   it('returns batch results', async () => {
     mockPermissionService.hasPermission.mockResolvedValue(true);
-    const req = new Request('http://localhost/api/permissions/check', {
+    const req = new NextRequest('http://localhost/api/permissions/check', {
       method: 'POST',
       body: JSON.stringify({ checks: [{ permission: 'VIEW_PROJECTS' }] }),
     });

@@ -1,3 +1,4 @@
+import { NextRequest } from 'next/server';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { GET } from '../route';
 import { getApiSubscriptionService } from '@/services/subscription/factory';
@@ -22,7 +23,7 @@ describe('subscriptions status API', () => {
 
   it('returns subscription', async () => {
     service.getUserSubscription.mockResolvedValue({ id: 'sub1' });
-    const req = new Request('http://test');
+    const req = new NextRequest('http://test');
     req.headers.set('x-user-id', 'u1');
     const res = await GET(req as any);
     expect(res.status).toBe(200);
@@ -31,7 +32,7 @@ describe('subscriptions status API', () => {
   });
 
   it('unauthorized without header', async () => {
-    const req = new Request('http://test');
+    const req = new NextRequest('http://test');
     const res = await GET(req as any);
     expect(res.status).toBe(401);
   });

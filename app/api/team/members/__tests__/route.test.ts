@@ -243,7 +243,7 @@ describe('Team Members API', () => {
 
   it('returns 400 when seat limit reached', async () => {
     (prisma.teamLicense.findUnique as any).mockResolvedValue({ usedSeats: 5, totalSeats: 5 });
-    const request = new Request('http://localhost:3000/api/team/members', {
+    const request = new NextRequest('http://localhost:3000/api/team/members', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ teamId: 'license-123', userId: 'user2', role: 'member' }),

@@ -1,3 +1,4 @@
+import { NextRequest } from 'next/server';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { POST } from '../route';
 import { getApiAuthService } from '@/services/auth/factory';
@@ -12,7 +13,7 @@ vi.mock('@/middleware/with-security', () => ({
 
 describe('POST /api/auth/passwordless', () => {
   const mockAuthService = { sendMagicLink: vi.fn() };
-  const createRequest = (email?: string) => new Request('http://localhost/api/auth/passwordless', {
+  const createRequest = (email?: string) => new NextRequest('http://localhost/api/auth/passwordless', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: email ? JSON.stringify({ email }) : undefined

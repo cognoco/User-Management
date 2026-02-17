@@ -1,3 +1,4 @@
+import { NextRequest } from 'next/server';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { GET, PUT } from '../route';
 
@@ -24,7 +25,7 @@ describe('role hierarchy API', () => {
   });
 
   it('PUT sets parent role', async () => {
-    const req = new Request('http://test', { method: 'PUT', body: JSON.stringify({ parentRoleId: 'p' }) });
+    const req = new NextRequest('http://test', { method: 'PUT', body: JSON.stringify({ parentRoleId: 'p' }) });
     (req as any).json = async () => ({ parentRoleId: 'p' });
     mockService.setParentRole.mockResolvedValue(undefined);
     const res = await PUT(req as any, { params: { roleId: '1' } } as any);

@@ -1,3 +1,4 @@
+import { NextRequest } from 'next/server';
 import { POST } from '../route';
 import { OAuthProvider } from '@/types/oauth';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
@@ -29,7 +30,7 @@ const mockService = {
 };
 
 
-const createRequest = (body: object) => new Request('http://localhost/api/auth/oauth/verify', {
+const createRequest = (body: object) => new NextRequest('http://localhost/api/auth/oauth/verify', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify(body),

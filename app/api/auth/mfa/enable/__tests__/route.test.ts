@@ -1,3 +1,4 @@
+import { NextRequest } from 'next/server';
 import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
 import { POST } from '../route';
 import { getApiAuthService } from '@/services/auth/factory';
@@ -13,7 +14,7 @@ vi.mock('@/middleware/with-security', () => ({
 
 describe('POST /api/auth/mfa/enable', () => {
   const mockAuthService = { setupMFA: vi.fn() };
-  const createRequest = () => new Request('http://localhost/api/auth/mfa/enable', { method: 'POST' });
+  const createRequest = () => new NextRequest('http://localhost/api/auth/mfa/enable', { method: 'POST' });
 
   beforeEach(() => {
     vi.clearAllMocks();

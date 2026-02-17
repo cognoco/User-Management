@@ -1,3 +1,4 @@
+import { NextRequest } from 'next/server';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { POST, DELETE } from '../route';
 import { withRouteAuth } from '@/middleware/auth';
@@ -25,7 +26,7 @@ beforeEach(() => {
 describe('resource permission API', () => {
   it('POST assigns permission', async () => {
     mockService.assignResourcePermission.mockResolvedValue({ id: '1' });
-    const req = new Request('http://test', {
+    const req = new NextRequest('http://test', {
       method: 'POST',
       body: JSON.stringify({ userId: 'u1', permission: 'VIEW_PROJECTS', resourceType: 'project', resourceId: 'p1' }),
     });
@@ -36,7 +37,7 @@ describe('resource permission API', () => {
 
   it('DELETE removes permission', async () => {
     mockService.removeResourcePermission.mockResolvedValue(true);
-    const req = new Request('http://test?userId=u1&permission=VIEW_PROJECTS&resourceType=project&resourceId=p1');
+    const req = new NextRequest('http://test?userId=u1&permission=VIEW_PROJECTS&resourceType=project&resourceId=p1');
     const res = await DELETE(req as any);
     expect(res.status).toBe(204);
     expect(mockService.removeResourcePermission).toHaveBeenCalledWith('u1', 'VIEW_PROJECTS', 'project', 'p1', 'u1');

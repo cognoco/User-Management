@@ -1,10 +1,11 @@
+import { NextRequest } from 'next/server';
 import { POST } from '../route';
 import { OAuthProvider } from '@/types/oauth';
 import { describe, it, expect } from 'vitest';
 
 describe('oauth callback route', () => {
   it('returns 400 when state is missing', async () => {
-    const req = new Request('http://localhost/api/auth/oauth/callback', {
+    const req = new NextRequest('http://localhost/api/auth/oauth/callback', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ provider: OAuthProvider.GOOGLE, code: 'code' })

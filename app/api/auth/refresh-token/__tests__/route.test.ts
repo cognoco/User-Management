@@ -1,3 +1,4 @@
+import { NextRequest } from 'next/server';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { POST } from '../route';
 import { getApiAuthService } from '@/services/auth/factory';
@@ -13,7 +14,7 @@ vi.mock('@/middleware/with-security', () => ({
 
 describe('POST /api/auth/refresh-token', () => {
   const mockAuthService = { refreshToken: vi.fn(), getTokenExpiry: vi.fn() };
-  const createRequest = () => new Request('http://localhost/api/auth/refresh-token', { method: 'POST' });
+  const createRequest = () => new NextRequest('http://localhost/api/auth/refresh-token', { method: 'POST' });
 
   beforeEach(() => {
     vi.clearAllMocks();

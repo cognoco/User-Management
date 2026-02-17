@@ -1,3 +1,4 @@
+import { NextRequest } from 'next/server';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { DELETE } from '../route';
 // RESOLVED VERSION
@@ -41,7 +42,7 @@ describe('DELETE /api/team/members/[memberId]', () => {
     vi.mocked(prisma.teamMember.delete).mockResolvedValue({} as any);
 
     const response = await DELETE(
-      new Request('http://localhost'),
+      new NextRequest('http://localhost'),
       { params: { memberId: 'member-1' } }
     );
 
@@ -54,7 +55,7 @@ describe('DELETE /api/team/members/[memberId]', () => {
     vi.mocked(withRouteAuth).mockResolvedValueOnce(new NextResponse('unauth', { status: 401 }));
 
     const response = await DELETE(
-      new Request('http://localhost'),
+      new NextRequest('http://localhost'),
       { params: { memberId: 'member-1' } }
     );
 
@@ -67,7 +68,7 @@ describe('DELETE /api/team/members/[memberId]', () => {
     vi.mocked(withRouteAuth).mockResolvedValueOnce(new NextResponse('forbidden', { status: 403 }));
 
     const response = await DELETE(
-      new Request('http://localhost'),
+      new NextRequest('http://localhost'),
       { params: { memberId: 'member-1' } }
     );
 
@@ -91,7 +92,7 @@ describe('DELETE /api/team/members/[memberId]', () => {
     } as any);
 
     const response = await DELETE(
-      new Request('http://localhost'),
+      new NextRequest('http://localhost'),
       { params: { memberId: 'member-1' } }
     );
 
@@ -114,7 +115,7 @@ describe('DELETE /api/team/members/[memberId]', () => {
     } as any);
 
     const response = await DELETE(
-      new Request('http://localhost'),
+      new NextRequest('http://localhost'),
       { params: { memberId: 'admin-1' } }
     );
 
@@ -127,7 +128,7 @@ describe('DELETE /api/team/members/[memberId]', () => {
     vi.mocked(prisma.teamMember.findUnique).mockResolvedValue(null);
 
     const response = await DELETE(
-      new Request('http://localhost'),
+      new NextRequest('http://localhost'),
       { params: { memberId: 'non-existent' } }
     );
 
@@ -139,7 +140,7 @@ describe('DELETE /api/team/members/[memberId]', () => {
   it('should return 400 when memberId is invalid', async () => {
 
     const response = await DELETE(
-      new Request('http://localhost'),
+      new NextRequest('http://localhost'),
       { params: { memberId: 'invalid-uuid' } }
     );
 
@@ -159,7 +160,7 @@ describe('DELETE /api/team/members/[memberId]', () => {
     vi.mocked(prisma.teamMember.findFirst).mockResolvedValue(null as any);
 
     const response = await DELETE(
-      new Request('http://localhost'),
+      new NextRequest('http://localhost'),
       { params: { memberId: 'member-1' } }
     );
 
@@ -183,7 +184,7 @@ describe('DELETE /api/team/members/[memberId]', () => {
     vi.mocked(prisma.teamMember.delete).mockRejectedValue(new Error('Database error'));
 
     const response = await DELETE(
-      new Request('http://localhost'),
+      new NextRequest('http://localhost'),
       { params: { memberId: 'member-1' } }
     );
 

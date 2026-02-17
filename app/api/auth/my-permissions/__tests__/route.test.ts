@@ -1,3 +1,4 @@
+import { NextRequest } from 'next/server';
 import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
 import { GET } from '../route';
 import { getApiPermissionService } from '@/services/permission/factory';
@@ -26,7 +27,7 @@ beforeEach(() => {
 
 describe('GET /api/auth/my-permissions', () => {
   it('returns aggregated permissions', async () => {
-    const res = await GET(new Request('http://test') as any);
+    const res = await GET(new NextRequest('http://test') as any);
     const body = await res.json();
     expect(res.status).toBe(200);
     expect(body.data.roles[0]).toBe('ADMIN');
