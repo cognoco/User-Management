@@ -1,8 +1,5 @@
 import { type NextRequest } from 'next/server';
 import { z } from 'zod';
-import { prisma } from '@/lib/database/prisma';
-import { generateInviteToken } from '@/lib/utils/token';
-import { sendTeamInviteEmail } from '@/lib/email/teamInvite';
 import { Permission } from '@/lib/rbac/roles';
 
 import { createSuccessResponse, ApiError, ERROR_CODES } from '@/lib/api/common';
@@ -17,6 +14,7 @@ import {
   createTeamNotFoundError,
   createTeamMemberAlreadyExistsError
 } from '@/lib/api/team/error-handler';
+import { getApiTeamService } from '@/services/team/factory';
 
 const inviteSchema = z.object({
   email: z.string().email(),
@@ -30,11 +28,16 @@ async function listInvites(req: NextRequest, _auth: AuthContext) {
   if (!licenseId) {
     return createSuccessResponse([], 200);
   }
-  const invites = await prisma.team_members.findMany({
-    where: { teamLicenseId: licenseId, status: 'pending' }
-  });
-  return createSuccessResponse(invites);
+
+  const teamService = getApiTeamService();
+  if (!teamService) {
+    throw new ApiError(ERROR_CODES.INTERNAL_ERROR, 'Team service unavailable', 500);
+  }
+
+  const invitations = await teamService.getTeamInvitations(licenseId);
+  return createSuccessResponse(invitations);
 }
+
 async function handleInvite(
   _req: NextRequest,
   auth: AuthContext | undefined,
@@ -44,79 +47,47 @@ async function handleInvite(
     throw new ApiError(ERROR_CODES.UNAUTHORIZED, 'Unauthorized', 401);
   }
 
-  const invokingUser = await prisma.user.findUnique({
-    where: { id: auth.userId },
-    select: {
-      id: true,
-      teamMemberships: { select: { teamId: true, role: true } },
-    },
-  });
-  if (!invokingUser || !invokingUser.teamMemberships || invokingUser.teamMemberships.length === 0) {
-    throw new ApiError(ERROR_CODES.FORBIDDEN, 'Invoking user not found or not part of any team', 403);
+  const teamService = getApiTeamService();
+  if (!teamService) {
+    throw new ApiError(ERROR_CODES.INTERNAL_ERROR, 'Team service unavailable', 500);
   }
-  const invokingUserTeamId = invokingUser.teamMemberships[0].teamId;
 
-  const targetLicense = await prisma.team_licenses.findUnique({
-    where: { id: data.teamLicenseId },
-    select: { teamId: true }
-  });
-  if (!targetLicense) {
+  // Verify the invoking user is a member of this team
+  const isMember = await teamService.isTeamMember(data.teamLicenseId, auth.userId);
+  if (!isMember) {
+    throw new ApiError(ERROR_CODES.FORBIDDEN, 'Invoking user not found or not part of this team', 403);
+  }
+
+  // Check the team exists (getTeam returns null if not found)
+  const team = await teamService.getTeam(data.teamLicenseId);
+  if (!team) {
     throw createTeamNotFoundError(data.teamLicenseId);
   }
-  if (targetLicense.teamId !== invokingUserTeamId) {
-    throw new ApiError(ERROR_CODES.FORBIDDEN, 'Forbidden: Cannot invite members to this team license.', 403);
-  }
 
-  const teamLicense = await prisma.team_licenses.findUnique({
-    where: { id: data.teamLicenseId },
-    select: { usedSeats: true, totalSeats: true },
-  });
-  if (!teamLicense) {
-    throw createTeamNotFoundError(data.teamLicenseId);
-  }
-  if (teamLicense.usedSeats >= teamLicense.totalSeats) {
-    throw new ApiError(ERROR_CODES.INVALID_REQUEST, 'Team has reached its seat limit', 400);
-  }
-
-  const existingMember = await prisma.team_members.findFirst({
-    where: {
-      OR: [
-        { userId: invokingUser.id, teamLicenseId: data.teamLicenseId },
-        { invitedEmail: data.email, teamLicenseId: data.teamLicenseId },
-      ],
-    },
-  });
-  if (existingMember) {
+  // Check for existing invitation with same email
+  const existingInvitations = await teamService.getTeamInvitations(data.teamLicenseId);
+  const alreadyInvited = existingInvitations.some(
+    (inv) => inv.email === data.email
+  );
+  if (alreadyInvited) {
     throw createTeamMemberAlreadyExistsError();
   }
 
-  const inviteToken = generateInviteToken();
-  const invite = await prisma.team_members.create({
-    data: {
-      teamLicenseId: data.teamLicenseId,
-      role: data.role,
-      invitedEmail: data.email,
-      invitedBy: invokingUser.id,
-      inviteToken,
-      inviteExpires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-      status: 'pending',
-    },
-  });
-
-  await prisma.team_licenses.update({
-    where: { id: data.teamLicenseId },
-    data: { usedSeats: { increment: 1 } },
-  });
-
-  await sendTeamInviteEmail({
-    to: data.email,
-    inviteToken,
-    invitedByEmail: auth.user?.email || '',
-    teamName: 'Your Team',
+  // Create the invitation via the service (handles seat checks and increment)
+  const result = await teamService.inviteToTeam(data.teamLicenseId, {
+    email: data.email,
     role: data.role,
   });
 
-  return createSuccessResponse(invite, 201);
+  if (!result.success) {
+    throw new ApiError(
+      ERROR_CODES.INVALID_REQUEST,
+      result.error || 'Failed to create invitation',
+      400
+    );
+  }
+
+  return createSuccessResponse(result.invitation, 201);
 }
 
 const getMiddleware = createMiddlewareChain([
