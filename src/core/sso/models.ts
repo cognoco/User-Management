@@ -98,6 +98,17 @@ export interface SsoProviderDeleteResult {
 }
 
 /**
+ * SSO domain entity — represents a verified/pending email domain linked to an SSO provider.
+ */
+export interface SsoDomain {
+  id: string;
+  ssoproviderId: string;
+  domain: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+/**
  * Batch delete result for providers.
  */
 export interface SsoProviderBatchResult {

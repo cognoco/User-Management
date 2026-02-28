@@ -5,6 +5,7 @@
  * This abstraction allows the service layer to remain database-agnostic.
  */
 import type {
+  SsoDomain,
   SsoProvider,
   SsoProviderPayload,
   SsoProviderQueryParams,
@@ -86,6 +87,23 @@ export interface ISsoDataProvider {
    * Delete multiple providers in a single operation.
    */
   deleteProviders(providerIds: string[]): Promise<SsoProviderBatchResult>;
+
+  // ── SSO Domain management ─────────────────────────────────────────
+
+  /**
+   * List domains linked to an SSO provider for a given organization.
+   */
+  listDomains(organizationId: string): Promise<SsoDomain[]>;
+
+  /**
+   * Add a domain to an SSO provider.
+   */
+  addDomain(organizationId: string, domain: string): Promise<{ success: boolean; domain?: SsoDomain; error?: string }>;
+
+  /**
+   * Remove a domain from an SSO provider.
+   */
+  removeDomain(organizationId: string, domain: string): Promise<{ success: boolean; error?: string }>;
 }
 
 /** Convenience alias. */

@@ -4,7 +4,7 @@
  * This file defines the core interfaces for the SSO domain.
  */
 
-import { SsoProvider, SsoProviderPayload } from './models';
+import { SsoDomain, SsoProvider, SsoProviderPayload } from './models';
 
 /**
  * SSO service interface used by the API layer and hooks
@@ -51,4 +51,15 @@ export interface SsoService {
    * @returns Result object describing success or failure
    */
   deleteProvider(providerId: string): Promise<{ success: boolean; error?: string }>;
+
+  // ── Domain management ─────────────────────────────────────────
+
+  /** List SSO domains for an organization. */
+  listDomains(organizationId: string): Promise<SsoDomain[]>;
+
+  /** Add a domain to the organization's SSO provider. */
+  addDomain(organizationId: string, domain: string): Promise<{ success: boolean; domain?: SsoDomain; error?: string }>;
+
+  /** Remove a domain from the organization's SSO provider. */
+  removeDomain(organizationId: string, domain: string): Promise<{ success: boolean; error?: string }>;
 }

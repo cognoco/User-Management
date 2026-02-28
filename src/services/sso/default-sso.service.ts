@@ -4,7 +4,7 @@
 
 import { SsoService } from '@/core/sso/interfaces';
 import { SsoDataProvider } from '@/core/sso/ISsoDataProvider';
-import { SsoProvider, SsoProviderPayload } from '@/core/sso/models';
+import { SsoDomain, SsoProvider, SsoProviderPayload } from '@/core/sso/models';
 import { translateError } from '@/lib/utils/error';
 import { logServiceError } from '@/services/common/service-error-handler';
 import { translateSsoError } from './error-mapper';
@@ -78,6 +78,53 @@ export class DefaultSsoService implements SsoService {
         method: 'deleteProvider',
         resourceType: 'ssoProvider',
         resourceId: providerId,
+      });
+      return { success: false, error: translateError(appErr) };
+    }
+  }
+
+  // ── Domain management ─────────────────────────────────────────
+
+  async listDomains(organizationId: string): Promise<SsoDomain[]> {
+    try {
+      return await this.provider.listDomains(organizationId);
+    } catch (err) {
+      const appErr = translateSsoError('discovery', err);
+      logServiceError(appErr, {
+        service: 'DefaultSsoService',
+        method: 'listDomains',
+        resourceType: 'organization',
+        resourceId: organizationId,
+      });
+      return [];
+    }
+  }
+
+  async addDomain(organizationId: string, domain: string): Promise<{ success: boolean; domain?: SsoDomain; error?: string }> {
+    try {
+      return await this.provider.addDomain(organizationId, domain);
+    } catch (err) {
+      const appErr = translateSsoError('configuration', err);
+      logServiceError(appErr, {
+        service: 'DefaultSsoService',
+        method: 'addDomain',
+        resourceType: 'organization',
+        resourceId: organizationId,
+      });
+      return { success: false, error: translateError(appErr) };
+    }
+  }
+
+  async removeDomain(organizationId: string, domain: string): Promise<{ success: boolean; error?: string }> {
+    try {
+      return await this.provider.removeDomain(organizationId, domain);
+    } catch (err) {
+      const appErr = translateSsoError('configuration', err);
+      logServiceError(appErr, {
+        service: 'DefaultSsoService',
+        method: 'removeDomain',
+        resourceType: 'organization',
+        resourceId: organizationId,
       });
       return { success: false, error: translateError(appErr) };
     }

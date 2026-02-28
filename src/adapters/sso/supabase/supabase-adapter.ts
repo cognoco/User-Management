@@ -7,6 +7,7 @@
 
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import {
+  SsoDomain,
   SsoProvider,
   SsoProviderPayload,
   SsoProviderQueryParams,
@@ -218,6 +219,97 @@ export class SupabaseSsoProvider implements ISsoDataProvider {
     }
 
     return { success: results.every(r => r.success), results };
+  }
+
+  // ── Domain management ─────────────────────────────────────────
+
+  async listDomains(organizationId: string): Promise<SsoDomain[]> {
+    // Find provider for this org, then get its domains
+    const { data: provider } = await this.supabase
+      .from('sso_providers')
+      .select('id')
+      .eq('resource_id', organizationId)
+      .maybeSingle();
+
+    if (!provider) return [];
+
+    const { data, error } = await this.supabase
+      .from('sso_domains')
+      .select('*')
+      .eq('sso_provider_id', provider.id);
+
+    if (error) throw new Error(error.message);
+    return (data || []).map(this.mapRecordToDomain);
+  }
+
+  async addDomain(organizationId: string, domain: string): Promise<{ success: boolean; domain?: SsoDomain; error?: string }> {
+    const { data: provider } = await this.supabase
+      .from('sso_providers')
+      .select('id')
+      .eq('resource_id', organizationId)
+      .maybeSingle();
+
+    if (!provider) return { success: false, error: 'SSO provider not found for this org' };
+
+    // Check for duplicate
+    const { data: existing } = await this.supabase
+      .from('sso_domains')
+      .select('id')
+      .eq('sso_provider_id', provider.id)
+      .eq('domain', domain)
+      .maybeSingle();
+
+    if (existing) return { success: false, error: 'Domain already exists' };
+
+    const { data, error } = await this.supabase
+      .from('sso_domains')
+      .insert({
+        id: crypto.randomUUID(),
+        domain,
+        sso_provider_id: provider.id,
+      })
+      .select()
+      .single();
+
+    if (error || !data) return { success: false, error: error?.message || 'Failed to add domain' };
+    return { success: true, domain: this.mapRecordToDomain(data) };
+  }
+
+  async removeDomain(organizationId: string, domain: string): Promise<{ success: boolean; error?: string }> {
+    const { data: provider } = await this.supabase
+      .from('sso_providers')
+      .select('id')
+      .eq('resource_id', organizationId)
+      .maybeSingle();
+
+    if (!provider) return { success: false, error: 'SSO provider not found' };
+
+    const { data: existing } = await this.supabase
+      .from('sso_domains')
+      .select('id')
+      .eq('sso_provider_id', provider.id)
+      .eq('domain', domain)
+      .maybeSingle();
+
+    if (!existing) return { success: false, error: 'Domain not found' };
+
+    const { error } = await this.supabase
+      .from('sso_domains')
+      .delete()
+      .eq('id', existing.id);
+
+    if (error) return { success: false, error: error.message };
+    return { success: true };
+  }
+
+  private mapRecordToDomain(record: any): SsoDomain {
+    return {
+      id: record.id,
+      ssoproviderId: record.sso_provider_id,
+      domain: record.domain,
+      createdAt: record.created_at,
+      updatedAt: record.updated_at,
+    };
   }
 
   private mapRecordToProvider(record: any): SsoProvider {
