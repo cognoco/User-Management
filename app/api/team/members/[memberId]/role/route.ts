@@ -1,6 +1,5 @@
 import { type NextRequest } from 'next/server';
 import { z } from 'zod';
-import { prisma } from '@/lib/database/prisma';
 import type { AuthContext } from '@/core/config/interfaces';
 import { logUserAction } from '@/lib/audit/auditLogger';
 import { createSuccessResponse, ApiError, ERROR_CODES } from '@/lib/api/common';
@@ -8,6 +7,8 @@ import { withErrorHandling } from '@/middleware/error-handling';
 import { withValidation } from '@/middleware/validation';
 import { createTeamMemberNotFoundError } from '@/lib/api/team/error-handler';
 import { withSecurity } from '@/middleware/with-security';
+import { withRouteAuth } from '@/middleware/auth';
+import { getServiceContainer } from '@/lib/config/service-container';
 
 const updateRoleSchema = z.object({
   role: z.enum(['admin', 'member', 'viewer']),
@@ -21,18 +22,20 @@ async function handlePatch(
   data: z.infer<typeof updateRoleSchema>,
   memberId: string
 ) {
-  const targetMember = await prisma.team_members.findUnique({
-    where: { id: memberId },
-  });
+  const teamService = getServiceContainer().team;
+  if (!teamService) {
+    throw new ApiError(ERROR_CODES.INTERNAL_ERROR, 'Team service not available', 500);
+  }
 
+  // Look up the target member by their record ID
+  const targetMember = await teamService.getTeamMemberById(memberId);
   if (!targetMember) {
     throw createTeamMemberNotFoundError();
   }
 
-  const currentUserMember = await prisma.team_members.findFirst({
-    where: { userId: auth.userId!, teamId: targetMember.teamId, role: 'admin' },
-  });
-  if (!currentUserMember) {
+  // Verify the calling user is an admin on the same team
+  const isAdmin = await teamService.hasTeamRole(targetMember.teamId, auth.userId!, 'admin');
+  if (!isAdmin) {
     await logUserAction({
       userId: auth.userId!,
       action: 'TEAM_ROLE_UPDATE_ATTEMPT',
@@ -44,31 +47,31 @@ async function handlePatch(
     throw new ApiError(ERROR_CODES.FORBIDDEN, 'Only admins can update member roles', 403);
   }
 
-  try {
-    const updatedMember = await prisma.team_members.update({
-      where: { id: memberId },
-      data: { role: data.role },
-    });
-    await logUserAction({
-      userId: auth.userId!,
-      action: 'TEAM_ROLE_UPDATE_SUCCESS',
-      status: 'SUCCESS',
-      targetResourceType: 'team_member',
-      targetResourceId: memberId,
-      details: { newRole: data.role }
-    });
-    return createSuccessResponse(updatedMember);
-  } catch (error) {
+  // Update the member's role via the service layer
+  const result = await teamService.updateTeamMember(targetMember.teamId, targetMember.userId, { role: data.role });
+
+  if (!result.success) {
     await logUserAction({
       userId: auth.userId!,
       action: 'TEAM_ROLE_UPDATE_NOT_FOUND',
       status: 'FAILURE',
       targetResourceType: 'team_member',
       targetResourceId: memberId,
-      details: { error: error instanceof Error ? error.message : String(error) }
+      details: { error: result.error }
     });
     throw createTeamMemberNotFoundError();
   }
+
+  await logUserAction({
+    userId: auth.userId!,
+    action: 'TEAM_ROLE_UPDATE_SUCCESS',
+    status: 'SUCCESS',
+    targetResourceType: 'team_member',
+    targetResourceId: memberId,
+    details: { newRole: data.role }
+  });
+
+  return createSuccessResponse(result.member);
 }
 
 async function handler(
@@ -78,7 +81,7 @@ async function handler(
   const params = paramSchema.parse(context.params);
   return withRouteAuth(
     (r, auth) =>
-      withValidation(updateRoleSchema, (r2, data) => handlePatch(r2, auth, data, params.memberId), r),
+      withValidation(updateRoleSchema, (r2, data) => handlePatch(r2, auth as AuthContext, data, params.memberId), r),
     req
   );
 }

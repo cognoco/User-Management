@@ -87,6 +87,15 @@ export class ApiTeamService implements TeamService {
   }
 
   /**
+   * Get a single team member by their record ID.
+   */
+  async getTeamMemberById(memberId: string): Promise<TeamMember | null> {
+    // Client-side: not directly supported without knowing the teamId.
+    // This method is primarily used server-side.
+    return null;
+  }
+
+  /**
    * Add a user to a team.
    */
   async addTeamMember(teamId: string, userId: string, role: string): Promise<TeamMemberResult> {

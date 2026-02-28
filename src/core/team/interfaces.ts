@@ -82,6 +82,14 @@ export interface TeamService {
    * @returns Array of team members
    */
   getTeamMembers(teamId: string): Promise<TeamMember[]>;
+
+  /**
+   * Get a single team member by their record ID
+   * 
+   * @param memberId ID of the team member record
+   * @returns Team member data or null if not found
+   */
+  getTeamMemberById(memberId: string): Promise<TeamMember | null>;
   
   /**
    * Add a user to a team

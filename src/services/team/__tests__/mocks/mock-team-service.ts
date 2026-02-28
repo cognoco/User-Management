@@ -131,6 +131,14 @@ export class MockTeamService implements TeamService {
     return this.mockTeamMembers[teamId] || [];
   });
 
+  getTeamMemberById = vi.fn().mockImplementation(async (memberId: string): Promise<TeamMember | null> => {
+    for (const members of Object.values(this.mockTeamMembers)) {
+      const found = (members as TeamMember[]).find(m => m.id === memberId);
+      if (found) return found;
+    }
+    return null;
+  });
+
   addTeamMember = vi.fn().mockImplementation(async (teamId: string, userId: string, role: string): Promise<TeamMemberResult> => {
     if (!this.mockTeams[teamId]) {
       return { success: false, error: 'Team not found' };

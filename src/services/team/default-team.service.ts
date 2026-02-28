@@ -255,6 +255,30 @@ export class DefaultTeamService
   }
   
   /**
+   * Get a single team member by their record ID
+   */
+  async getTeamMemberById(memberId: string): Promise<TeamMember | null> {
+    try {
+      const row = await prisma.team_members.findUnique({
+        where: { id: memberId },
+      });
+      if (!row) return null;
+      return {
+        id: row.id,
+        teamId: row.team_license_id,
+        userId: row.user_id,
+        role: row.role,
+        isActive: row.status === 'active',
+        joinedAt: row.created_at.toISOString(),
+        updatedAt: row.updated_at.toISOString(),
+      };
+    } catch (error) {
+      console.error('Error fetching team member by ID:', error);
+      return null;
+    }
+  }
+
+  /**
    * Add a user to a team
    * 
    * @param teamId - ID of the team
