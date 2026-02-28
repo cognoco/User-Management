@@ -1,16 +1,9 @@
 import { type NextRequest, NextResponse } from 'next/server';
-
-
-import { prisma } from '@/lib/database/prisma';
 import { z } from 'zod';
+import { createApiHandler, emptySchema } from '@/lib/api/route-helpers';
 import { createSuccessResponse, ApiError, ERROR_CODES } from '@/lib/api/common';
 import { createTeamMemberNotFoundError } from '@/lib/api/team/error-handler';
-import {
-  createMiddlewareChain,
-  errorHandlingMiddleware,
-  routeAuthMiddleware
-} from '@/middleware/createMiddlewareChain';
-import type { AuthContext } from '@/core/config/interfaces';
+import type { AuthContext, ServiceContainer } from '@/core/config/interfaces';
 import { Permission } from '@/lib/rbac/roles';
 
 const paramSchema = z.object({ memberId: z.string().uuid() });
@@ -18,22 +11,24 @@ const paramSchema = z.object({ memberId: z.string().uuid() });
 async function handleDelete(
   _req: NextRequest,
   auth: AuthContext,
-  params: z.infer<typeof paramSchema>
+  _data: unknown,
+  services: ServiceContainer,
+  memberId: string
 ) {
-  const teamMember = await prisma.team_members.findUnique({
-    where: { id: params.memberId },
-    include: {
-      team: { include: { members: { where: { role: 'ADMIN' } } } },
-    },
-  });
+  if (!services.team) {
+    throw new ApiError(ERROR_CODES.SERVICE_UNAVAILABLE, 'Team service unavailable', 503);
+  }
+
+  // Look up the member by record ID
+  const teamMember = await services.team.getTeamMemberById(memberId);
 
   if (!teamMember) {
     throw createTeamMemberNotFoundError();
   }
 
-  const currentMembership = await prisma.team_members.findFirst({
-    where: { teamId: teamMember.teamId, userId: auth.userId! },
-  });
+  // Check invoking user is in the same team
+  const members = await services.team.getTeamMembers(teamMember.teamId);
+  const currentMembership = members.find(m => m.userId === auth.userId);
 
   if (!currentMembership) {
     throw new ApiError(
@@ -43,7 +38,6 @@ async function handleDelete(
     );
   }
 
-
   if (teamMember.userId === auth.userId) {
     throw new ApiError(
       ERROR_CODES.INVALID_REQUEST,
@@ -52,25 +46,35 @@ async function handleDelete(
     );
   }
 
-  if (teamMember.role === 'ADMIN' && teamMember.team.members.length === 1) {
-    throw new ApiError(
-      ERROR_CODES.INVALID_REQUEST,
-      'Cannot remove the last admin from the team',
-      400
-    );
+  // Check last admin
+  if (teamMember.role === 'ADMIN') {
+    const admins = members.filter(m => m.role === 'ADMIN');
+    if (admins.length <= 1) {
+      throw new ApiError(
+        ERROR_CODES.INVALID_REQUEST,
+        'Cannot remove the last admin from the team',
+        400
+      );
+    }
   }
 
-  await prisma.team_members.delete({ where: { id: params.memberId } });
+  const result = await services.team.removeTeamMember(teamMember.teamId, teamMember.userId);
+
+  if (!result.success) {
+    throw new ApiError(ERROR_CODES.OPERATION_FAILED, result.error || 'Failed to remove team member', 500);
+  }
 
   return createSuccessResponse({ message: 'Team member removed successfully' });
 }
 
-const middleware = createMiddlewareChain([
-  errorHandlingMiddleware(),
-  routeAuthMiddleware({ requiredPermissions: [Permission.REMOVE_TEAM_MEMBER] })
-]);
-
-export const DELETE = (
+export function DELETE(
   req: NextRequest,
   ctx: { params: { memberId: string } }
-) => middleware((r, auth) => handleDelete(r, auth, paramSchema.parse(ctx.params)))(req);
+) {
+  const parsed = paramSchema.parse(ctx.params);
+  return createApiHandler(
+    emptySchema,
+    (r, a, d, s) => handleDelete(r, a, d, s, parsed.memberId),
+    { requireAuth: true, requiredPermissions: [Permission.REMOVE_TEAM_MEMBER] }
+  )(req);
+}
