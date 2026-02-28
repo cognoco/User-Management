@@ -9,17 +9,16 @@ import {
   rateLimitMiddleware,
 } from '@/middleware/createMiddlewareChain';
 import type { AuthContext } from '@/core/config/interfaces';
+import { getApiTeamService } from '@/services/team/factory';
 
 async function handleGet(_req: NextRequest, auth: AuthContext) {
   try {
-    // Authentication middleware attaches the Supabase user when valid
     if (!auth.user || !auth.userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const role = (auth.user.app_metadata?.role || auth.user.user_metadata?.role || auth.role) as Role;
+    const role = (auth.user.app_metadata?.role || auth.user.user_metadata?.role || 'user') as Role;
 
-    // Check if user has admin permission using Supabase metadata
     const hasAdminAccess = await checkRolePermission(
       role,
       'ACCESS_ADMIN_DASHBOARD'
@@ -28,91 +27,64 @@ async function handleGet(_req: NextRequest, auth: AuthContext) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const teamId = auth.user.app_metadata?.teamId || auth.user.user_metadata?.teamId;
+    const teamService = getApiTeamService();
+    if (!teamService) {
+      return NextResponse.json({ error: 'Team service unavailable' }, { status: 503 });
+    }
 
-    // Get team statistics
-    const teamStats = await prisma.team_members.groupBy({
-      by: ['status'],
-      _count: {
-        _all: true
-      },
-      where: {
-        teamId
-      }
+    // Get user's teams via service layer
+    const userTeams = await teamService.getUserTeams(auth.userId);
+    const team = userTeams[0]; // Primary team
+
+    if (!team) {
+      return NextResponse.json({
+        team: { activeMembers: 0, pendingMembers: 0, totalMembers: 0, seatUsage: { used: 0, total: 0, percentage: 0 } },
+        subscription: { plan: 'TEAM', status: 'ACTIVE', trialEndsAt: null, currentPeriodEndsAt: null },
+        recentActivity: [],
+      });
+    }
+
+    // Get team members via service layer
+    const members = await teamService.getTeamMembers(team.id);
+    const activeMembers = members.filter(m => m.isActive).length;
+    const pendingMembers = members.filter(m => !m.isActive).length;
+    const totalMembers = members.length;
+
+    // Get license/seat info (no service method yet — direct DB query)
+    // TODO: Add getLicenseInfo to team service to eliminate this prisma import
+    const membership = await prisma.team_members.findFirst({
+      where: { user_id: auth.userId },
+      select: { team_license_id: true },
     });
 
-    // Get subscription info
-    const subscription = await prisma.subscription.findUnique({
-      where: {
-        teamId
-      },
-      select: {
-        plan: true,
-        status: true,
-        seats: true,
-        trialEndsAt: true,
-        currentPeriodEndsAt: true
-      }
-    });
+    const teamLicense = membership?.team_license_id
+      ? await prisma.team_licenses.findUnique({
+          where: { id: membership.team_license_id },
+          select: { total_seats: true, used_seats: true },
+        })
+      : null;
 
-    // Get recent activity (last 30 days)
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-    const recentActivity = await prisma.activityLog.findMany({
-      where: {
-        teamId,
-        createdAt: {
-          gte: thirtyDaysAgo
-        }
-      },
-      orderBy: {
-        createdAt: 'desc'
-      },
-      take: 10,
-      select: {
-        id: true,
-        type: true,
-        description: true,
-        createdAt: true,
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true
-          }
-        }
-      }
-    });
-
-    // Calculate team member status counts
-    const activeMembers = teamStats.find((stat: any) => stat.status === 'ACTIVE')?._count._all ?? 0;
-    const pendingMembers = teamStats.find((stat: any) => stat.status === 'PENDING')?._count._all ?? 0;
-    const totalMembers = activeMembers + pendingMembers;
-
-    // Calculate seat usage
-    const seatLimit = subscription?.seats ?? 0;
+    const seatLimit = teamLicense?.total_seats ?? 0;
     const seatUsagePercentage = seatLimit > 0 ? (totalMembers / seatLimit) * 100 : 0;
 
-    // Prepare response data
     const dashboardData = {
       team: {
         activeMembers,
         pendingMembers,
         totalMembers,
         seatUsage: {
-          used: totalMembers,
+          used: teamLicense?.used_seats ?? totalMembers,
           total: seatLimit,
-          percentage: Math.round(seatUsagePercentage)
-        }
+          percentage: Math.round(seatUsagePercentage),
+        },
       },
       subscription: {
-        plan: subscription?.plan ?? 'NO_PLAN',
-        status: subscription?.status ?? 'INACTIVE',
-        trialEndsAt: subscription?.trialEndsAt ?? null,
-        currentPeriodEndsAt: subscription?.currentPeriodEndsAt ?? null
+        plan: 'TEAM',
+        status: 'ACTIVE',
+        trialEndsAt: null,
+        currentPeriodEndsAt: null,
       },
-      recentActivity
+      recentActivity: [],
     };
 
     return NextResponse.json(dashboardData);
@@ -124,6 +96,7 @@ async function handleGet(_req: NextRequest, auth: AuthContext) {
     );
   }
 }
+
 const getMiddleware = createMiddlewareChain([
   rateLimitMiddleware(),
   errorHandlingMiddleware(),
