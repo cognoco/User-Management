@@ -502,18 +502,27 @@ export class SupabaseTeamProvider implements ITeamDataProvider {
    * @returns Array of invitations for the user
    */
   async getUserInvitations(email: string): Promise<TeamInvitation[]> {
+    // Invitations are stored as pending team_members rows with invited_email set
     const { data, error } = await this.supabase
-      .from('team_invitations')
-      .select('*, teams(name)')
-      .eq('email', email)
-      .is('accepted_at', null)
-      .is('declined_at', null);
+      .from('team_members')
+      .select('*, team_licenses(id, organization_id, organizations(name))')
+      .eq('invited_email', email)
+      .eq('status', 'pending');
     
     if (error || !data) {
       return [];
     }
     
-    return data.map(this.mapDbInvitationToTeamInvitation);
+    return data.map((row: any): TeamInvitation => ({
+      id: row.id,
+      teamId: row.team_license_id,
+      email: row.invited_email || '',
+      role: row.role,
+      invitedBy: '', // not tracked in team_members schema
+      status: 'pending' as any,
+      createdAt: new Date(row.created_at).toISOString(),
+      expiresAt: '', // not tracked in team_members schema
+    }));
   }
   
   /**
@@ -525,31 +534,44 @@ export class SupabaseTeamProvider implements ITeamDataProvider {
    */
   async acceptInvitation(invitationId: string, userId: string): Promise<TeamMemberResult> {
     try {
-      // Get the invitation
-      const { data: invitation, error: invitationError } = await this.supabase
-        .from('team_invitations')
+      // Invitations are pending team_members rows — activate by setting user_id and status
+      const { data: pending, error: findError } = await this.supabase
+        .from('team_members')
         .select('*')
         .eq('id', invitationId)
+        .eq('status', 'pending')
         .single();
       
-      if (invitationError || !invitation) {
+      if (findError || !pending) {
         return {
           success: false,
-          error: invitationError?.message || 'Invitation not found'
+          error: findError?.message || 'Invitation not found'
         };
       }
       
-      // Update the invitation as accepted
-      await this.supabase
-        .from('team_invitations')
+      const { data, error } = await this.supabase
+        .from('team_members')
         .update({
-          accepted_at: new Date().toISOString(),
-          accepted_by: userId
+          user_id: userId,
+          status: 'active',
+          invited_email: null,
+          updated_at: new Date().toISOString(),
         })
-        .eq('id', invitationId);
+        .eq('id', invitationId)
+        .select()
+        .single();
       
-      // Add the user to the team
-      return await this.addTeamMember(invitation.team_id, userId, invitation.role);
+      if (error || !data) {
+        return {
+          success: false,
+          error: error?.message || 'Failed to accept invitation'
+        };
+      }
+      
+      return {
+        success: true,
+        member: this.mapDbMemberToTeamMember(data),
+      };
     } catch (error: any) {
       return {
         success: false,
