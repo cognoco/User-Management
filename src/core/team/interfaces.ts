@@ -199,6 +199,14 @@ export interface TeamService {
   hasTeamRole(teamId: string, userId: string, role: string): Promise<boolean>;
   
   /**
+   * Get license/seat info for a user's team membership
+   * 
+   * @param userId ID of the user
+   * @returns License info with total and used seats, or null if no license found
+   */
+  getTeamLicenseInfo(userId: string): Promise<{ totalSeats: number; usedSeats: number } | null>;
+  
+  /**
    * Subscribe to team changes
    * 
    * @param callback Function to call when a team changes

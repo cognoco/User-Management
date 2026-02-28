@@ -1,5 +1,4 @@
 import { NextResponse, NextRequest } from 'next/server';
-import { prisma } from '@/lib/database/prisma';
 import { checkRolePermission } from '@/lib/rbac/roleService';
 import { Role } from '@/types/rbac';
 import {
@@ -50,21 +49,9 @@ async function handleGet(_req: NextRequest, auth: AuthContext) {
     const pendingMembers = members.filter(m => !m.isActive).length;
     const totalMembers = members.length;
 
-    // Get license/seat info (no service method yet — direct DB query)
-    // TODO: Add getLicenseInfo to team service to eliminate this prisma import
-    const membership = await prisma.team_members.findFirst({
-      where: { user_id: auth.userId },
-      select: { team_license_id: true },
-    });
-
-    const teamLicense = membership?.team_license_id
-      ? await prisma.team_licenses.findUnique({
-          where: { id: membership.team_license_id },
-          select: { total_seats: true, used_seats: true },
-        })
-      : null;
-
-    const seatLimit = teamLicense?.total_seats ?? 0;
+    // Get license/seat info via service layer
+    const licenseInfo = await teamService.getTeamLicenseInfo(auth.userId);
+    const seatLimit = licenseInfo?.totalSeats ?? 0;
     const seatUsagePercentage = seatLimit > 0 ? (totalMembers / seatLimit) * 100 : 0;
 
     const dashboardData = {
@@ -73,7 +60,7 @@ async function handleGet(_req: NextRequest, auth: AuthContext) {
         pendingMembers,
         totalMembers,
         seatUsage: {
-          used: teamLicense?.used_seats ?? totalMembers,
+          used: licenseInfo?.usedSeats ?? totalMembers,
           total: seatLimit,
           percentage: Math.round(seatUsagePercentage),
         },

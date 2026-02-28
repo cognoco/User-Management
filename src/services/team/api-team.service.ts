@@ -254,6 +254,12 @@ export class ApiTeamService implements TeamService {
   onTeamMembershipChanged(_callback: (teamId: string, members: TeamMember[]) => void): () => void {
     return () => {};
   }
+
+  async getTeamLicenseInfo(_userId: string): Promise<{ totalSeats: number; usedSeats: number } | null> {
+    const res = await fetch('/api/team/license-info');
+    if (!res.ok) return null;
+    return res.json();
+  }
 }
 
 /**

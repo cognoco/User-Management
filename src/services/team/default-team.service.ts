@@ -538,6 +538,35 @@ export class DefaultTeamService
   }
   
   /**
+   * Get license/seat info for a user's team membership
+   */
+  async getTeamLicenseInfo(userId: string): Promise<{ totalSeats: number; usedSeats: number } | null> {
+    try {
+      const membership = await prisma.team_members.findFirst({
+        where: { user_id: userId },
+        select: { team_license_id: true },
+      });
+
+      if (!membership?.team_license_id) return null;
+
+      const license = await prisma.team_licenses.findUnique({
+        where: { id: membership.team_license_id },
+        select: { total_seats: true, used_seats: true },
+      });
+
+      if (!license) return null;
+
+      return {
+        totalSeats: license.total_seats,
+        usedSeats: license.used_seats,
+      };
+    } catch (error) {
+      console.error('Error fetching team license info:', error);
+      return null;
+    }
+  }
+
+  /**
    * Get all pending invitations for a team
    * 
    * @param teamId - ID of the team
