@@ -98,12 +98,13 @@ export function ErrorDisplay({
   );
 }
 
-interface SpecializedProps extends Omit<ErrorDisplayProps, 'severity' | 'style'> {
+interface SpecializedProps extends Omit<ErrorDisplayProps, 'severity' | 'style' | 'message'> {
+  message?: string;
   style?: ErrorStyle;
 }
 
-export function ValidationErrorDisplay(props: SpecializedProps) {
-  return <ErrorDisplay severity="error" {...props} />;
+export function ValidationErrorDisplay({ message = 'Validation error', ...rest }: SpecializedProps) {
+  return <ErrorDisplay severity="error" message={message} {...rest} />;
 }
 
 export function NetworkErrorDisplay({
