@@ -18,9 +18,11 @@ import { usePreferencesStore, type PreferencesState } from '@/lib/stores/prefere
 import { api } from '@/lib/api/axios';
 import { UserManagementConfiguration } from '@/core/config';
 import { createMockNotificationService } from '../mocks/notification.service.mock';
+import { NotificationChannel, NotificationPriority, NotificationCategory, NotificationStatus } from '@/core/notification/models';
+import type { NotificationBatch } from '@/core/notification/models';
 
 // Import our standardized mock
-import { NotificationCenter } from '@/ui/styled/common/NotificationCenter';
+import NotificationCenter from '@/ui/styled/common/NotificationCenter';
 
 describe('Notification Management Flow', () => {
   let user: ReturnType<typeof userEvent.setup>;
@@ -36,7 +38,7 @@ describe('Notification Management Flow', () => {
       error: null,
       fetchPreferences: vi.fn(),
       updatePreferences: vi.fn().mockResolvedValue(true)
-    } as PreferencesState;
+    } as unknown as PreferencesState;
     (usePreferencesStore as any).mockImplementation(
       (selector?: (state: PreferencesState) => any) =>
         selector ? selector(store) : store
@@ -316,16 +318,18 @@ describe('Notification Management Flow', () => {
       {
         id: 'notif-sso-1',
         userId: 'user-123',
-        channel: 'inApp',
+        channel: NotificationChannel.IN_APP,
         title: 'SSO Configuration Updated',
         message: 'The SSO configuration for your organization has been updated.',
-        category: 'sso',
+        category: NotificationCategory.SECURITY,
+        priority: NotificationPriority.DEFAULT,
+        status: NotificationStatus.DELIVERED,
         isRead: false,
         createdAt: new Date().toISOString(),
       },
     ];
     const notificationService = createMockNotificationService({
-      getUserNotifications: vi.fn(async () => ({
+      getUserNotifications: vi.fn(async (_userId: string): Promise<NotificationBatch> => ({
         notifications,
         total: 1,
         page: 1,
