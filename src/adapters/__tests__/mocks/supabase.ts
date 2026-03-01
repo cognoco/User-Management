@@ -398,23 +398,23 @@ const mockSupabase = {
         session: { access_token: 'test-token' } 
       },
       error: null
-    }) as Mock<[SignInWithPasswordCredentials], Promise<AuthTokenResponsePassword>>,
+    }) as Mock,
     
     signInWithOAuth: vi.fn().mockResolvedValue({ data: {}, error: null }) as Mock,
     
     signUp: vi.fn().mockResolvedValue({ 
       data: { user: { id: 'user-123', email: 'test@example.com' }, session: null },
       error: null 
-    }) as Mock<[SignUpWithPasswordCredentials], Promise<AuthResponse>>,
+    }) as Mock,
     
-    signOut: vi.fn().mockResolvedValue({ error: null }) as Mock<[], Promise<{ error: AuthError | null }>>,
+    signOut: vi.fn().mockResolvedValue({ error: null }) as Mock,
     
-    resetPasswordForEmail: vi.fn().mockResolvedValue({ data: {}, error: null }) as Mock<[string, { redirectTo?: string }], Promise<{ data: Record<string, never>; error: AuthError | null }>>,
+    resetPasswordForEmail: vi.fn().mockResolvedValue({ data: {}, error: null }) as Mock,
     
     updateUser: vi.fn().mockResolvedValue({ 
       data: { user: { id: 'user-123', email: 'test@example.com' } },
       error: null 
-    }) as Mock<[any], Promise<UserResponse>>,
+    }) as Mock,
     
     onAuthStateChange: vi.fn().mockReturnValue({
       data: { subscription: { unsubscribe: vi.fn() } },
@@ -439,33 +439,33 @@ const mockSupabase = {
         }
       },
       error: null
-    }) as Mock<[], Promise<AuthResponse>>,
+    }) as Mock,
     
     mfa: {
       listFactors: vi.fn().mockResolvedValue({ 
         data: { factors: [] }, 
         error: null 
-      }) as Mock<[], Promise<AuthMFAListFactorsResponse>>,
+      }) as Mock,
       
       challenge: vi.fn().mockResolvedValue({ 
         data: { id: 'challenge-123' }, 
         error: null 
-      }) as Mock<[MFAChallengeParams], Promise<AuthMFAChallengeResponse>>,
+      }) as Mock,
       
       verify: vi.fn().mockResolvedValue({ 
         data: { user: { id: 'user-123' } }, 
         error: null 
-      }) as Mock<[MFAVerifyParams], Promise<AuthMFAVerifyResponse>>,
+      }) as Mock,
       
       enroll: vi.fn().mockResolvedValue({ 
         data: { id: 'factor-123' }, 
         error: null 
-      }) as Mock<[MFAEnrollParams], Promise<AuthMFAEnrollResponse>>,
+      }) as Mock,
       
       unenroll: vi.fn().mockResolvedValue({ 
         data: {}, 
         error: null 
-      }) as Mock<[MFAUnenrollParams], Promise<AuthMFAUnenrollResponse>>,
+      }) as Mock,
       
       updateFactor: vi.fn().mockResolvedValue({ data: {}, error: null }),
       
@@ -508,7 +508,7 @@ const mockSupabase = {
     }
     
     return Promise.resolve({ data: null, error: null });
-  }) as Mock<[string, unknown?], Promise<SupabaseRpcResponse>>,
+  }) as Mock,
   
   channel: vi.fn().mockReturnValue({
     on: vi.fn().mockReturnThis(),
