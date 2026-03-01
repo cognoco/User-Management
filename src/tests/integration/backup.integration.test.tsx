@@ -69,7 +69,7 @@ describe('Backup Codes Integration', () => {
   it('verifies a valid backup code in MFAVerificationForm', async () => {
     const onSuccess = vi.fn();
     renderWithClient(
-      <MFAVerificationForm accessToken="dummy" onSuccess={onSuccess} />
+      <MFAVerificationForm sessionId="dummy-session" onSuccess={onSuccess} />
     );
     // Switch to backup code mode
     fireEvent.click(screen.getByText('Use a backup code'));
@@ -83,7 +83,7 @@ describe('Backup Codes Integration', () => {
   it('shows error for invalid backup code in MFAVerificationForm', async () => {
     const onSuccess = vi.fn();
     renderWithClient(
-      <MFAVerificationForm accessToken="dummy" onSuccess={onSuccess} />
+      <MFAVerificationForm sessionId="dummy-session" onSuccess={onSuccess} />
     );
     fireEvent.click(screen.getByText('Use a backup code'));
     fireEvent.change(screen.getByPlaceholderText('XXXX-XXXX'), { target: { value: 'WRONG-0000' } });
