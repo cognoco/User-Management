@@ -10,8 +10,8 @@ import '@/tests/i18nTestSetup';
 // Import components to test
 import { MFAVerificationForm } from '@/ui/styled/auth/MFAVerificationForm';
 import { OAuthCallback } from '@/ui/styled/auth/OAuthCallback';
-import { TwoFactorMethod } from '@/core/auth/models';
-import { api } from '@/lib/api';
+import type { TwoFactorMethodType } from '@/core/two-factor/models';
+import { api } from '@/lib/api/axios';
 
 // Create a test server to mock API responses
 const server = setupServer(
@@ -25,7 +25,7 @@ const server = setupServer(
   
   // MFA error handling mocks (with different error scenarios)
   http.post('/api/auth/mfa/verify', async ({ request }) => {
-    const body = await request.json();
+    const body = await request.json() as Record<string, unknown>;
     
     if (body.code === '999999') {
       return new HttpResponse(
@@ -49,7 +49,7 @@ const server = setupServer(
   
   // MFA setup error mocks
   http.post('/api/2fa/setup', async ({ request }) => {
-    const body = await request.json();
+    const body = await request.json() as Record<string, unknown>;
     
     if (body.email === 'error@example.com') {
       return new HttpResponse(
@@ -278,9 +278,9 @@ describe('MFA Error Handling', () => {
     
     render(
       <MFAVerificationForm 
-        accessToken="mock-token" 
+        sessionId="mock-session" 
         onSuccess={mockSuccessCallback} 
-        mfaMethod={TwoFactorMethod.TOTP}
+        mfaMethod="totp"
       />
     );
     
@@ -305,9 +305,9 @@ describe('MFA Error Handling', () => {
     
     render(
       <MFAVerificationForm 
-        accessToken="mock-token" 
+        sessionId="mock-session" 
         onSuccess={mockSuccessCallback} 
-        mfaMethod={TwoFactorMethod.TOTP}
+        mfaMethod="totp"
       />
     );
     
@@ -332,9 +332,9 @@ describe('MFA Error Handling', () => {
     
     render(
       <MFAVerificationForm 
-        accessToken="mock-token" 
+        sessionId="mock-session" 
         onSuccess={mockSuccessCallback} 
-        mfaMethod={TwoFactorMethod.TOTP}
+        mfaMethod="totp"
       />
     );
     
@@ -391,9 +391,9 @@ describe('MFA Error Handling', () => {
     
     render(
       <MFAVerificationForm 
-        accessToken="mock-token" 
+        sessionId="mock-session" 
         onSuccess={mockSuccessCallback} 
-        mfaMethod={TwoFactorMethod.EMAIL}
+        mfaMethod="email"
         enableResendCode={true}
       />
     );
@@ -414,9 +414,9 @@ describe('MFA Error Handling', () => {
     
     render(
       <MFAVerificationForm 
-        accessToken="mock-token" 
+        sessionId="mock-session" 
         onSuccess={mockSuccessCallback} 
-        mfaMethod={TwoFactorMethod.SMS}
+        mfaMethod="sms"
         enableResendCode={true}
       />
     );
@@ -436,7 +436,7 @@ describe('MFA Error Handling', () => {
     // Mock the backup code verification endpoint specifically for this test
     server.use(
       http.post('/api/auth/mfa/verify', async ({ request }) => {
-        const body = await request.json();
+        const body = await request.json() as Record<string, unknown>;
         if (body.method === 'backup') {
           return new HttpResponse(
             JSON.stringify({ error: 'Invalid backup code or code already used' }),
@@ -450,12 +450,12 @@ describe('MFA Error Handling', () => {
     const user = userEvent.setup();
     const mockSuccessCallback = vi.fn();
     
-    // Render component with backup code mode
+    // Render component with backup code mode — using 'other' since 'backup' isn't a valid mfaMethod
     render(
       <MFAVerificationForm 
-        accessToken="mock-token" 
+        sessionId="mock-session" 
         onSuccess={mockSuccessCallback} 
-        mfaMethod={TwoFactorMethod.BACKUP}
+        mfaMethod="other"
       />
     );
     
@@ -470,4 +470,4 @@ describe('MFA Error Handling', () => {
       expect(screen.getByText(/invalid backup code|already used/i)).toBeInTheDocument();
     });
   });
-}); 
+});
