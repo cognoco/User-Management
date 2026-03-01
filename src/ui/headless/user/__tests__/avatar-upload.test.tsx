@@ -162,7 +162,7 @@ describe('Headless AvatarUpload Component', () => {
   });
 
   it('selects a predefined avatar when handleSelectPredefinedAvatar is called', async () => {
-    let selectedId = null;
+    let selectedId: string | null = null;
     
     act(() => {
       render(

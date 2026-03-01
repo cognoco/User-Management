@@ -20,7 +20,7 @@ describe('processUserExportResumable', () => {
       status: ExportStatus.PENDING,
       isLargeDataset: false,
     } as any);
-    vi.spyOn(exportService, 'getUserExportData').mockResolvedValue({ profile: {} });
+    vi.spyOn(exportService, 'getUserExportData').mockResolvedValue({ profile: {}, preferences: {}, activityLogs: [] });
 
     await processUserExportResumable('exp1', 'u1');
 
@@ -43,7 +43,7 @@ describe('processUserExportResumable', () => {
       status: ExportStatus.PENDING,
       isLargeDataset: false,
     } as any);
-    vi.spyOn(exportService, 'getUserExportData').mockResolvedValue({ profile: {} });
+    vi.spyOn(exportService, 'getUserExportData').mockResolvedValue({ profile: {}, preferences: {}, activityLogs: [] });
 
     // Force upload failure
     const storage = (supabase.storage.from as any).mock.results[0].value;

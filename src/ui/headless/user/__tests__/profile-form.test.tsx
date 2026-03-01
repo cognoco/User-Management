@@ -22,9 +22,6 @@ vi.mock('@/lib/stores/profile.store', () => ({
   useProfileStore: useProfileStoreMock,
 }));
 
-
-import { api } from '@/lib/api/axios';
-
 describe('Headless ProfileForm Component', () => {
   const mockProfile = {
     id: 'test-id',

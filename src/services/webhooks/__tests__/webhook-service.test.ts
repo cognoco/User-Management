@@ -27,10 +27,10 @@ describe('WebhookService.triggerEvent', () => {
   });
 
   it('sends events to user webhooks', async () => {
-    provider.listWebhooks.mockResolvedValueOnce([
+    (provider.listWebhooks as any).mockResolvedValueOnce([
       { id: 'w1', url: 'https://a.com', secret: 's', events: ['e'], isActive: true },
     ]);
-    provider.recordDelivery.mockResolvedValue(undefined);
+    (provider.recordDelivery as any).mockResolvedValue(undefined);
     (global.fetch as any).mockResolvedValue({ ok: true, status: 200, text: async () => 'ok' });
 
     const deliveries = await service.triggerEvent('e', { id: 1 }, 'user-1');

@@ -5,11 +5,11 @@ import { getMessageTemplate, formatMessage, formatErrorMessage } from '../messag
 describe('i18n message helpers', () => {
   it('extracts template by locale', () => {
     const instance = initializeI18n({
-      resources: { de: { userManagement: { errors: { sample: 'Fehler' } } } },
-      defaultLanguage: 'de',
+      resources: { fr: { userManagement: { errors: { sample: 'Erreur' } } } },
+      defaultLanguage: 'fr',
     });
-    expect(getMessageTemplate('errors.sample', 'de')).toBe('Fehler');
-    expect(instance.t('errors.sample')).toBe('Fehler');
+    expect(getMessageTemplate('errors.sample', 'fr')).toBe('Erreur');
+    expect(instance.t('errors.sample')).toBe('Erreur');
   });
 
   it('formats messages with variables', () => {
