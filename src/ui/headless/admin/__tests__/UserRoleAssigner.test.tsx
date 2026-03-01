@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
-import { renderHook, act } from '@testing-library/react';
+import { render, act } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
-import { UserRoleAssigner } from '../UserRoleAssigner';
+import { UserRoleAssigner, UserRoleAssignerProps } from '../UserRoleAssigner';
 import * as adminUsers from '@/hooks/admin/useAdminUsers';
 import * as useRolesHook from '@/hooks/team/useRoles';
 import { UserManagementConfiguration } from '@/core/config';
@@ -13,7 +13,17 @@ vi.mock('@/hooks/team/useRoles');
 describe('UserRoleAssigner', () => {
   it('assigns and removes roles', async () => {
     const searchUsers = vi.fn();
-    vi.mocked(adminUsers.useAdminUsers).mockReturnValue({ users: [{ id: 'u1', firstName: 'A' }], searchUsers, isLoading: false, error: null });
+    vi.mocked(adminUsers.useAdminUsers).mockReturnValue({
+      users: [{ id: 'u1', firstName: 'A', lastName: 'B', email: 'a@b.com', status: 'active', role: 'user', createdAt: '2025-01-01', lastLoginAt: null }],
+      pagination: null,
+      searchUsers,
+      refreshSearch: vi.fn(),
+      isLoading: false,
+      error: null,
+      isRealtimeConnected: false,
+      setUsers: vi.fn(),
+      setPagination: vi.fn(),
+    });
     const assignRoleToUser = vi.fn();
     const removeRoleFromUser = vi.fn();
     vi.mocked(useRolesHook.useRoles).mockReturnValue({
@@ -28,13 +38,22 @@ describe('UserRoleAssigner', () => {
     } as any;
     vi.spyOn(UserManagementConfiguration, 'getServiceProvider').mockReturnValue(permissionService);
 
-    const renderProp = vi.fn(() => null);
-    renderHook(() => <UserRoleAssigner render={renderProp} />);
-    const args = renderProp.mock.calls[0][0];
+    const renderProp = vi.fn(() => null) as any;
+    render(<UserRoleAssigner render={renderProp} />);
+    let args = renderProp.mock.calls[0][0] as Parameters<UserRoleAssignerProps['render']>[0];
     await act(async () => {
       await args.search('x');
+    });
+    await act(async () => {
+      args = renderProp.mock.calls.at(-1)![0] as Parameters<UserRoleAssignerProps['render']>[0];
       args.selectUser('u1');
+    });
+    args = renderProp.mock.calls.at(-1)![0] as Parameters<UserRoleAssignerProps['render']>[0];
+    await act(async () => {
       await args.assign('r1');
+    });
+    args = renderProp.mock.calls.at(-1)![0] as Parameters<UserRoleAssignerProps['render']>[0];
+    await act(async () => {
       await args.remove('r1');
     });
     expect(searchUsers).toHaveBeenCalled();
