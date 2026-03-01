@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useCompanyProfileStore } from '@/lib/stores/companyProfileStore';
 import { CompanyAddress } from '@/types/company';
 import { Card, CardContent, CardHeader, CardTitle } from '@/ui/primitives/card';
@@ -8,18 +8,17 @@ import { Alert, AlertDescription } from '@/ui/primitives/alert';
 import { Button } from '@/ui/primitives/button';
 import { Plus } from 'lucide-react';
 import { AddressCard } from '@/ui/styled/company/AddressCard';
-import { AddressDialog } from '@/ui/styled/company/AddressDialog';
-import { useState } from 'react';
+import { AddressDialog, AddressFormData } from '@/ui/styled/company/AddressDialog';
 import { Skeleton } from '@/ui/primitives/skeleton';
 
 export default function CompanyAddressesPage() {
-  const { addresses, isLoading, error, fetchAddresses, addAddress, updateAddress, deleteAddress } = useCompanyProfileStore();
+  const { addresses, isLoading, error, fetchProfile, addAddress, updateAddress, deleteAddress } = useCompanyProfileStore();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedAddress, setSelectedAddress] = useState<CompanyAddress | null>(null);
 
   useEffect(() => {
-    fetchAddresses();
-  }, [fetchAddresses]);
+    fetchProfile();
+  }, [fetchProfile]);
 
   const handleAddClick = () => {
     setSelectedAddress(null);
@@ -42,14 +41,46 @@ export default function CompanyAddressesPage() {
     setSelectedAddress(null);
   };
 
-  const handleAddressSubmit = async (data: Partial<CompanyAddress>) => {
+  const handleAddressSave = async (data: AddressFormData) => {
     if (selectedAddress) {
-      await updateAddress(selectedAddress.id, data);
+      await updateAddress(selectedAddress.id, {
+        street_line1: data.street,
+        city: data.city,
+        state: data.state,
+        postal_code: data.postalCode,
+        country: data.country,
+        is_primary: data.isPrimary ?? false,
+      });
     } else {
-      await addAddress(data);
+      await addAddress({
+        id: '', // server assigns
+        company_id: '', // server assigns
+        type: 'billing',
+        street_line1: data.street,
+        city: data.city,
+        state: data.state,
+        postal_code: data.postalCode,
+        country: data.country,
+        is_primary: data.isPrimary ?? false,
+        validated: false,
+        created_at: '',
+        updated_at: '',
+      });
     }
     handleDialogClose();
   };
+
+  // Convert CompanyAddress (snake_case) to AddressFormData (camelCase) for the dialog
+  const selectedAddressFormData: AddressFormData | undefined = selectedAddress
+    ? {
+        street: selectedAddress.street_line1,
+        city: selectedAddress.city,
+        state: selectedAddress.state ?? '',
+        postalCode: selectedAddress.postal_code,
+        country: selectedAddress.country,
+        isPrimary: selectedAddress.is_primary,
+      }
+    : undefined;
 
   if (error) {
     return (
@@ -97,10 +128,11 @@ export default function CompanyAddressesPage() {
       </Card>
 
       <AddressDialog
-        open={isDialogOpen}
-        onOpenChange={setIsDialogOpen}
-        address={selectedAddress}
-        onSubmit={handleAddressSubmit}
+        isOpen={isDialogOpen}
+        onClose={handleDialogClose}
+        onSave={handleAddressSave}
+        initialData={selectedAddressFormData}
+        title={selectedAddress ? 'Edit Address' : 'Add Address'}
       />
     </div>
   );
