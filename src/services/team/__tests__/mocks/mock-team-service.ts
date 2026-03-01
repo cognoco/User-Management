@@ -13,7 +13,9 @@ import {
   TeamMemberResult,
   TeamInvitationResult,
   TeamSearchParams,
-  TeamSearchResult
+  TeamSearchResult,
+  TeamVisibility,
+  InvitationStatus
 } from '../../../../core/team/models';
 
 /**
@@ -36,9 +38,11 @@ export class MockTeamService implements TeamService {
       name: teamData.name,
       description: teamData.description || '',
       ownerId,
+      isActive: true,
+      visibility: teamData.visibility || TeamVisibility.PRIVATE,
+      memberLimit: teamData.memberLimit || 0,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      isPublic: teamData.isPublic || false,
       metadata: teamData.metadata || {}
     };
     
@@ -50,7 +54,9 @@ export class MockTeamService implements TeamService {
       teamId,
       userId: ownerId,
       role: 'owner',
+      isActive: true,
       joinedAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
       name: '',
       email: '',
       avatarUrl: null,
@@ -157,7 +163,9 @@ export class MockTeamService implements TeamService {
       teamId,
       userId,
       role,
+      isActive: true,
       joinedAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
       name: '',
       email: '',
       avatarUrl: null,
@@ -277,7 +285,8 @@ export class MockTeamService implements TeamService {
       teamId,
       email: invitationData.email,
       role: invitationData.role || 'member',
-      invitedBy: invitationData.invitedBy,
+      invitedBy: invitationData.invitedBy || '',
+      status: InvitationStatus.PENDING,
       createdAt: new Date().toISOString(),
       expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // 7 days
     };
@@ -384,8 +393,8 @@ export class MockTeamService implements TeamService {
       filteredTeams = filteredTeams.filter(team => team.ownerId === params.ownerId);
     }
     
-    if (params.isPublic !== undefined) {
-      filteredTeams = filteredTeams.filter(team => team.isPublic === params.isPublic);
+    if (params.visibility !== undefined) {
+      filteredTeams = filteredTeams.filter(team => team.visibility === params.visibility);
     }
     
     // Apply sorting
@@ -402,9 +411,9 @@ export class MockTeamService implements TeamService {
             valueA = a.createdAt || '';
             valueB = b.createdAt || '';
             break;
-          case 'updatedAt':
-            valueA = a.updatedAt || '';
-            valueB = b.updatedAt || '';
+          case 'memberCount':
+            valueA = '0';
+            valueB = '0';
             break;
           default:
             return 0;
@@ -441,6 +450,10 @@ export class MockTeamService implements TeamService {
   hasTeamRole = vi.fn().mockImplementation(async (teamId: string, userId: string, role: string): Promise<boolean> => {
     const members = this.mockTeamMembers[teamId] || [];
     return members.some(member => member.userId === userId && member.role === role);
+  });
+
+  getTeamLicenseInfo = vi.fn().mockImplementation(async (_userId: string): Promise<{ totalSeats: number; usedSeats: number } | null> => {
+    return null;
   });
 
   onTeamChanged = vi.fn().mockImplementation((callback: (team: Team) => void): (() => void) => {
@@ -505,7 +518,9 @@ export class MockTeamService implements TeamService {
         teamId: team.id,
         userId: team.ownerId,
         role: 'owner',
-        joinedAt: team.createdAt || new Date().toISOString(),
+        isActive: true,
+        joinedAt: team.createdAt,
+        updatedAt: team.updatedAt,
         name: '',
         email: '',
         avatarUrl: null,
