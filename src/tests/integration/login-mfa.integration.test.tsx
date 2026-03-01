@@ -27,7 +27,7 @@ vi.mock('next/navigation', () => ({
   useSearchParams: () => ({ get: vi.fn() }),
 }));
 
-import { LoginForm } from '@/ui/styled/auth/LoginForm';
+import LoginForm from '@/ui/styled/auth/LoginForm';
 import { MFAVerificationForm } from '@/ui/styled/auth/MFAVerificationForm';
 
 describe('Login Flow with MFA', () => {
@@ -114,7 +114,7 @@ describe('MFAVerificationForm standalone', () => {
     mockVerifyMFA.mockResolvedValueOnce({ success: true });
     const user = userEvent.setup();
     const onSuccess = vi.fn();
-    render(<MFAVerificationForm accessToken="tmp" mfaMethod="email" onSuccess={onSuccess} />);
+    render(<MFAVerificationForm sessionId="tmp" mfaMethod="email" onSuccess={onSuccess} />);
     await user.type(screen.getByPlaceholderText('000000'), '654321');
     await user.click(screen.getByRole('button', { name: /verify/i }));
     await waitFor(() => {
@@ -127,7 +127,7 @@ describe('MFAVerificationForm standalone', () => {
     mockVerifyMFA.mockResolvedValueOnce({ success: true });
     const user = userEvent.setup();
     const onSuccess = vi.fn();
-    render(<MFAVerificationForm accessToken="tmp" mfaMethod="sms" onSuccess={onSuccess} />);
+    render(<MFAVerificationForm sessionId="tmp" mfaMethod="sms" onSuccess={onSuccess} />);
     await user.type(screen.getByPlaceholderText('000000'), '777777');
     await user.click(screen.getByRole('button', { name: /verify/i }));
     await waitFor(() => {
