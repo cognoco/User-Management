@@ -174,7 +174,7 @@ export function ConnectedAccounts({
                     <Icon className="h-6 w-6" />
                     <div>
                       <p className="font-medium">{PROVIDER_LABELS[account.provider]}</p>
-                      <p className="text-sm text-muted-foreground">{account.email}</p>
+                      <p className="text-sm text-muted-foreground">{account.providerEmail}</p>
                     </div>
                   </div>
                   <Button

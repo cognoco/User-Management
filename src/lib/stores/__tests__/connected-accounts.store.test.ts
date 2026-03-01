@@ -35,8 +35,8 @@ describe('Connected Accounts Store', () => {
   };
 
   // Sample data
-  const account1: ConnectedAccount = { id: 'acc-1', provider: OAuthProvider.GOOGLE, email: 'g@test.com', userId: 'u1', providerUserId: 'gid1', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
-  const account2: ConnectedAccount = { id: 'acc-2', provider: OAuthProvider.GITHUB, email: 'gh@test.com', userId: 'u1', providerUserId: 'ghid1', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+  const account1: ConnectedAccount = { id: 'acc-1', provider: OAuthProvider.GOOGLE, providerEmail: 'g@test.com', userId: 'u1', providerAccountId: 'gid1', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
+  const account2: ConnectedAccount = { id: 'acc-2', provider: OAuthProvider.GITHUB, providerEmail: 'gh@test.com', userId: 'u1', providerAccountId: 'ghid1', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
 
   beforeEach(() => {
     vi.resetAllMocks();

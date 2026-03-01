@@ -42,8 +42,8 @@ const defaultLayout: Required<LayoutOptions> = {
 describe('ConnectedAccounts Integration Tests', () => {
 
   const mockAccounts: ConnectedAccount[] = [
-    { id: 'acc-1', userId: 'user-123', provider: OAuthProvider.GOOGLE, providerUserId: 'google-123', email: 'test@google.com', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
-    { id: 'acc-2', userId: 'user-123', provider: OAuthProvider.GITHUB, providerUserId: 'github-456', email: 'test@github.com', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+    { id: 'acc-1', userId: 'user-123', provider: OAuthProvider.GOOGLE, providerAccountId: 'google-123', providerEmail: 'test@google.com', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+    { id: 'acc-2', userId: 'user-123', provider: OAuthProvider.GITHUB, providerAccountId: 'github-456', providerEmail: 'test@github.com', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
   ];
 
   beforeEach(() => {
