@@ -3,7 +3,6 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MFAVerificationForm } from '@/ui/styled/auth/MFAVerificationForm';
 import { api } from '@/lib/api/axios';
-import { TwoFactorMethod } from '@/types/2fa';
 
 // Mock API
 vi.mock('@/lib/api/axios', () => ({
@@ -35,11 +34,11 @@ describe('SMS MFA Verification During Login', () => {
     
     render(
       <MFAVerificationForm
-        accessToken={mockAccessToken}
+        sessionId={mockAccessToken}
         onSuccess={mockSuccessCallback}
         onCancel={mockCancelCallback}
         enableResendCode={true}
-        mfaMethod={TwoFactorMethod.SMS}
+        mfaMethod={"sms"}
       />
     );
     
@@ -53,7 +52,7 @@ describe('SMS MFA Verification During Login', () => {
     await waitFor(() => {
       expect(api.post).toHaveBeenCalledWith('/auth/mfa/verify', {
         code: '123456',
-        method: TwoFactorMethod.SMS,
+        method: "sms",
         accessToken: mockAccessToken,
         rememberDevice: false
       });
@@ -80,11 +79,11 @@ describe('SMS MFA Verification During Login', () => {
     
     render(
       <MFAVerificationForm
-        accessToken={mockAccessToken}
+        sessionId={mockAccessToken}
         onSuccess={mockSuccessCallback}
         onCancel={mockCancelCallback}
         enableResendCode={true}
-        mfaMethod={TwoFactorMethod.SMS}
+        mfaMethod={"sms"}
       />
     );
     
@@ -112,11 +111,11 @@ describe('SMS MFA Verification During Login', () => {
     
     render(
       <MFAVerificationForm
-        accessToken={mockAccessToken}
+        sessionId={mockAccessToken}
         onSuccess={mockSuccessCallback}
         onCancel={mockCancelCallback}
         enableResendCode={true}
-        mfaMethod={TwoFactorMethod.SMS}
+        mfaMethod={"sms"}
       />
     );
     
@@ -143,11 +142,11 @@ describe('SMS MFA Verification During Login', () => {
   test('should allow user to cancel verification', async () => {
     render(
       <MFAVerificationForm
-        accessToken={mockAccessToken}
+        sessionId={mockAccessToken}
         onSuccess={mockSuccessCallback}
         onCancel={mockCancelCallback}
         enableResendCode={true}
-        mfaMethod={TwoFactorMethod.SMS}
+        mfaMethod={"sms"}
       />
     );
     
@@ -169,12 +168,12 @@ describe('SMS MFA Verification During Login', () => {
     
     render(
       <MFAVerificationForm
-        accessToken={mockAccessToken}
+        sessionId={mockAccessToken}
         onSuccess={mockSuccessCallback}
         onCancel={mockCancelCallback}
         enableResendCode={true}
         enableRememberDevice={true}
-        mfaMethod={TwoFactorMethod.SMS}
+        mfaMethod={"sms"}
       />
     );
     
@@ -189,7 +188,7 @@ describe('SMS MFA Verification During Login', () => {
     await waitFor(() => {
       expect(api.post).toHaveBeenCalledWith('/auth/mfa/verify', {
         code: '123456',
-        method: TwoFactorMethod.SMS,
+        method: "sms",
         accessToken: mockAccessToken,
         rememberDevice: true
       });
