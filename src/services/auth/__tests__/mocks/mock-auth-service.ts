@@ -1,6 +1,6 @@
 // src/services/auth/__tests__/mocks/mock-auth-service.ts
 import { vi } from 'vitest';
-import { AuthService, AuthState } from '../../../../core/auth/interfaces';
+import { AuthService, AuthState, RequestContext, MfaCheckParams, MfaCheckResult, MfaVerifyParams, MfaVerifyResult, MfaResendResult } from '../../../../core/auth/interfaces';
 import { 
   AuthResult, 
   LoginPayload, 
@@ -9,6 +9,7 @@ import {
   RegistrationPayload, 
   User 
 } from '../../../../core/auth/models';
+import type { OAuthProvider, OAuthUserProfile, OAuthProviderConfig } from '@/types/oauth';
 
 /**
  * Mock implementation of the AuthService interface for testing
@@ -28,13 +29,13 @@ export class MockAuthService implements AuthService {
   private expiry: number | null = null;
 
   // Mock implementations with Vitest spies
-  login = vi.fn().mockImplementation(async (credentials: LoginPayload): Promise<AuthResult> => {
+  login = vi.fn().mockImplementation(async (credentials: LoginPayload, _context?: RequestContext): Promise<AuthResult> => {
     const result: AuthResult = { success: true };
     this.mockUser = { 
       id: 'mock-user-id', 
       email: credentials.email,
-      name: 'Mock User',
-      emailVerified: true
+      firstName: 'Mock',
+      lastName: 'User',
     };
     this.mockAuthState = {
       ...this.mockAuthState,
@@ -46,13 +47,13 @@ export class MockAuthService implements AuthService {
     return result;
   });
 
-  register = vi.fn().mockImplementation(async (userData: RegistrationPayload): Promise<AuthResult> => {
+  register = vi.fn().mockImplementation(async (userData: RegistrationPayload, _context?: RequestContext): Promise<AuthResult> => {
     const result: AuthResult = { success: true };
     this.mockUser = { 
       id: 'mock-user-id', 
       email: userData.email,
-      name: userData.name || 'New User',
-      emailVerified: false
+      firstName: userData.firstName || 'New',
+      lastName: userData.lastName || 'User',
     };
     this.mockAuthState = {
       ...this.mockAuthState,
@@ -64,7 +65,7 @@ export class MockAuthService implements AuthService {
     return result;
   });
 
-  logout = vi.fn().mockImplementation(async (): Promise<void> => {
+  logout = vi.fn().mockImplementation(async (_context?: RequestContext): Promise<void> => {
     this.mockUser = null;
     this.mockAuthState = {
       ...this.mockAuthState,
@@ -91,18 +92,31 @@ export class MockAuthService implements AuthService {
     // Implementation not needed for most tests
   });
 
+  verifyPasswordResetToken = vi.fn().mockImplementation(async (_token: string): Promise<{ valid: boolean; error?: string }> => {
+    return { valid: true };
+  });
+
+  updatePasswordWithToken = vi.fn().mockImplementation(async (_token: string, _newPassword: string): Promise<AuthResult> => {
+    return { success: true };
+  });
+
   sendVerificationEmail = vi.fn().mockImplementation(async (_email: string): Promise<AuthResult> => {
     return { success: true };
   });
 
-  verifyEmail = vi.fn().mockImplementation(async (_token: string): Promise<void> => {
-    if (this.mockUser) {
-      this.mockUser.emailVerified = true;
-      this.notifyListeners(this.mockUser);
-    }
+  sendMagicLink = vi.fn().mockImplementation(async (_email: string): Promise<{ success: boolean; error?: string }> => {
+    return { success: true };
   });
 
-  deleteAccount = vi.fn().mockImplementation(async (_password?: string): Promise<void> => {
+  verifyEmail = vi.fn().mockImplementation(async (_token: string): Promise<void> => {
+    // No emailVerified field on User; MFA status tracked separately
+  });
+
+  verifyMagicLink = vi.fn().mockImplementation(async (_token: string): Promise<AuthResult> => {
+    return { success: true };
+  });
+
+  deleteAccount = vi.fn().mockImplementation(async (_passwordOrParams?: string | { userId: string; password: string }): Promise<{ success: boolean; error?: string }> => {
     this.mockUser = null;
     this.mockAuthState = {
       ...this.mockAuthState,
@@ -111,16 +125,22 @@ export class MockAuthService implements AuthService {
       token: null
     };
     this.notifyListeners(null);
+    return { success: true };
+  });
+
+  getUserAccount = vi.fn().mockImplementation(async (_userId: string): Promise<any> => {
+    return this.mockUser;
   });
 
   setupMFA = vi.fn().mockImplementation(async (): Promise<MFASetupResponse> => {
     return { 
+      success: true,
       secret: 'mock-mfa-secret', 
       qrCode: 'data:image/png;base64,mockQrCodeData' 
     };
   });
 
-  verifyMFA = vi.fn().mockImplementation(async (_code: string): Promise<MFAVerifyResponse> => {
+  verifyMFA = vi.fn().mockImplementation(async (_code: string, _context?: RequestContext): Promise<MFAVerifyResponse> => {
     this.mockAuthState = {
       ...this.mockAuthState,
       mfaEnabled: true
@@ -136,23 +156,40 @@ export class MockAuthService implements AuthService {
     return { success: true };
   });
 
-  refreshToken = vi.fn().mockImplementation(
-    async (): Promise<{
-      accessToken: string;
-      refreshToken: string;
-      expiresAt: number;
-    } | null> => {
-      const result = {
-        accessToken: 'mock-access',
-        refreshToken: 'mock-refresh',
-        expiresAt: Date.now() + 60_000,
-      };
-      this.expiry = result.expiresAt;
-      return result;
-    },
-  );
+  checkMfaRequirements = vi.fn().mockImplementation(async (_params: MfaCheckParams): Promise<MfaCheckResult> => {
+    return { success: true, mfaRequired: false };
+  });
 
-  getTokenExpiry = vi.fn().mockImplementation(() => this.expiry);
+  verifyMfaCode = vi.fn().mockImplementation(async (_params: MfaVerifyParams): Promise<MfaVerifyResult> => {
+    return { success: true };
+  });
+
+  resendMfaEmailCode = vi.fn().mockImplementation(async (_accessToken: string): Promise<MfaResendResult> => {
+    return { success: true };
+  });
+
+  resendMfaSmsCode = vi.fn().mockImplementation(async (_accessToken: string): Promise<MfaResendResult> => {
+    return { success: true };
+  });
+
+  configureOAuthProvider = vi.fn().mockImplementation((_config: OAuthProviderConfig): void => {
+    // no-op for tests
+  });
+
+  getOAuthAuthorizationUrl = vi.fn().mockImplementation((_provider: OAuthProvider, _state?: string): string => {
+    return 'https://mock-oauth.example.com/authorize';
+  });
+
+  exchangeOAuthCode = vi.fn().mockImplementation(async (_provider: OAuthProvider, _code: string): Promise<OAuthUserProfile> => {
+    return { id: 'mock-oauth-id', email: 'oauth@example.com', provider: 'google' as OAuthProvider, accessToken: 'mock-oauth-token' };
+  });
+
+  refreshToken = vi.fn().mockImplementation(async (): Promise<boolean> => {
+    this.expiry = Date.now() + 60_000;
+    return true;
+  });
+
+  getTokenExpiry = vi.fn().mockImplementation((): number | null => this.expiry);
 
   handleSessionTimeout = vi.fn().mockImplementation((): void => {
     this.logout();
