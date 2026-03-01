@@ -1,6 +1,6 @@
 // e2e/subscription-and-licensing/Subscription/subscription-flow.e2e.test.ts
 
-import { test, expect } from '@playwright/test';
+import { test, expect, Page } from '@playwright/test';
 
 // --- Constants and Test Data --- //
 const USER_EMAIL = process.env.E2E_USER_EMAIL || 'user@example.com';
@@ -9,7 +9,7 @@ const SUBSCRIPTION_URL = '/subscription';
 const PLANS_URL = '/subscription/plans';
 
 // --- Helper Functions --- //
-async function fillLoginForm(page) {
+async function fillLoginForm(page: Page) {
   // Use a reliable, browser-independent login approach as mentioned in TESTING ISSUES-E2E.md
   try {
     // Method 1: Standard input filling 
@@ -19,8 +19,8 @@ async function fillLoginForm(page) {
     // Method 2: JS-based form filling for problematic browsers
     await page.evaluate(
       ([email, password]) => {
-        const emailInput = document.querySelector('input[type="email"]');
-        const passwordInput = document.querySelector('input[type="password"]');
+        const emailInput = document.querySelector<HTMLInputElement>('input[type="email"]');
+        const passwordInput = document.querySelector<HTMLInputElement>('input[type="password"]');
         if (emailInput) {
           emailInput.value = email;
           emailInput.dispatchEvent(new Event('input', { bubbles: true }));
@@ -30,7 +30,7 @@ async function fillLoginForm(page) {
           passwordInput.dispatchEvent(new Event('input', { bubbles: true }));
         }
       },
-      [USER_EMAIL, USER_PASSWORD]
+      [USER_EMAIL, USER_PASSWORD] as [string, string]
     );
   }
 
