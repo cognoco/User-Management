@@ -5,9 +5,11 @@ import { Button } from '@/ui/primitives/button';
 import { Alert } from '@/ui/primitives/alert';
 import {
   AdminUsers as HeadlessAdminUsers,
-  AdminUsersProps,
+  AdminUsersProps as HeadlessAdminUsersProps,
   ROLE_OPTIONS,
 } from '@/ui/headless/admin/AdminUsers';
+
+export type AdminUsersProps = Omit<HeadlessAdminUsersProps, 'children'>;
 
 export const AdminUsers: React.FC<AdminUsersProps> = ({ fetchUsers, handleRoleChange }) => (
   <HeadlessAdminUsers fetchUsers={fetchUsers} handleRoleChange={handleRoleChange}>
