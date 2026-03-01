@@ -5,21 +5,21 @@ import type { PermissionService } from '@/core/permission/interfaces';
 import type { AuthService } from '@/core/auth/interfaces';
 import { createAuthenticatedRequest } from '@/tests/utils/request-helpers';
 
-const mockService: Partial<PermissionService> = {
+const mockService = {
   getRoleById: vi.fn(),
   updateRole: vi.fn(),
   deleteRole: vi.fn(),
-};
-const mockAuth: Partial<AuthService> = {
+} satisfies Partial<PermissionService>;
+const mockAuth = {
   getCurrentUser: vi.fn().mockResolvedValue({ id: 'u1' }),
-};
+} satisfies Partial<AuthService>;
 
 beforeEach(() => {
   vi.clearAllMocks();
   resetServiceContainer();
   configureServices({
-    permissionService: mockService as PermissionService,
-    authService: mockAuth as AuthService,
+    permissionService: mockService as unknown as PermissionService,
+    authService: mockAuth as unknown as AuthService,
   });
 });
 
