@@ -8,7 +8,9 @@ import * as UserManagementProvider from '@/lib/auth/UserManagementProvider';
 import { CorporateProfileSection } from '../CorporateProfileSection';
 import { UserType, Company } from '@/types/user-type';
 import type { UserManagementContextValue } from '@/lib/auth/UserManagementProvider';
-import { Platform } from '@/types/platform';
+
+import { Platform } from '@/lib/services/notification.service';
+import { SubscriptionTier } from '@/types/subscription';
 
 const mockOnUpdate = vi.fn();
 
@@ -30,7 +32,7 @@ const initialCompanyData: Company = {
 };
 
 const defaultUserManagementContext: UserManagementContextValue = {
-  config: { features: {}, auth: {}, profile: {} },
+  config: {},
   callbacks: {
     onUserLogin: () => {},
     onUserLogout: () => {},
@@ -61,7 +63,7 @@ const defaultUserManagementContext: UserManagementContextValue = {
   },
   subscription: {
     enabled: false,
-    defaultTier: 'FREE',
+    defaultTier: SubscriptionTier.FREE,
     features: {},
     enableBilling: false,
   },
