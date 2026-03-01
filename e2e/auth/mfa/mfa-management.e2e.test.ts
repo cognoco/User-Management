@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
 
 // User email and password for testing
 const USER_EMAIL = process.env.E2E_USER_EMAIL || 'user@example.com';
@@ -7,7 +7,7 @@ const USER_PASSWORD = process.env.E2E_USER_PASSWORD || 'password123';
 /**
  * Helper function to navigate to security settings with fallbacks
  */
-async function navigateToSecuritySettings(page) {
+async function navigateToSecuritySettings(page: Page) {
   // Try multiple paths to security settings
   try {
     // First try direct navigation to security settings
@@ -42,7 +42,7 @@ async function navigateToSecuritySettings(page) {
 /**
  * Helper function to login
  */
-async function login(page, email, password) {
+async function login(page: Page, email: string, password: string) {
   await page.goto('/auth/login');
   await page.fill('input[name="email"]', email);
   await page.fill('input[name="password"]', password);
@@ -62,7 +62,7 @@ async function login(page, email, password) {
 }
 
 test.describe('4.5: MFA Management', () => {
-  let page;
+  let page: Page;
   
   test.beforeEach(async ({ browser }) => {
     page = await browser.newPage();
