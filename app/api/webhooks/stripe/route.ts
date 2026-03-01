@@ -5,6 +5,19 @@ import { checkRateLimit } from '@/middleware/rate-limit';
 import { logUserAction } from '@/lib/audit/auditLogger';
 import { ApiError, ERROR_CODES } from '@/lib/api/common';
 import type Stripe from "stripe";
+import { SubscriptionStatus } from "@/core/subscription/models";
+
+/** Map Stripe subscription status to our SubscriptionStatus enum */
+function mapStripeStatus(status: Stripe.Subscription.Status): SubscriptionStatus | undefined {
+  const mapping: Record<string, SubscriptionStatus> = {
+    active: SubscriptionStatus.ACTIVE,
+    canceled: SubscriptionStatus.CANCELED,
+    past_due: SubscriptionStatus.PAST_DUE,
+    trialing: SubscriptionStatus.TRIAL,
+    unpaid: SubscriptionStatus.PAST_DUE,
+  };
+  return mapping[status];
+}
 
 /**
  * Stripe Webhook handler
@@ -61,17 +74,17 @@ export async function POST(request: NextRequest) {
               id: subscription.id,
               userId,
               planId: subscription.items.data[0]?.price.id ?? "",
-              status: subscription.status,
+              status: mapStripeStatus(subscription.status),
               startDate: new Date(subscription.start_date * 1000).toISOString(),
               endDate: subscription.ended_at
                 ? new Date(subscription.ended_at * 1000).toISOString()
-                : null,
+                : undefined,
               renewalDate: new Date(
-                subscription.current_period_end * 1000,
+                (subscription as any).current_period_end * 1000,
               ).toISOString(),
               canceledAt: subscription.canceled_at
                 ? new Date(subscription.canceled_at * 1000).toISOString()
-                : null,
+                : undefined,
               paymentMethod: undefined,
               metadata: subscription.metadata as any,
             });
