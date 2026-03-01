@@ -10,10 +10,10 @@ vi.mock('@/services/auth/factory');
 vi.mock('@/services/permission/factory');
 vi.mock('@/lib/database/prisma', () => ({
   prisma: {
-    user: {
+    users: {
       findUnique: vi.fn(),
     },
-    teamMember: {
+    team_members: {
       findUnique: vi.fn(),
     },
   },
@@ -71,7 +71,7 @@ describe('withPermissionCheck', () => {
 
     it('should return 403 when user has no team membership', async () => {
       mockAuthService.getSession.mockResolvedValue({ user: mockUser } as any);
-      vi.mocked(prisma.user.findUnique).mockResolvedValue({ 
+      vi.mocked(prisma.users.findUnique).mockResolvedValue({ 
         id: mockUser.id, 
         email: mockUser.email,
         teamMember: null 
@@ -93,7 +93,7 @@ describe('withPermissionCheck', () => {
   describe('Permission Checking', () => {
     beforeEach(() => {
       mockAuthService.getSession.mockResolvedValue({ user: mockUser } as any);
-      vi.mocked(prisma.user.findUnique).mockResolvedValue({
+      vi.mocked(prisma.users.findUnique).mockResolvedValue({
         id: mockUser.id, 
         email: mockUser.email,
         teamMember: mockTeamMember 
@@ -157,7 +157,7 @@ describe('withPermissionCheck', () => {
   describe('Resource Access', () => {
     beforeEach(() => {
       mockAuthService.getSession.mockResolvedValue({ user: mockUser } as any);
-      vi.mocked(prisma.user.findUnique).mockResolvedValue({
+      vi.mocked(prisma.users.findUnique).mockResolvedValue({
         id: mockUser.id, 
         email: mockUser.email,
         teamMember: mockTeamMember 
@@ -167,7 +167,7 @@ describe('withPermissionCheck', () => {
     });
 
     it('should allow access to own team resources', async () => {
-      vi.mocked(prisma.teamMember.findUnique).mockResolvedValue({ 
+      vi.mocked(prisma.team_members.findUnique).mockResolvedValue({ 
         teamId: 'team-1' 
       } as any);
       
@@ -182,7 +182,7 @@ describe('withPermissionCheck', () => {
     });
 
     it('should deny access to other team resources', async () => {
-      vi.mocked(prisma.teamMember.findUnique).mockResolvedValue({ 
+      vi.mocked(prisma.team_members.findUnique).mockResolvedValue({ 
         teamId: 'team-1' // User is a member of team-1
       } as any);
       
@@ -199,7 +199,7 @@ describe('withPermissionCheck', () => {
     });
 
     it('should check project resource access', async () => {
-      vi.mocked(prisma.teamMember.findUnique).mockResolvedValue({ 
+      vi.mocked(prisma.team_members.findUnique).mockResolvedValue({ 
         teamId: 'team-1' 
       } as any);
       
@@ -214,7 +214,7 @@ describe('withPermissionCheck', () => {
     });
 
     it('should check organization resource access', async () => {
-      vi.mocked(prisma.teamMember.findUnique).mockResolvedValue({ 
+      vi.mocked(prisma.team_members.findUnique).mockResolvedValue({ 
         teamId: 'team-1' 
       } as any);
       
