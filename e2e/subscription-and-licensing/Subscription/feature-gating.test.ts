@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
 
 // --- Constants and Test Data --- //
 const USER_EMAIL = process.env.E2E_USER_EMAIL || 'user@example.com';
@@ -7,7 +7,7 @@ const PREMIUM_USER_EMAIL = process.env.E2E_PREMIUM_USER_EMAIL || 'premium@exampl
 const PREMIUM_USER_PASSWORD = process.env.E2E_PREMIUM_USER_PASSWORD || 'premiumpass123';
 
 // --- Helper Functions --- //
-async function fillLoginForm(page, email, password) {
+async function fillLoginForm(page: Page, email: string, password: string) {
   // Use a reliable, browser-independent login approach as mentioned in TESTING ISSUES-E2E.md
   try {
     // Method 1: Standard input filling 
@@ -16,19 +16,19 @@ async function fillLoginForm(page, email, password) {
   } catch (e) {
     // Method 2: JS-based form filling for problematic browsers
     await page.evaluate(
-      ([email, password]) => {
-        const emailInput = document.querySelector('input[type="email"]');
-        const passwordInput = document.querySelector('input[type="password"]');
+      ([e, p]: [string, string]) => {
+        const emailInput = document.querySelector<HTMLInputElement>('input[type="email"]');
+        const passwordInput = document.querySelector<HTMLInputElement>('input[type="password"]');
         if (emailInput) {
-          emailInput.value = email;
+          emailInput.value = e;
           emailInput.dispatchEvent(new Event('input', { bubbles: true }));
         }
         if (passwordInput) {
-          passwordInput.value = password;
+          passwordInput.value = p;
           passwordInput.dispatchEvent(new Event('input', { bubbles: true }));
         }
       },
-      [email, password]
+      [email, password] as [string, string]
     );
   }
 
@@ -76,7 +76,7 @@ async function fillLoginForm(page, email, password) {
 }
 
 // Inject premium feature buttons if they don't exist (for testing)
-async function injectPremiumFeaturesIfNeeded(page) {
+async function injectPremiumFeaturesIfNeeded(page: Page) {
   const hasPremiumFeatures = await page.locator('[data-testid="premium-feature"]').count() > 0;
   
   if (!hasPremiumFeatures) {
@@ -145,7 +145,7 @@ async function injectPremiumFeaturesIfNeeded(page) {
             <div id="premium-upgrade-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 50;">
               <div style="background-color: white; padding: 2rem; border-radius: 0.5rem; max-width: 500px; width: 90%;">
                 <h3 style="font-size: 1.25rem; font-weight: bold; margin-bottom: 1rem;">Upgrade Required</h3>
-                <p style="margin-bottom: 1.5rem;">This feature requires a premium subscription. Please upgrade your plan to access ${featureType.replace('-', ' ')}.</p>
+                <p style="margin-bottom: 1.5rem;">This feature requires a premium subscription. Please upgrade your plan to access ${(featureType ?? '').replace('-', ' ')}.</p>
                 <div style="display: flex; justify-content: flex-end; gap: 1rem;">
                   <button id="modal-cancel" style="padding: 0.5rem 1rem; border: 1px solid #d1d5db; border-radius: 0.25rem;">Cancel</button>
                   <button id="modal-upgrade" style="padding: 0.5rem 1rem; background-color: #3b82f6; color: white; border-radius: 0.25rem;">Upgrade Plan</button>
@@ -157,11 +157,11 @@ async function injectPremiumFeaturesIfNeeded(page) {
           document.body.insertAdjacentHTML('beforeend', modalHtml);
           
           // Add event listeners to modal buttons
-          document.getElementById('modal-cancel').addEventListener('click', () => {
-            document.getElementById('premium-upgrade-modal').remove();
+          document.getElementById('modal-cancel')?.addEventListener('click', () => {
+            document.getElementById('premium-upgrade-modal')?.remove();
           });
           
-          document.getElementById('modal-upgrade').addEventListener('click', () => {
+          document.getElementById('modal-upgrade')?.addEventListener('click', () => {
             window.location.href = '/subscription/plans';
           });
         });
@@ -260,10 +260,7 @@ test.describe('Feature Gating for Subscription Tiers', () => {
 
   test('Premium user should have access to premium features', async ({ page, browserName }) => {
     // Skip test if premium test user is not configured
-    if (!PREMIUM_USER_EMAIL || PREMIUM_USER_EMAIL === 'premium@example.com') {
-      test.skip('Premium test user not configured. Set E2E_PREMIUM_USER_EMAIL and E2E_PREMIUM_USER_PASSWORD in environment variables.');
-      return;
-    }
+    test.skip(!PREMIUM_USER_EMAIL || PREMIUM_USER_EMAIL === 'premium@example.com', 'Premium test user not configured. Set E2E_PREMIUM_USER_EMAIL and E2E_PREMIUM_USER_PASSWORD in environment variables.');
 
     // Navigate to the login page with fallback strategy
     try {
@@ -325,10 +322,7 @@ test.describe('Feature Gating for Subscription Tiers', () => {
 
   test('Free user should see disabled premium UI elements with tooltips', async ({ page, browserName }) => {
     // Skip test for Safari due to tooltip testing complexities
-    if (browserName === 'webkit') {
-      test.skip('This test is skipped in Safari due to tooltip testing complexities');
-      return;
-    }
+    test.skip(browserName === 'webkit', 'This test is skipped in Safari due to tooltip testing complexities');
     
     // Navigate to the login page with fallback strategy
     try {
@@ -406,8 +400,8 @@ test.describe('Feature Gating for Subscription Tiers', () => {
     // For browsers/implementations where tooltips are shown as title attributes rather than DOM elements
     const hasTitle = await page.evaluate(() => {
       const element = document.querySelector('[data-testid="disabled-premium-feature"]');
-      return element && element.getAttribute('title') && 
-        element.getAttribute('title').includes('Premium');
+      const title = element?.getAttribute('title');
+      return title != null && title.includes('Premium');
     });
     
     // Assert that either a visible tooltip exists or the element has a title attribute
