@@ -7,11 +7,7 @@
 import { vi } from 'vitest';
 import type { AuthState, AuthResult, MFASetupResponse, MFAVerifyResponse } from '@/types/auth';
 
-const promiseTrue = vi.fn(async () => ({
-  accessToken: 'mock-access',
-  refreshToken: 'mock-refresh',
-  expiresAt: Date.now() + 60_000,
-}));
+const promiseTrue = vi.fn(async () => true);
 const promiseAuthResult = vi.fn(async () => ({ success: true } as AuthResult));
 const promiseVoid = vi.fn(async () => {});
 const promiseMFAVerify = vi.fn(async () => ({ success: true } as MFAVerifyResponse));
@@ -50,6 +46,9 @@ const defaultState: AuthState = {
   refreshToken: promiseTrue,
   setLoading: vi.fn(),
 };
+
+// Zustand-style hook function with static methods
+const useAuthStore: any = vi.fn(() => null);
 
 // Factory to create a robust mock store
 export function createMockAuthStore(
@@ -195,6 +194,9 @@ export function createMockAuthStore(
   useAuthStore.setState = store.setState;
   useAuthStore.subscribe = vi.fn(); // no-op
   useAuthStore.destroy = vi.fn(); // no-op
+
+  // Make the hook return the store when called
+  useAuthStore.mockReturnValue(store);
 
   return useAuthStore;
 } 
