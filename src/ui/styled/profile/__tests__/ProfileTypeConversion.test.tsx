@@ -58,7 +58,7 @@ vi.mock('@/ui/primitives/select', async (importOriginal) => {
           const contentProps = child.props as { children?: React.ReactNode };
           if (contentProps.children) {
             // Add non-null assertion
-            options = React.Children.map(contentProps.children!, (item) => {
+            const mapped = React.Children.map(contentProps.children!, (item) => {
                   if (React.isValidElement(item) && item.type === actual.SelectItem) {
                       const itemProps = item.props as { value: any, children?: React.ReactNode };
                       return (
@@ -68,8 +68,8 @@ vi.mock('@/ui/primitives/select', async (importOriginal) => {
                       );
                   }
                   return null;
-              })
-              .filter(Boolean) as React.ReactNode[]; 
+              });
+          options = (mapped ?? []).filter(Boolean) as React.ReactNode[];
           }
         }
       });
@@ -146,6 +146,12 @@ describe('ProfileTypeConversion', () => {
       uploadCompanyLogo: vi.fn(),
       removeCompanyLogo: vi.fn(),
       clearError: vi.fn(),
+      convertToBusinessProfile: vi.fn(),
+      verification: null,
+      verificationLoading: false,
+      verificationError: null,
+      fetchVerificationStatus: vi.fn(),
+      requestVerification: vi.fn(),
     });
 
     mockToast = mockToastFn;
@@ -163,9 +169,9 @@ describe('ProfileTypeConversion', () => {
     });
 
     // Log all requests for debugging
-    server.events.on('request:start', (req) => {
-      if (req.method === 'POST') {
-        console.warn(`[MSW][request:start] ${req.method} ${req.url}`);
+    server.events.on('request:start', ({ request }) => {
+      if (request.method === 'POST') {
+        console.warn(`[MSW][request:start] ${request.method} ${request.url}`);
       }
     });
   });
