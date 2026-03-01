@@ -61,9 +61,9 @@ function renderWithProvider(ui: ReactElement) {
 
 // Add after supabase import
 const supabaseAuth = supabase.auth as any;
-const mockGetUser = supabaseAuth.getUser as Mock<any, any>;
-const mockSignInWithOAuth = supabaseAuth.signInWithOAuth as Mock<any, any>;
-const mockGetSession = supabaseAuth.getSession as Mock<any, any>;
+const mockGetUser = supabaseAuth.getUser as Mock<any>;
+const mockSignInWithOAuth = supabaseAuth.signInWithOAuth as Mock<any>;
+const mockGetSession = supabaseAuth.getSession as Mock<any>;
 
 describe('Personal SSO Authentication Flows', () => {
   let user: ReturnType<typeof userEvent.setup>;
