@@ -9,7 +9,7 @@ import {
   errorHandlingMiddleware,
   routeAuthMiddleware,
   validationMiddleware,
-  type AuthContext,
+  type RouteAuthContext,
 } from "@/middleware/createMiddlewareChain";
 import { withSecurity } from "@/middleware/with-security";
 import { getApiSavedSearchService } from "@/services/saved-search/factory";
@@ -23,14 +23,14 @@ const updateSavedSearchSchema = z.object({
 
 async function getSavedSearch(
   _req: NextRequest,
-  auth: AuthContext,
-  { params }: { params: { id: string } },
+  auth: RouteAuthContext,
+  id: string,
 ) {
   if (!auth.userId) {
     throw new Error("Authentication required");
   }
   const service = getApiSavedSearchService();
-  const savedSearch = await service.getSavedSearch(params.id, auth.userId);
+  const savedSearch = await service.getSavedSearch(id, auth.userId);
   if (!savedSearch) {
     throw new Error("Failed to fetch saved search");
   }
@@ -39,16 +39,16 @@ async function getSavedSearch(
 
 async function updateSavedSearch(
   _req: NextRequest,
-  auth: AuthContext,
+  auth: RouteAuthContext,
   data: z.infer<typeof updateSavedSearchSchema>,
-  { params }: { params: { id: string } },
+  id: string,
 ) {
   if (!auth.userId) {
     throw new Error("Authentication required");
   }
   const service = getApiSavedSearchService();
   const updatedSearch = await service.updateSavedSearch(
-    params.id,
+    id,
     auth.userId,
     {
       name: data.name,
@@ -62,39 +62,43 @@ async function updateSavedSearch(
 
 async function deleteSavedSearch(
   _req: NextRequest,
-  auth: AuthContext,
-  { params }: { params: { id: string } },
+  auth: RouteAuthContext,
+  id: string,
 ) {
   if (!auth.userId) {
     throw new Error("Authentication required");
   }
   const service = getApiSavedSearchService();
-  await service.deleteSavedSearch(params.id, auth.userId);
+  await service.deleteSavedSearch(id, auth.userId);
   return createNoContentResponse();
 }
 
 const baseMiddleware = createMiddlewareChain([
   errorHandlingMiddleware(),
-  routeAuthMiddleware({ requiredPermissions: ["admin.users.list"] }),
+  routeAuthMiddleware({ requiredPermissions: ["ADMIN_ACCESS"] }),
 ]);
 
 const patchMiddleware = createMiddlewareChain([
   errorHandlingMiddleware(),
-  routeAuthMiddleware({ requiredPermissions: ["admin.users.list"] }),
+  routeAuthMiddleware({ requiredPermissions: ["ADMIN_ACCESS"] }),
   validationMiddleware(updateSavedSearchSchema),
 ]);
 
-export const GET = (req: NextRequest, ctx: { params: { id: string } }) =>
-  baseMiddleware((r, auth) => getSavedSearch(r, auth, ctx))(req);
+export const GET = async (req: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
+  const { id } = await params;
+  return baseMiddleware((r, auth) => getSavedSearch(r, auth, id))(req);
+};
 
-export const PATCH = (req: NextRequest, ctx: { params: { id: string } }) =>
-  withSecurity((r) =>
-    patchMiddleware((r2, auth, data) => updateSavedSearch(r2, auth, data, ctx))(
-      r,
-    ),
+export const PATCH = async (req: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
+  const { id } = await params;
+  return withSecurity((r) =>
+    patchMiddleware((r2, auth, data) => updateSavedSearch(r2, auth, data, id))(r),
   )(req);
+};
 
-export const DELETE = (req: NextRequest, ctx: { params: { id: string } }) =>
-  withSecurity((r) =>
-    baseMiddleware((r2, auth) => deleteSavedSearch(r2, auth, ctx))(r),
+export const DELETE = async (req: NextRequest, { params }: { params: Promise<{ id: string }> }) => {
+  const { id } = await params;
+  return withSecurity((r) =>
+    baseMiddleware((r2, auth) => deleteSavedSearch(r2, auth, id))(r),
   )(req);
+};
