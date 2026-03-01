@@ -21,7 +21,7 @@ describe('ResourceRelationshipService', () => {
     const single = vi.fn().mockResolvedValue({ data: { id: '1' }, error: null });
     const insert = vi.fn(() => ({ select: () => ({ single }) }));
 
-    const eqFinal = vi.fn<QueryResult, []>(() => Promise.resolve({ data: [{ id: 1 }], error: null }));
+    const eqFinal = vi.fn<() => QueryResult>(() => Promise.resolve({ data: [{ id: 1 }], error: null }));
     const eq = vi.fn(() => ({ eq: eqFinal }));
     const maybeSingle = vi.fn().mockResolvedValue({ data: null, error: null });
     const match = vi.fn(() => ({ maybeSingle }));
@@ -65,7 +65,7 @@ describe('ResourceRelationshipService', () => {
   });
 
   it('throws on getParentResources error', async () => {
-    const eqFinal = vi.fn<QueryResult, []>(() => Promise.resolve({ data: null, error: { message: 'fail' } }));
+    const eqFinal = vi.fn<() => QueryResult>(() => Promise.resolve({ data: null, error: { message: 'fail' } }));
     const eq = vi.fn(() => ({ eq: eqFinal }));
     const select = vi.fn(() => ({ eq }));
     db.from.mockReturnValueOnce({ select });
@@ -78,7 +78,7 @@ describe('ResourceRelationshipService', () => {
   });
 
   it('throws on getChildResources error', async () => {
-    const eqFinal = vi.fn<QueryResult, []>(() => Promise.resolve({ data: null, error: { message: 'oops' } }));
+    const eqFinal = vi.fn<() => QueryResult>(() => Promise.resolve({ data: null, error: { message: 'oops' } }));
     const eq = vi.fn(() => ({ eq: eqFinal }));
     const select = vi.fn(() => ({ eq }));
     db.from.mockReturnValueOnce({ select });
@@ -86,7 +86,7 @@ describe('ResourceRelationshipService', () => {
   });
 
   it('returns empty array when no child resources', async () => {
-    const eqFinal = vi.fn<QueryResult, []>(() => Promise.resolve({ data: null, error: null }));
+    const eqFinal = vi.fn<() => QueryResult>(() => Promise.resolve({ data: null, error: null }));
     const eq = vi.fn(() => ({ eq: eqFinal }));
     const select = vi.fn(() => ({ eq }));
     db.from.mockReturnValueOnce({ select });
@@ -96,11 +96,12 @@ describe('ResourceRelationshipService', () => {
 
   it('handles partial create failure', async () => {
     vi.mocked(permissionCacheService.clearResource).mockRejectedValue(new Error('cache')); 
-    const del = vi.fn();
+    const delMatch = vi.fn().mockResolvedValue({ error: null });
+    const del2 = vi.fn(() => ({ match: delMatch }));
     const single = vi.fn().mockResolvedValue({ data: { id: '1' }, error: null });
     const insert = vi.fn(() => ({ select: () => ({ single }) }));
     db.from.mockImplementationOnce(() => ({ insert }));
-    db.from.mockImplementationOnce(() => ({ delete: del }));
+    db.from.mockImplementationOnce(() => ({ delete: del2 }));
     await expect(
       service.createRelationship({
         parentType: 'org',
@@ -110,7 +111,7 @@ describe('ResourceRelationshipService', () => {
         relationshipType: 'member',
       }),
     ).rejects.toBeInstanceOf(PartialRelationshipError);
-    expect(del).toHaveBeenCalled();
+    expect(del2).toHaveBeenCalled();
   });
 
   it('deletes relationship', async () => {
