@@ -163,12 +163,12 @@ test.describe('Login Flow', () => {
     
     // Get any cookies/storage that would be used for session persistence
     const cookies = await initialContext.cookies();
-    const localStorage = await page.evaluate(() => {
-      const items = {};
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
+    const storedItems = await page.evaluate(() => {
+      const items: Record<string, string | null> = {};
+      for (let i = 0; i < window.localStorage.length; i++) {
+        const key = window.localStorage.key(i);
         if (key) {
-          items[key] = localStorage.getItem(key);
+          items[key] = window.localStorage.getItem(key);
         }
       }
       return items;
@@ -186,13 +186,15 @@ test.describe('Login Flow', () => {
     await newContext.addCookies(cookies);
     
     // Restore localStorage if it exists
-    if (Object.keys(localStorage).length > 0) {
+    if (Object.keys(storedItems).length > 0) {
       await newPage.goto('about:blank');
-      await newPage.evaluate((storedItems) => {
-        for (const [key, value] of Object.entries(storedItems)) {
-          localStorage.setItem(key, value as string);
+      await newPage.evaluate((items) => {
+        for (const [key, value] of Object.entries(items)) {
+          if (value !== null) {
+            window.localStorage.setItem(key, value);
+          }
         }
-      }, localStorage);
+      }, storedItems);
     }
     
     // Navigate to a protected page that should require authentication
