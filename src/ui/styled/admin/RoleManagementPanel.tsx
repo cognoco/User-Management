@@ -1,10 +1,14 @@
 import React from 'react';
 import {
   RoleManagementPanel as HeadlessRoleManagementPanel,
-  RoleManagementPanelProps,
 } from '@/ui/headless/admin/RoleManagementPanel';
+import { User } from '@/types/user';
 
-const RoleManagementPanel: React.FC<RoleManagementPanelProps> = ({ users }) => (
+interface StyledRoleManagementPanelProps {
+  users: User[];
+}
+
+const RoleManagementPanel: React.FC<StyledRoleManagementPanelProps> = ({ users }) => (
   <HeadlessRoleManagementPanel users={users}>
     {({
       roles,
