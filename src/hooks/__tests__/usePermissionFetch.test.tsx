@@ -2,6 +2,7 @@ import { renderHook, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { usePermission } from '../usePermission';
 import { useAuth } from '@/hooks/auth/useAuth';
+import { PermissionValues } from '@/core/permission/models';
 
 vi.mock('@/hooks/auth/useAuth', () => ({
   useAuth: vi.fn(),
@@ -17,7 +18,7 @@ describe('usePermission (fetch)', () => {
 
   it('returns false when no user', async () => {
     vi.mocked(useAuth).mockReturnValue({ user: null } as any);
-    const { result } = renderHook(() => usePermission('perm.read'));
+    const { result } = renderHook(() => usePermission(PermissionValues.VIEW_PROJECTS));
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(result.current.hasPermission).toBe(false);
     expect(mockFetch).not.toHaveBeenCalled();
@@ -31,7 +32,7 @@ describe('usePermission (fetch)', () => {
         Promise.resolve({ data: { results: [{ hasPermission: true }] } }),
     } as Response);
 
-    const { result } = renderHook(() => usePermission('perm.read'));
+    const { result } = renderHook(() => usePermission(PermissionValues.VIEW_PROJECTS));
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(mockFetch).toHaveBeenCalled();
     expect(result.current.hasPermission).toBe(true);
@@ -41,7 +42,7 @@ describe('usePermission (fetch)', () => {
     vi.mocked(useAuth).mockReturnValue({ user: { id: '1' } } as any);
     mockFetch.mockRejectedValueOnce(new Error('fail'));
 
-    const { result } = renderHook(() => usePermission('perm.read'));
+    const { result } = renderHook(() => usePermission(PermissionValues.VIEW_PROJECTS));
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(result.current.hasPermission).toBe(false);
   });
