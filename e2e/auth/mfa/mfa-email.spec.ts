@@ -49,7 +49,7 @@ test.describe('Email MFA Setup and Verification', () => {
     if (await enableButton.isVisible().catch(() => false)) {
       await enableButton.click();
     } else {
-      test.skip('Enable 2FA button not found');
+      test.skip(true, 'Enable 2FA button not found');
       return;
     }
 
@@ -58,7 +58,7 @@ test.describe('Email MFA Setup and Verification', () => {
     if (await emailOption.isVisible().catch(() => false)) {
       await emailOption.click();
     } else {
-      test.skip('Email MFA option not available');
+      test.skip(true, 'Email MFA option not available');
       return;
     }
 
@@ -106,7 +106,7 @@ test.describe('Email MFA Setup and Verification', () => {
     if (await enableButton.isVisible().catch(() => false)) {
       await enableButton.click();
     } else {
-      test.skip('Enable 2FA button not found');
+      test.skip(true, 'Enable 2FA button not found');
       return;
     }
 
@@ -115,7 +115,7 @@ test.describe('Email MFA Setup and Verification', () => {
     if (await emailOption.isVisible().catch(() => false)) {
       await emailOption.click();
     } else {
-      test.skip('Email MFA option not available');
+      test.skip(true, 'Email MFA option not available');
       return;
     }
 
@@ -143,7 +143,7 @@ test.describe('Email MFA Setup and Verification', () => {
     if (await enableButton.isVisible().catch(() => false)) {
       await enableButton.click();
     } else {
-      test.skip('Enable 2FA button not found');
+      test.skip(true, 'Enable 2FA button not found');
       return;
     }
 
@@ -152,7 +152,7 @@ test.describe('Email MFA Setup and Verification', () => {
     if (await emailOption.isVisible().catch(() => false)) {
       await emailOption.click();
     } else {
-      test.skip('Email MFA option not available');
+      test.skip(true, 'Email MFA option not available');
       return;
     }
 
@@ -165,7 +165,7 @@ test.describe('Email MFA Setup and Verification', () => {
     if (await resendButton.isVisible({ timeout: 5000 }).catch(() => false)) {
       await resendButton.click();
     } else {
-      test.skip('Resend button not implemented yet');
+      test.skip(true, 'Resend button not implemented yet');
     }
   });
 });
