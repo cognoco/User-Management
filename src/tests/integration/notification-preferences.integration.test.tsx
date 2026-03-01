@@ -23,6 +23,18 @@ vi.mock('react-i18next', () => ({
   })
 }));
 
+const mockPreferencesBase = {
+  id: '00000000-0000-0000-0000-000000000001',
+  userId: '00000000-0000-0000-0000-000000000002',
+  language: 'en',
+  theme: 'system' as const,
+  itemsPerPage: 25,
+  timezone: 'UTC',
+  dateFormat: 'YYYY-MM-DD',
+  createdAt: new Date('2025-01-01'),
+  updatedAt: new Date('2025-01-01'),
+};
+
 describe('Notification Preferences Integration', () => {
   let user: ReturnType<typeof userEvent.setup>;
 
@@ -34,6 +46,7 @@ describe('Notification Preferences Integration', () => {
     (usePreferencesStore as any).mockImplementation((selector?: (state: PreferencesState) => any) => {
       const store = {
         preferences: {
+          ...mockPreferencesBase,
           notifications: {
             email: true,
             push: false,
@@ -73,6 +86,7 @@ describe('Notification Preferences Integration', () => {
     (usePreferencesStore as any).mockImplementation((selector?: (state: PreferencesState) => any) => {
       const store = {
         preferences: {
+          ...mockPreferencesBase,
           notifications: {
             email: true,
             push: false,

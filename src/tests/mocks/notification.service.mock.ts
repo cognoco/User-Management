@@ -1,5 +1,6 @@
 import { vi } from 'vitest';
-import type { NotificationService, NotificationBatch, NotificationChannel } from '@/core/notification/interfaces';
+import type { NotificationService } from '@/core/notification/interfaces';
+import type { NotificationBatch } from '@/core/notification/models';
 
 export function createMockNotificationService(overrides: Partial<NotificationService> = {}): NotificationService {
   const defaultBatch: NotificationBatch = {
