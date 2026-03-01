@@ -4,7 +4,7 @@ import { ApiError } from '@/lib/api/common';
 import { createApiMocks } from '@/tests/utils/api-testing-utils';
 import { z } from 'zod';
 
-const methods = ['GET'];
+const methods: ('GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE')[] = ['GET'];
 
 function run(handler: any, reqOpts = {}) {
   const { req, res } = createApiMocks({ method: 'GET', ...reqOpts });
