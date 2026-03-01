@@ -21,7 +21,7 @@ describe('POST /api/company/verify-domain/check', () => {
 
   test('returns status on success', async () => {
     const req = new NextRequest('http://localhost/api/company/verify-domain/check');
-    const res = await POST(req as any, {} as any);
+    const res = await POST(req as any);
     const json = await res.json();
     expect(res.status).toBe(200);
     expect(json.data.verified).toBe(true);
@@ -31,7 +31,7 @@ describe('POST /api/company/verify-domain/check', () => {
   test('returns 400 when not verified', async () => {
     service.checkProfileDomainVerification.mockResolvedValueOnce({ verified: false, message: 'no' });
     const req = new NextRequest('http://localhost/api/company/verify-domain/check');
-    const res = await POST(req as any, {} as any);
+    const res = await POST(req as any);
     const json = await res.json();
     expect(res.status).toBe(400);
     expect(json.data.verified).toBe(false);
@@ -40,7 +40,7 @@ describe('POST /api/company/verify-domain/check', () => {
   test('returns 500 on error', async () => {
     service.checkProfileDomainVerification.mockRejectedValueOnce(new Error('fail'));
     const req = new NextRequest('http://localhost/api/company/verify-domain/check');
-    const res = await POST(req as any, {} as any);
+    const res = await POST(req as any);
     const json = await res.json();
     expect(res.status).toBe(500);
     expect(json.error).toBeDefined();

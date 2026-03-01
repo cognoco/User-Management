@@ -247,7 +247,7 @@ test.describe('Accessibility Features', () => {
       // Try to find a button we can test
       const button = document.querySelector('button:not([disabled]), a[role="button"]:not([disabled])');
       if (button) {
-        button.focus();
+        (button as HTMLElement).focus();
         
         // Mock keyboard event
         const event = new KeyboardEvent('keydown', {
@@ -318,7 +318,7 @@ test.describe('Accessibility Features', () => {
       const textElements = Array.from(document.querySelectorAll('p, h1, h2, h3, h4, h5, h6, span, a, button, label'));
       
       // Simple function to estimate relative luminance (simplified version of WCAG algorithm)
-      const estimateLuminance = (color) => {
+      const estimateLuminance = (color: string) => {
         // Parse RGB from computed style
         const rgb = color.match(/\d+/g);
         if (!rgb || rgb.length < 3) return 1; // Default to white if parsing fails
@@ -355,7 +355,7 @@ test.describe('Accessibility Features', () => {
         
         // WCAG 2.0 Level AA requires 4.5:1 for normal text and 3:1 for large text
         const fontSize = parseFloat(style.fontSize);
-        const isBold = style.fontWeight >= 700;
+        const isBold = Number(style.fontWeight) >= 700;
         const isLarge = fontSize >= 18 || (fontSize >= 14 && isBold);
         
         const minimumRatio = isLarge ? 3 : 4.5;
