@@ -1,6 +1,6 @@
 // e2e/subscription-and-licensing/Payment/payment-methods.e2e.test.ts
 
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
 
 // --- Constants and Test Data --- //
 const USER_EMAIL = process.env.E2E_USER_EMAIL || 'user@example.com';
@@ -8,7 +8,7 @@ const USER_PASSWORD = process.env.E2E_USER_PASSWORD || 'password123';
 const PAYMENT_METHODS_URL = '/payment/methods';
 
 // --- Helper Functions --- //
-async function fillLoginForm(page) {
+async function fillLoginForm(page: Page) {
   // Use a reliable, browser-independent login approach as mentioned in TESTING ISSUES-E2E.md
   try {
     // Method 1: Standard input filling
@@ -18,8 +18,8 @@ async function fillLoginForm(page) {
     // Method 2: JS-based form filling for problematic browsers
     await page.evaluate(
       ([email, password]) => {
-        const emailInput = document.querySelector('input[type="email"]');
-        const passwordInput = document.querySelector('input[type="password"]');
+        const emailInput = document.querySelector<HTMLInputElement>('input[type="email"]');
+        const passwordInput = document.querySelector<HTMLInputElement>('input[type="password"]');
         if (emailInput) {
           emailInput.value = email;
           emailInput.dispatchEvent(new Event('input', { bubbles: true }));
