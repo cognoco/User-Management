@@ -1,13 +1,16 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
 import { GET, POST } from '../route';
 import { configureServices, resetServiceContainer } from '@/lib/config/service-container';
 import type { PermissionService } from '@/core/permission/interfaces';
 import type { AuthService } from '@/core/auth/interfaces';
 import { createAuthenticatedRequest } from '@/tests/utils/request-helpers';
 
+const mockGetAllRoles = vi.fn();
+const mockCreateRole = vi.fn();
+
 const mockService: Partial<PermissionService> = {
-  getAllRoles: vi.fn(),
-  createRole: vi.fn(),
+  getAllRoles: mockGetAllRoles,
+  createRole: mockCreateRole,
 };
 const mockAuth: Partial<AuthService> = {
   getCurrentUser: vi.fn().mockResolvedValue({ id: 'u1' }),
@@ -24,7 +27,7 @@ beforeEach(() => {
 
 describe('roles root API', () => {
   it('GET returns roles', async () => {
-    mockService.getAllRoles.mockResolvedValue([{ id: '1' }]);
+    mockGetAllRoles.mockResolvedValue([{ id: '1' }]);
     const res = await GET(createAuthenticatedRequest('GET', 'http://test'));
     expect(res.status).toBe(200);
     const body = await res.json();
@@ -32,7 +35,7 @@ describe('roles root API', () => {
   });
 
   it('GET supports pagination', async () => {
-    mockService.getAllRoles.mockResolvedValue([{ id: '1' }, { id: '2' }]);
+    mockGetAllRoles.mockResolvedValue([{ id: '1' }, { id: '2' }]);
     const res = await GET(createAuthenticatedRequest('GET', 'http://test?page=2&limit=1'));
     const body = await res.json();
     expect(body.data.page).toBe(2);
@@ -41,9 +44,9 @@ describe('roles root API', () => {
 
   it('POST creates role', async () => {
     const req = createAuthenticatedRequest('POST', 'http://test', { name: 'r', permissions: [] });
-    mockService.createRole.mockResolvedValue({ id: '1' });
+    mockCreateRole.mockResolvedValue({ id: '1' });
     const res = await POST(req as any);
     expect(res.status).toBe(201);
-    expect(mockService.createRole).toHaveBeenCalledWith({ name: 'r', permissions: [] }, 'u1');
+    expect(mockCreateRole).toHaveBeenCalledWith({ name: 'r', permissions: [] }, 'u1');
   });
 });
