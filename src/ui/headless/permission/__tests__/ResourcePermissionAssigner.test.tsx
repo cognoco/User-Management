@@ -21,19 +21,20 @@ describe('ResourcePermissionAssigner', () => {
       refresh: vi.fn(),
     } as any);
 
-    const renderProp = vi.fn(() => null);
+    const renderProp = vi.fn((_props: any) => null);
     renderHook(() => (
       <ResourcePermissionAssigner userId="1" rootType="project" rootId="1" render={renderProp} />
     ));
 
     expect(renderProp).toHaveBeenCalled();
-    const args = renderProp.mock.calls[0][0];
+    const args = renderProp.mock.calls[0]?.[0];
+    expect(args).toBeDefined();
     await act(async () => {
-      await args.assign('project', '1', 'VIEW_PROJECTS');
+      await args!.assign('project', '1', 'VIEW_PROJECTS');
     });
     expect(assign).toHaveBeenCalled();
     await act(async () => {
-      await args.revoke('project', '1', 'VIEW_PROJECTS');
+      await args!.revoke('project', '1', 'VIEW_PROJECTS');
     });
     expect(revoke).toHaveBeenCalled();
   });
