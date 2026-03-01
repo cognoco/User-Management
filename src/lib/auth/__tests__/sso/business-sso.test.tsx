@@ -1,10 +1,10 @@
-// __tests__/auth/sso/business-sso.test.tsx
-
 import { vi } from 'vitest';
 
 declare global {
   // eslint-disable-next-line no-var
   var __TEST_ORG__: import('@/lib/hooks/useOrganization').Organization | undefined;
+  // eslint-disable-next-line no-var
+  var __TEST_ORG_ERROR__: string | undefined;
 }
 
 vi.mock('@/lib/database/supabase', async () => (await import('@/tests/mocks/supabase')));
@@ -114,7 +114,7 @@ describe('Business SSO Authentication Flows', () => {
     });
 
     render(
-      <BusinessSSOAuth orgId="org-123" />
+      <BusinessSSOAuth domain="acme.com" />
     );
 
     await waitFor(() => {
@@ -152,7 +152,7 @@ describe('Business SSO Authentication Flows', () => {
     });
 
     render(
-      <BusinessSSOAuth orgId="org-123" />
+      <BusinessSSOAuth domain="acme.com" />
     );
 
     await waitFor(() => {
@@ -191,7 +191,7 @@ describe('Business SSO Authentication Flows', () => {
     });
 
     render(
-      <BusinessSSOAuth orgId="org-123" />
+      <BusinessSSOAuth domain="acme.com" />
     );
     
     await waitFor(() => {
@@ -228,29 +228,32 @@ describe('Business SSO Authentication Flows', () => {
     });
     
     // Mock organization domains query
-    const { createMockBuilder } = await import('@/tests/mocks/supabase');
+    const makeBuilder = (): Record<string, any> => {
+      const builder: Record<string, any> = {};
+      builder.select = vi.fn().mockReturnValue(builder);
+      builder.eq = vi.fn().mockReturnValue(builder);
+      builder.insert = vi.fn().mockReturnValue(builder);
+      builder.single = vi.fn().mockReturnValue(builder);
+      return builder;
+    };
     (supabase.from as vi.Mock).mockImplementation((table: string) => {
       if (table === 'organization_domains') {
-        const builder: any = createMockBuilder(table);
-        builder.select = vi.fn().mockReturnValue(builder);
-        builder.eq = vi.fn().mockReturnValue(builder);
+        const builder = makeBuilder();
         builder.then = (resolve: any, reject: any) => Promise.resolve({
           data: [{ org_id: 'org-123', domain: 'acme.com', is_verified: true }],
           error: null
         }).then(resolve, reject);
         return builder;
       } else if (table === 'organization_members') {
-        const builder: any = createMockBuilder(table);
+        const builder = makeBuilder();
         builder.insert = vi.fn().mockResolvedValue({ data: [], error: null });
-        builder.select = vi.fn().mockReturnValue(builder);
-        builder.eq = vi.fn().mockReturnValue(builder);
         return builder;
       } else if (table === 'organizations') {
-        const builder: any = createMockBuilder(table);
+        const builder = makeBuilder();
         builder.single = vi.fn().mockResolvedValue({ data: mockOrganization, error: null });
         return builder;
       }
-      return createMockBuilder(table);
+      return makeBuilder();
     });
 
     // Simulate auth callback with corporate email
@@ -275,7 +278,7 @@ describe('Business SSO Authentication Flows', () => {
     });
     
     // Render component with domain detection
-    render(<BusinessSSOAuth orgId="org-123" />);
+    render(<BusinessSSOAuth domain="acme.com" />);
     
     // Assert that the UI shows the redirecting message and no error is displayed
     await waitFor(() => {
@@ -331,7 +334,7 @@ describe('Business SSO Authentication Flows', () => {
     // Render business SSO component
     render(
       <OrganizationProvider orgId="org-123">
-        <BusinessSSOAuth orgId="org-123" />
+        <BusinessSSOAuth domain="acme.com" />
       </OrganizationProvider>
     );
     
