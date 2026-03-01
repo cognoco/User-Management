@@ -1,100 +1,107 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { NextRequest } from 'next/server';
-import { GET, PUT, DELETE } from '../route';
 
-vi.mock('@/middleware/createMiddlewareChain', async () => {
-  const actual = await vi.importActual<any>('@/middleware/createMiddlewareChain');
-  return {
-    ...actual,
-    routeAuthMiddleware: vi.fn(() => (handler: any) =>
-      (req: any, ctx?: any, data?: any) =>
-        handler(req, { userId: 'u1', role: 'admin', permissions: ['admin.users.view','admin.users.update','admin.users.delete','admin.users.list'] }, data)
-    ),
-    errorHandlingMiddleware: vi.fn(() => (handler: any) => handler),
-    validationMiddleware: vi.fn(() => (handler: any) => (req: any, ctx?: any) => {
-      const data = { name: 'test', email: 'test@example.com' };
-      return handler(req, ctx, data);
-    }),
-    createMiddlewareChain: (middlewares: any[]) => (handler: any) => handler,
-  };
-});
-
-vi.mock('@/middleware/with-security', () => ({ 
-  withSecurity: vi.fn((fn: any) => fn)
-}));
-
-// Create a mock admin service instance that will be reused
+// Mock the service container to inject our test services
 const mockAdminService = {
   getUserById: vi.fn(),
   updateUser: vi.fn(),
-  deleteUser: vi.fn()
+  deleteUser: vi.fn(),
 };
 
-vi.mock('@/services/admin/factory', () => ({ 
-  getApiAdminService: vi.fn(() => mockAdminService)
+vi.mock('@/lib/config/service-container', () => ({
+  getServiceContainer: vi.fn(() => ({
+    admin: mockAdminService,
+    auth: { validateSession: vi.fn() },
+    permission: { hasPermissions: vi.fn() },
+  })),
 }));
 
-vi.mock('@/lib/realtime/notifyUserChanges', () => ({ 
-  notifyUserChanges: vi.fn()
+// Mock auth middleware to always pass
+vi.mock('@/lib/api/auth-middleware', () => ({
+  createAuthMiddleware: vi.fn(() => vi.fn().mockResolvedValue({
+    userId: 'admin1',
+    role: 'admin',
+    authenticated: true,
+  })),
+}));
+
+vi.mock('@/lib/realtime/notifyUserChanges', () => ({
+  notifyUserChanges: vi.fn(),
 }));
 
 vi.mock('@/lib/api/admin/error-handler', () => ({
-  createUserNotFoundError: vi.fn(() => new Error('User not found'))
+  createUserNotFoundError: vi.fn((id: string) => {
+    const err: any = new Error(`User ${id} not found`);
+    err.code = 'USER_NOT_FOUND';
+    err.statusCode = 404;
+    return err;
+  }),
 }));
 
-vi.mock('@/lib/api/common', async (importOriginal) => {
-  const actual = await importOriginal<any>();
-  return {
-    ...actual,
-    createSuccessResponse: vi.fn((data: any) => ({ json: () => Promise.resolve(data) })),
-    createNoContentResponse: vi.fn(() => ({ status: 204 }))
-  };
-});
+// Import after mocks
+import { GET, PUT, DELETE } from '../route';
 
-function createMockRequest() {
-  return {
-    method: 'GET',
-    url: 'http://localhost/api/admin/users/1',
-    nextUrl: { pathname: '/api/admin/users/1' },
-    headers: {
-      get: () => null
-    },
-    json: vi.fn().mockResolvedValue({})
-  } as unknown as NextRequest;
+function createMockRequest(method = 'GET', body?: any) {
+  return new NextRequest(`http://localhost/api/admin/users/u1`, {
+    method,
+    ...(body ? { body: JSON.stringify(body) } : {}),
+    headers: body ? { 'Content-Type': 'application/json' } : {},
+  });
 }
-
-const req = createMockRequest();
-const ctx = { params: { id: '1' } } as any;
 
 describe('Admin Users by ID API', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    
-    // Set up the admin service mocks to return valid data
-    mockAdminService.getUserById.mockResolvedValue({ id: '1', name: 'Test User', email: 'test@example.com' });
-    mockAdminService.updateUser.mockResolvedValue({ id: '1', name: 'Updated User', email: 'test@example.com' });
+
+    mockAdminService.getUserById.mockResolvedValue({
+      id: 'u1',
+      name: 'Test User',
+      email: 'test@example.com',
+    });
+    mockAdminService.updateUser.mockResolvedValue({
+      id: 'u1',
+      name: 'Updated User',
+      email: 'test@example.com',
+    });
     mockAdminService.deleteUser.mockResolvedValue(undefined);
   });
 
-  it('calls auth middleware for GET', async () => {
-    await GET(req, ctx);
-    const { routeAuthMiddleware } = await import('@/middleware/createMiddlewareChain');
-    expect(routeAuthMiddleware).toHaveBeenCalled();
+  describe('GET', () => {
+    it('returns user data for a valid user id', async () => {
+      const req = createMockRequest('GET');
+      const res = await GET(req);
+      const data = await res.json();
+
+      expect(mockAdminService.getUserById).toHaveBeenCalledWith('u1');
+      expect(data).toMatchObject({
+        data: { user: { id: 'u1', name: 'Test User', email: 'test@example.com' } },
+      });
+    });
   });
 
-  it('calls auth middleware for PUT', async () => {
-    await PUT(req, ctx);
-    const { routeAuthMiddleware } = await import('@/middleware/createMiddlewareChain');
-    const { withSecurity } = await import('@/middleware/with-security');
-    expect(routeAuthMiddleware).toHaveBeenCalled();
-    expect(withSecurity).toHaveBeenCalled();
+  describe('PUT', () => {
+    it('updates a user with validated data', async () => {
+      const req = createMockRequest('PUT', { name: 'Updated User', email: 'test@example.com' });
+      const res = await PUT(req);
+      const data = await res.json();
+
+      expect(mockAdminService.updateUser).toHaveBeenCalledWith('u1', expect.objectContaining({
+        name: 'Updated User',
+        email: 'test@example.com',
+      }));
+      expect(data).toMatchObject({
+        data: { user: { id: 'u1', name: 'Updated User', email: 'test@example.com' } },
+      });
+    });
   });
 
-  it('calls auth middleware for DELETE', async () => {
-    await DELETE(req, ctx);
-    const { routeAuthMiddleware } = await import('@/middleware/createMiddlewareChain');
-    const { withSecurity } = await import('@/middleware/with-security');
-    expect(routeAuthMiddleware).toHaveBeenCalled();
-    expect(withSecurity).toHaveBeenCalled();
+  describe('DELETE', () => {
+    it('deletes the user and returns no content', async () => {
+      const req = createMockRequest('DELETE');
+      const res = await DELETE(req);
+
+      expect(mockAdminService.deleteUser).toHaveBeenCalledWith('u1');
+      expect(res.status).toBe(204);
+    });
   });
 });
