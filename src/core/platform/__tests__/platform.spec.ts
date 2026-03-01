@@ -3,6 +3,7 @@
  * @group core/platform
  */
 
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { 
   isServer,
   isClient,
@@ -87,7 +88,7 @@ describe('Platform Abstraction Layer', () => {
 
   describe('clientOnly and serverOnly', () => {
     it('clientOnly should only execute on client', () => {
-      const clientFn = jest.fn(() => 'client');
+      const clientFn = vi.fn(() => 'client');
       const result = clientOnly(clientFn, 'server');
       
       if (isClient) {
@@ -100,7 +101,7 @@ describe('Platform Abstraction Layer', () => {
     });
 
     it('serverOnly should only execute on server', () => {
-      const serverFn = jest.fn(() => 'server');
+      const serverFn = vi.fn(() => 'server');
       const result = serverOnly(serverFn, 'client');
       
       if (isServer) {

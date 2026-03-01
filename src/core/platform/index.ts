@@ -13,7 +13,7 @@ export * from "./interfaces";
 /**
  * Server-side storage implementation for SSR
  */
-class ServerStorage implements Storage {
+export class ServerStorage implements Storage {
   private store: Map<string, string> = new Map();
 
   get length(): number {
