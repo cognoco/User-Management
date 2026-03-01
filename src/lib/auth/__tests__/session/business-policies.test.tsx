@@ -4,9 +4,10 @@ import React from 'react';
 import { render, screen, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { OrganizationSessionManager } from '@/ui/styled/company/OrganizationSessionManager';
-import { OrganizationProvider } from '@/lib/context/OrganizationContext'; // Corrected import path
+import { OrganizationProvider } from '@/lib/context/OrganizationContext';
 import { UserManagementProvider } from '@/lib/auth/UserManagementProvider';
-import { vi, describe, beforeEach, test, expect, afterEach } from 'vitest'; // Import vi and afterEach
+import { vi, describe, beforeEach, test, expect, afterEach } from 'vitest';
+import type { Mock } from 'vitest';
 
 // IMPORTANT: Mock the real Supabase client before anything else
 vi.mock('@supabase/supabase-js', async () => (await import('@/tests/mocks/supabase')));
@@ -15,9 +16,12 @@ vi.mock('@supabase/supabase-js', async () => (await import('@/tests/mocks/supaba
 vi.mock('../../../../lib/database/supabase', async () => (await import('@/tests/mocks/supabase')));
 import { supabase } from '@/lib/database/supabase';
 
+// Cast supabase to any for mock method access — the real types don't expose vi.Mock helpers
+const mockSupabase = supabase as any;
+
 describe('MOCK DIAGNOSTIC', () => {
   test('supabase.from returns a function with .select', () => {
-    const builder = supabase.from('organizations');
+    const builder = mockSupabase.from('organizations');
     // eslint-disable-next-line no-console
     console.log('MOCK DIAGNOSTIC builder:', builder, Object.keys(builder));
     expect(typeof builder).toBe('function');
@@ -30,8 +34,7 @@ describe('MOCK DIAGNOSTIC', () => {
 
 describe('DEBUG: Supabase mock shape', () => {
   test('supabase.from returns an object with .select', () => {
-    const builder = supabase.from('organizations');
-    // Log the builder and its methods
+    const builder = mockSupabase.from('organizations');
     // eslint-disable-next-line no-console
     console.log('DEBUG builder:', builder);
     expect(typeof builder.select).toBe('function');
@@ -53,10 +56,11 @@ describe('Business-specific Session Controls', () => {
   };
   
   // Mock organization
-  const mockOrganization = {
+  const mockOrganization: Record<string, unknown> = {
     id: 'org-123',
     name: 'Acme Inc',
     domain: 'acme.com',
+    sso_enabled: false,
     security_settings: {
       session_timeout_mins: 60, // 1 hour session timeout
       max_sessions_per_user: 3,
@@ -69,13 +73,14 @@ describe('Business-specific Session Controls', () => {
     }
   };
   
+  // Mock organization members (currently not used in tests)
 
   beforeEach(() => {
     vi.clearAllMocks();
     user = userEvent.setup();
-    globalThis.__TEST_ORG__ = mockOrganization;
+    (globalThis as any).__TEST_ORG__ = mockOrganization;
     // Mock authentication state
-    (supabase.auth.getUser as vi.Mock).mockResolvedValue({
+    (mockSupabase.auth.getUser as Mock).mockResolvedValue({
       data: { user: mockAdminUser },
       error: null
     });
@@ -84,8 +89,8 @@ describe('Business-specific Session Controls', () => {
   });
 
   afterEach(() => {
-    delete globalThis.__TEST_ORG__;
-    delete globalThis.__TEST_ORG_ERROR__;
+    delete (globalThis as any).__TEST_ORG__;
+    delete (globalThis as any).__TEST_ORG_ERROR__;
     delete (globalThis as any).__LAST_ORGANIZATIONS_BUILDER__; // Clean up the stored builder
   });
 
@@ -141,7 +146,7 @@ describe('Business-specific Session Controls', () => {
 
   test('Admin can view and terminate user sessions across organization', async () => {
     // Mock successful session termination
-    (supabase.rpc as vi.Mock).mockImplementation((procedure: string, params: any) => {
+    (mockSupabase.rpc as Mock).mockImplementation((procedure: string, params: any) => {
       if (procedure === 'terminate_user_sessions') {
         return Promise.resolve({
           data: { count: params.user_id === 'user-123' ? 2 : 1 },
@@ -237,7 +242,7 @@ describe('Business-specific Session Controls', () => {
     
     // Verify update was called with correct data
     await waitFor(() => {
-      expect((supabase.from as vi.Mock)('organizations').update).toHaveBeenCalledWith(
+      expect(mockSupabase.from('organizations').update).toHaveBeenCalledWith(
         expect.objectContaining({
           enforce_ip_restrictions: false,
           allowed_ip_ranges: ['192.168.1.0/24', '10.0.0.0/16', '172.16.0.0/16']
@@ -286,7 +291,7 @@ describe('Business-specific Session Controls', () => {
     
     // Verify update was called with correct data
     await waitFor(() => {
-      expect(supabase.from().update).toHaveBeenCalledWith(
+      expect(mockSupabase.from('organizations').update).toHaveBeenCalledWith(
         expect.objectContaining({
           sensitive_actions: ['user_management', 'api_keys', 'delete_records']
         })
@@ -299,10 +304,11 @@ describe('Business-specific Session Controls', () => {
     const mockIp = '192.168.1.100'; // Within allowed range
     
     // Mock IP verification RPC
-    supabase.rpc.mockImplementation((procedure: string, _params: any) => {
+    (mockSupabase.rpc as Mock).mockImplementation((procedure: string, _params: any) => {
       if (procedure === 'check_ip_restrictions') {
         // Check if IP is within allowed ranges
-        const allowed = mockOrganization.security_settings.allowed_ip_ranges.some(range => {
+        const securitySettings = mockOrganization.security_settings as { allowed_ip_ranges: string[] };
+        const allowed = securitySettings.allowed_ip_ranges.some((range: string) => {
           // This is a simplified check for test purposes
           if (range === '192.168.1.0/24') {
             return mockIp.startsWith('192.168.1.');
@@ -340,7 +346,7 @@ describe('Business-specific Session Controls', () => {
     vi.clearAllMocks();
     
     // Update mock response for unauthorized IP
-    supabase.rpc.mockImplementation((procedure: string, _params: any) => {
+    (mockSupabase.rpc as Mock).mockImplementation((procedure: string, _params: any) => {
       if (procedure === 'check_ip_restrictions') {
         return Promise.resolve({
           data: { allowed: false },
@@ -365,7 +371,7 @@ describe('Business-specific Session Controls', () => {
 
   test('Force reauthentication dialog works correctly for sensitive operations', async () => {
     // Mock successful reauthentication
-    supabase.auth.signInWithPassword.mockResolvedValueOnce({
+    (mockSupabase.auth.signInWithPassword as Mock).mockResolvedValueOnce({
       data: { user: mockAdminUser, session: { access_token: 'new-token' } },
       error: null
     });
