@@ -4,6 +4,15 @@ import { useCsrf } from '../useCsrf';
 import { CsrfProvider } from '@/ui/headless/csrf/CsrfProvider';
 import type { CsrfService } from '@/core/csrf/interfaces';
 
+function mockCsrfService(overrides: Partial<CsrfService> = {}): CsrfService {
+  return {
+    createToken: vi.fn(async () => ({ success: true, token: { token: 'tok' } })),
+    validateToken: vi.fn(async () => ({ valid: true })),
+    revokeToken: vi.fn(async () => ({ success: true })),
+    ...overrides,
+  };
+}
+
 function createWrapper(service: CsrfService) {
   const Wrapper = ({ children }: { children: React.ReactNode }) => (
     <CsrfProvider csrfService={service}>{children}</CsrfProvider>
@@ -14,20 +23,22 @@ function createWrapper(service: CsrfService) {
 
 describe('useCsrf', () => {
   it('fetches token on mount', async () => {
-    const service: CsrfService = { generateToken: vi.fn(async () => ({ token: 'tok' })) };
+    const service = mockCsrfService();
     const { result } = renderHook(() => useCsrf(), { wrapper: createWrapper(service) });
 
     await act(async () => {
       await Promise.resolve();
     });
 
-    expect(service.generateToken).toHaveBeenCalled();
+    expect(service.createToken).toHaveBeenCalled();
     expect(result.current.token).toBe('tok');
     expect(result.current.error).toBeNull();
   });
 
   it('handles errors', async () => {
-    const service: CsrfService = { generateToken: vi.fn(async () => { throw new Error('fail'); }) };
+    const service = mockCsrfService({
+      createToken: vi.fn(async () => { throw new Error('fail'); }),
+    });
     const { result } = renderHook(() => useCsrf(), { wrapper: createWrapper(service) });
 
     await act(async () => {
@@ -39,7 +50,9 @@ describe('useCsrf', () => {
   });
 
   it('validates token', async () => {
-    const service: CsrfService = { generateToken: vi.fn(async () => ({ token: 'abc' })) };
+    const service = mockCsrfService({
+      createToken: vi.fn(async () => ({ success: true, token: { token: 'abc' } })),
+    });
     const { result } = renderHook(() => useCsrf(), { wrapper: createWrapper(service) });
 
     await act(async () => {

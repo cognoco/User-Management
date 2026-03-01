@@ -32,17 +32,13 @@ describe('Browser Platform', () => {
         length: 0
       };
 
-      // @ts-expect-error - Mocking browser globals
       global.localStorage = localStorageMock;
-      // @ts-expect-error - Mocking browser globals
       global.sessionStorage = sessionStorageMock;
     });
 
     afterEach(() => {
       // Restore originals
-      // @ts-expect-error - Restoring browser globals
       global.localStorage = originalLocalStorage;
-      // @ts-expect-error - Restoring browser globals
       global.sessionStorage = originalSessionStorage;
       vi.clearAllMocks();
     });

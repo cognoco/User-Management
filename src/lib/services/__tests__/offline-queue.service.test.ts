@@ -12,9 +12,9 @@ describe('OfflineQueueService', () => {
 
   it('enqueues and processes requests in priority order', async () => {
     const results: number[] = [];
-    offlineQueue.enqueue(async () => results.push(1), 0);
-    offlineQueue.enqueue(async () => results.push(2), 2);
-    offlineQueue.enqueue(async () => results.push(3), 1);
+    offlineQueue.enqueue(async () => { results.push(1); }, 0);
+    offlineQueue.enqueue(async () => { results.push(2); }, 2);
+    offlineQueue.enqueue(async () => { results.push(3); }, 1);
 
     await processQueue();
 
@@ -23,7 +23,7 @@ describe('OfflineQueueService', () => {
 
   it('allows selective cancellation', async () => {
     const results: number[] = [];
-    const id = offlineQueue.enqueue(async () => results.push(1));
+    const id = offlineQueue.enqueue(async () => { results.push(1); });
     offlineQueue.cancel(id);
     await processQueue();
     expect(results).toEqual([]);

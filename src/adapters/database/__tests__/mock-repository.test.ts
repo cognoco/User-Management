@@ -8,18 +8,18 @@ describe('MockRepository', () => {
     const repo = new MockRepository<Item>();
     await repo.connect();
 
-    const created = await repo.create({ name: 'test' });
+    const created = await repo.create({ name: 'test' }) as Item;
     expect(created).toHaveProperty('id');
 
-    const found = await repo.findById(created.id);
+    const found = await repo.findById(created.id) as Item | null;
     expect(found?.name).toBe('test');
 
-    const updated = await repo.update(created.id, { name: 'updated' });
+    const updated = await repo.update(created.id, { name: 'updated' }) as Item;
     expect(updated.name).toBe('updated');
 
     const del = await repo.delete(created.id);
     expect(del.success).toBe(true);
-    const missing = await repo.findById(created.id);
+    const missing = await repo.findById(created.id) as Item | null;
     expect(missing).toBeNull();
   });
 

@@ -73,11 +73,11 @@ describe('POST /api/auth/oauth/disconnect', () => {
     mockCookies.clear();
     // Assume user is logged in for most tests
     mockSupabaseAuth.getUser.mockResolvedValue({ data: { user: mockLoggedInUser }, error: null });
-    mockPermissionService.hasPermission!.mockResolvedValue(true);
+    (mockPermissionService.hasPermission as MockedFunction<any>).mockResolvedValue(true);
     resetServiceContainer();
     configureServices({
       permissionService: mockPermissionService as PermissionService,
-      authService: { getCurrentUser: vi.fn().mockResolvedValue({ id: loggedInUserId }) } as AuthService,
+      authService: { getCurrentUser: vi.fn().mockResolvedValue({ id: loggedInUserId }) } as unknown as AuthService,
     });
   });
 
@@ -102,7 +102,7 @@ describe('POST /api/auth/oauth/disconnect', () => {
   });
 
 it('should return 403 if user lacks permission', async () => {
-    mockPermissionService.hasPermission.mockResolvedValue(false);
+    (mockPermissionService.hasPermission as MockedFunction<any>).mockResolvedValue(false);
     const request = createRequest({ provider: providerToDisconnect });
     const response = await POST(request);
     const body = await response.json();
