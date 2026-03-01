@@ -2,6 +2,7 @@ import { describe, test, expect, beforeEach, vi, afterEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { toast } from '@/lib/hooks/use-toast';
+import { Toaster } from '@/ui/primitives/toaster';
 import { notificationService } from '@/lib/services/notification.service';
 import { notificationQueue } from '@/lib/services/notification-queue.service';
 
@@ -47,6 +48,7 @@ const ToastTestComponent = () => {
   return (
     <div>
       <button onClick={handleShowToast}>Show Toast</button>
+      <Toaster />
     </div>
   );
 };
@@ -54,6 +56,34 @@ const ToastTestComponent = () => {
 describe('Notification Delivery System', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // Re-establish mock return values after clearAllMocks
+    (notificationQueue.enqueue as any).mockReturnValue('mock-tracking-id');
+    (notificationQueue.getStatus as any).mockReturnValue({
+      id: 'mock-tracking-id',
+      status: 'delivered',
+      attempts: 1,
+      maxAttempts: 3,
+      createdAt: new Date(),
+      deliveredAt: new Date(),
+    });
+    (notificationQueue.getStats as any).mockReturnValue({
+      total: 5,
+      pending: 1,
+      processing: 0,
+      delivered: 3,
+      failed: 1,
+    });
+    // Enable the notification service and all providers for testing
+    notificationService.setConfig({
+      enabled: true,
+      providers: {
+        email: true,
+        push: true,
+        sms: true,
+        marketing: true,
+        inApp: true,
+      },
+    });
   });
 
   afterEach(() => {
@@ -61,7 +91,7 @@ describe('Notification Delivery System', () => {
   });
 
   describe('Notification Queue', () => {
-    test('should enqueue notifications', () => {
+    test('should enqueue notifications', async () => {
       const payload = {
         type: 'email' as const,
         title: 'Test Email',
@@ -69,7 +99,7 @@ describe('Notification Delivery System', () => {
         category: 'system' as const
       };
 
-      const result = notificationService.send(payload);
+      const result = await notificationService.send(payload);
       
       expect(result).toEqual({ success: true, trackingId: 'mock-tracking-id' });
       expect(notificationQueue.enqueue).toHaveBeenCalledWith(payload);
@@ -101,11 +131,6 @@ describe('Notification Delivery System', () => {
         type: 'email' as const
       };
 
-      const spy = vi.spyOn(notificationService, 'processEmailNotification');
-      
-      // Mock the processor function to simulate successful delivery
-      spy.mockResolvedValue(true);
-      
       await notificationService.sendEmail(
         emailPayload.title,
         emailPayload.message
@@ -127,11 +152,6 @@ describe('Notification Delivery System', () => {
         type: 'push' as const
       };
 
-      const spy = vi.spyOn(notificationService, 'processPushNotification');
-      
-      // Mock the processor function to simulate successful delivery
-      spy.mockResolvedValue(true);
-      
       await notificationService.sendPush(
         pushPayload.title,
         pushPayload.message
@@ -164,24 +184,23 @@ describe('Notification Delivery System', () => {
 
   describe('Notification Delivery Error Handling', () => {
     test('should handle email delivery failures', async () => {
-      // Setup mocks to simulate failure
+      // Mock enqueue to throw, simulating a queue failure
       const apiError = new Error('Email delivery failed');
-      const emailProcessor = vi.spyOn(notificationService, 'processEmailNotification');
-      emailProcessor.mockRejectedValue(apiError);
+      (notificationQueue.enqueue as any).mockImplementationOnce(() => {
+        throw apiError;
+      });
       
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       
-      // Attempt to send email that will fail
-      await notificationService.sendEmail(
+      // Attempt to send email that will fail at the queue level
+      const result = await notificationService.sendEmail(
         'Failed Email',
         'This email will fail'
       );
       
-      // Verify error was logged
+      // send() catches the error and returns failure
+      expect(result).toEqual({ success: false, reason: 'Failed to queue notification' });
       expect(consoleSpy).toHaveBeenCalled();
-      expect(notificationQueue.enqueue).toHaveBeenCalledWith(expect.objectContaining({
-        type: 'email'
-      }));
     });
     
     test('should retry failed notification deliveries', async () => {
@@ -208,9 +227,9 @@ describe('Notification Delivery System', () => {
       const status = notificationService.getNotificationStatus('retry-test-id');
       
       expect(status).toBeDefined();
-      expect(status.status).toBe('pending');
-      expect(status.attempts).toBe(1);
-      expect(status.maxAttempts).toBe(3);
+      expect(status!.status).toBe('pending');
+      expect(status!.attempts).toBe(1);
+      expect(status!.maxAttempts).toBe(3);
     });
   });
 }); 
