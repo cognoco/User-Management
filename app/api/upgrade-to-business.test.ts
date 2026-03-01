@@ -1,9 +1,11 @@
 import { describe, test, expect, beforeEach, vi, afterEach } from 'vitest';
 import { NextRequest } from 'next/server';
-// Note: This test file appears to be testing a non-existent route
-// The upgrade-to-business functionality should be implemented as an API route
-// For now, commenting out the problematic import
+// TODO: Import the real POST handler once the route is implemented at
+// app/api/upgrade-to-business/route.ts, then remove this stub.
 // import { POST } from '../upgrade-to-business/route';
+const POST = async (_req: NextRequest): Promise<Response> => {
+  throw new Error('upgrade-to-business route not implemented yet');
+};
 import { getServiceSupabase } from '@/lib/database/supabase';
 
 // Mock dependencies
