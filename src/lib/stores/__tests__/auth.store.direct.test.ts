@@ -1,180 +1,129 @@
 /**
- * Direct tests for auth.store.ts focusing on the getState() functionality
- * This test file specifically addresses the "function is not a function" error
- * when accessing functions from getState()
+ * Direct tests for auth.store.ts compatibility layer.
+ * Verifies that useAuthStore correctly wraps the useAuth hook
+ * and exposes the expected interface.
  */
 
-import { describe, it, expect, vi, beforeEach, beforeAll } from 'vitest';
-import { vi as viMock } from 'vitest';
-// Mock dependencies to isolate the store
-// Use the correct path relative to the test file
-vi.mock('@/lib/api/axios', () => ({
-  api: {
-    post: vi.fn().mockImplementation(() => Promise.resolve({ data: {} })),
-    delete: vi.fn().mockImplementation(() => Promise.resolve({ data: {} })),
-  }
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { renderHook } from '@testing-library/react';
+
+// Mock the useAuth hook that useAuthStore delegates to
+const mockAuth = {
+  user: null as any,
+  token: null as string | null,
+  isLoading: false,
+  isAuthenticated: false,
+  error: null as string | null,
+  success: null as string | null,
+  successMessage: null as string | null,
+  mfaEnabled: false,
+  mfaSecret: null as string | null,
+  mfaQrCode: null as string | null,
+  mfaBackupCodes: null as string[] | null,
+  loading: false,
+  login: vi.fn().mockResolvedValue({ success: true, requiresMfa: false, token: 'token123' }),
+  register: vi.fn().mockResolvedValue({ success: true }),
+  logout: vi.fn().mockResolvedValue(undefined),
+  resetPassword: vi.fn().mockResolvedValue({ success: true }),
+  updatePassword: vi.fn().mockResolvedValue({ success: true }),
+  sendVerificationEmail: vi.fn().mockResolvedValue({ success: true }),
+  verifyEmail: vi.fn().mockResolvedValue({ success: true }),
+  verifyMFA: vi.fn().mockResolvedValue({ success: true }),
+  setupMFA: vi.fn().mockResolvedValue({ success: true }),
+  deleteAccount: vi.fn().mockResolvedValue({ success: true }),
+  clearError: vi.fn(),
+  clearSuccess: vi.fn(),
+  setUser: vi.fn(),
+  setToken: vi.fn(),
+  onSessionTimeout: vi.fn(),
+  refreshToken: vi.fn().mockResolvedValue(true),
+};
+
+vi.mock('@/hooks/auth/useAuth', () => ({
+  useAuth: () => mockAuth,
 }));
 
-// Mock localStorage
-const localStorageMock = {
-  getItem: vi.fn(),
-  setItem: vi.fn(),
-  removeItem: vi.fn(),
-};
-Object.defineProperty(window, 'localStorage', { value: localStorageMock });
-
-// Patch: Use robust mock for useAuthStore
-viMock.mock('@/hooks/auth/useAuth', async () => {
-  const { createMockAuthStore } = await import('@/tests/mocks/auth.store.mock');
-  return { useAuth: createMockAuthStore() };
-});
-
-// Patch: Set up globalThis.api for the mock to work
-beforeAll(async () => {
-  // Attach API mock to globalThis for use in the mock store
-  // @ts-expect-error: test mock global property
-  globalThis.api = (await import('@/lib/api/axios')).api;
-});
-
-describe('Auth Store Direct Tests', () => {
+describe('Auth Store Compatibility Layer', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('should expose all action functions through getState()', async () => {
+  it('should expose all expected action functions', async () => {
     const { useAuthStore } = await import('../auth.store');
-    useAuthStore.setState({
-      user: null,
-      token: null,
-      isLoading: false,
-      isAuthenticated: false,
-      error: null,
-      successMessage: null,
-      rateLimitInfo: null,
-      mfaEnabled: false,
-      mfaSecret: null,
-      mfaQrCode: null,
-      mfaBackupCodes: null,
-    });
-    // Get the store state directly
-    const state = useAuthStore.getState();
-    
-    // Check that all functions exist and are functions
-    expect(state.login).toBeDefined();
+    const { result } = renderHook(() => useAuthStore());
+    const state = result.current;
+
+    // Verify all expected functions exist
     expect(typeof state.login).toBe('function');
-    
-    expect(state.register).toBeDefined();
     expect(typeof state.register).toBe('function');
-    
-    expect(state.logout).toBeDefined();
     expect(typeof state.logout).toBe('function');
-    
-    expect(state.resetPassword).toBeDefined();
     expect(typeof state.resetPassword).toBe('function');
-    
-    expect(state.updatePassword).toBeDefined();
     expect(typeof state.updatePassword).toBe('function');
-    
-    expect(state.sendVerificationEmail).toBeDefined();
     expect(typeof state.sendVerificationEmail).toBe('function');
-    
-    expect(state.verifyEmail).toBeDefined();
     expect(typeof state.verifyEmail).toBe('function');
-    
-    expect(state.clearError).toBeDefined();
     expect(typeof state.clearError).toBe('function');
-    
-    expect(state.clearSuccessMessage).toBeDefined();
     expect(typeof state.clearSuccessMessage).toBe('function');
-    
-    expect(state.deleteAccount).toBeDefined();
     expect(typeof state.deleteAccount).toBe('function');
+    expect(typeof state.setupMFA).toBe('function');
+    expect(typeof state.verifyMFA).toBe('function');
+    expect(typeof state.refreshToken).toBe('function');
   });
 
-  it('should be able to call functions obtained from getState()', async () => {
+  it('should expose state properties from useAuth', async () => {
     const { useAuthStore } = await import('../auth.store');
-    useAuthStore.setState({
-      user: null,
-      token: null,
-      isLoading: false,
-      isAuthenticated: false,
-      error: null,
-      successMessage: null,
-      rateLimitInfo: null,
-      mfaEnabled: false,
-      mfaSecret: null,
-      mfaQrCode: null,
-      mfaBackupCodes: null,
-    });
-    // Get specific functions from the store state
-    const { login, register, logout } = useAuthStore.getState();
-    
-    // Verify they are functions
-    expect(typeof login).toBe('function');
-    expect(typeof register).toBe('function');
-    expect(typeof logout).toBe('function');
-    
-    // Access the mocked API directly
-    const apiModule = await import('@/lib/api/axios');
-    const api = apiModule.api as any;
-    api.post.mockResolvedValueOnce({
-      data: {
-        user: { id: '123' },
-        token: 'token123',
-        requiresMfa: false,
-        expiresAt: Date.now() + 10000
-      }
-    });
-    
-    // Try calling the login function directly
-    const result = await login({ email: 'test@example.com', password: 'password' });
-    // Debug log
-    console.log('DEBUG login result:', result);
-    
-    // Verify the function executed correctly
-    expect(result).toEqual({ success: true, requiresMfa: false, token: 'token123' });
-    expect(api.post).toHaveBeenCalledWith('/api/auth/login', { 
-      email: 'test@example.com', 
-      password: 'password' 
-    });
+    const { result } = renderHook(() => useAuthStore());
+    const state = result.current;
+
+    expect(state.user).toBeNull();
+    expect(state.token).toBeNull();
+    expect(state.isLoading).toBe(false);
+    expect(state.isAuthenticated).toBe(false);
+    expect(state.error).toBeNull();
+    expect(state.successMessage).toBeNull();
+    expect(state.rateLimitInfo).toBeNull();
+    expect(state.mfaEnabled).toBe(false);
+    expect(state.mfaSecret).toBeNull();
+    expect(state.mfaQrCode).toBeNull();
+    expect(state.mfaBackupCodes).toBeNull();
   });
 
-  it('should handle destructured function calls', async () => {
+  it('should delegate login calls to useAuth', async () => {
     const { useAuthStore } = await import('../auth.store');
-    useAuthStore.setState({
-      user: null,
-      token: null,
-      isLoading: false,
-      isAuthenticated: false,
-      error: null,
-      successMessage: null,
-      rateLimitInfo: null,
-      mfaEnabled: false,
-      mfaSecret: null,
-      mfaQrCode: null,
-      mfaBackupCodes: null,
-    });
-    // Destructure functions from the store
-    const { login } = useAuthStore.getState();
-    
-    // Access the mocked API directly
-    const apiModule = await import('@/lib/api/axios');
-    const api = apiModule.api as any;
-    api.post.mockResolvedValueOnce({
-      data: {
-        user: { id: '123' },
-        token: 'token123',
-        requiresMfa: false,
-        expiresAt: Date.now() + 10000
-      }
-    });
-    
-    // Call the destructured function
-    const result = await login({ email: 'test@example.com', password: 'password' });
-    // Debug log
-    console.log('DEBUG login result (destructured):', result);
-    
-    // Verify it worked
-    expect(result).toEqual({ success: true, requiresMfa: false, token: 'token123' });
+    const { result } = renderHook(() => useAuthStore());
+
+    const loginResult = await result.current.login({ email: 'test@example.com', password: 'password' });
+
+    expect(mockAuth.login).toHaveBeenCalledWith('test@example.com', 'password');
+    expect(loginResult).toEqual({ success: true, requiresMfa: false, token: 'token123' });
+  });
+
+  it('should delegate logout calls to useAuth', async () => {
+    const { useAuthStore } = await import('../auth.store');
+    const { result } = renderHook(() => useAuthStore());
+
+    await result.current.logout();
+
+    expect(mockAuth.logout).toHaveBeenCalled();
+  });
+
+  it('should delegate register calls to useAuth', async () => {
+    const { useAuthStore } = await import('../auth.store');
+    const { result } = renderHook(() => useAuthStore());
+    const payload = { email: 'new@example.com', password: 'pass123', firstName: 'Test', lastName: 'User' };
+
+    await result.current.register(payload);
+
+    expect(mockAuth.register).toHaveBeenCalledWith(payload);
+  });
+
+  it('should delegate clearError and clearSuccessMessage to useAuth', async () => {
+    const { useAuthStore } = await import('../auth.store');
+    const { result } = renderHook(() => useAuthStore());
+
+    result.current.clearError();
+    expect(mockAuth.clearError).toHaveBeenCalled();
+
+    result.current.clearSuccessMessage();
+    expect(mockAuth.clearSuccess).toHaveBeenCalled();
   });
 });
