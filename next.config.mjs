@@ -1,6 +1,10 @@
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  serverExternalPackages: ['nodemailer'],
   webpack: (config, { isServer }) => {
     // Increase the timeout for chunk loading
     config.watchOptions = {
@@ -30,9 +34,11 @@ const nextConfig = {
         util: false,
       };
       
-      // Completely exclude nodemailer from client bundle
-      config.externals = config.externals || {};
-      config.externals.nodemailer = 'nodemailer';
+      // Replace nodemailer with an empty module in client bundles
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        nodemailer: require.resolve('./src/lib/email/nodemailer-stub.js'),
+      };
     }
     
     return config;

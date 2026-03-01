@@ -12,7 +12,9 @@ import { getServiceSupabase } from '@/lib/database/supabase';
 import { authenticator } from 'otplib';
 import * as qrcode from 'qrcode';
 import crypto from 'crypto';
-import { sendEmail } from '@/lib/email/sendEmail';
+// Dynamically imported to keep nodemailer out of the client bundle
+const loadSendEmail = () =>
+  import('@/lib/email/sendEmail').then((m) => m.sendEmail);
 import { sendSms } from '@/lib/sms/sendSms';
 import {
   generateRegistration,
@@ -52,6 +54,7 @@ export class DefaultTwoFactorService implements TwoFactorService {
         const code = this.generateCode();
         const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
         try {
+          const sendEmail = await loadSendEmail();
           await sendEmail({
             to: targetEmail,
             subject: 'Your MFA Verification Code',

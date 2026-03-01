@@ -1,5 +1,6 @@
-import fs from 'fs';
-import path from 'path';
+// Dynamically loaded to avoid bundling Node.js builtins into client
+const getFs = () => typeof window === 'undefined' ? require('fs') : null;
+const getPath = () => typeof window === 'undefined' ? require('path') : null;
 import { loadEnvironment, validateEnvironment, EnvironmentConfig } from './environment';
 import { UserManagementConfig, DEFAULT_CONFIG } from './interfaces';
 
@@ -14,6 +15,9 @@ let config: RuntimeConfig = {
 
 export function loadConfigFromFile(filePath = 'user-management.config.ts'): Partial<RuntimeConfig> {
   try {
+    const fs = getFs();
+    const path = getPath();
+    if (!fs || !path) return {};
     const resolved = path.resolve(process.cwd(), filePath);
     if (fs.existsSync(resolved)) {
       // eslint-disable-next-line @typescript-eslint/no-var-requires

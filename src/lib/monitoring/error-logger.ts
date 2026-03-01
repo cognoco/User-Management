@@ -39,14 +39,14 @@ export class ConsoleTransport implements LogTransport {
   }
 }
 
-import fs from "fs";
-
 export class FileTransport implements LogTransport {
   constructor(private filePath: string = "error.log") {}
 
   log(entry: LogEntry) {
+    if (typeof window !== 'undefined') return; // no-op on client
     const line = JSON.stringify(entry) + "\n";
     try {
+      const fs = require("fs");
       fs.appendFileSync(this.filePath, line, "utf8");
     } catch (err) {
       console.error("FileTransport failed", err);

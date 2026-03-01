@@ -1,5 +1,7 @@
 import { getServiceSupabase } from '@/lib/database/supabase';
-import { sendCompanyNotification } from '@/lib/notifications/sendCompanyNotification';
+// Dynamically imported to keep nodemailer out of the client bundle
+const loadSendCompanyNotification = () =>
+  import('@/lib/notifications/sendCompanyNotification').then((m) => m.sendCompanyNotification);
 
 /**
  * Checks if an email domain matches any verified company domains
@@ -139,6 +141,7 @@ export async function associateUserWithCompanyByDomain(userId: string, email: st
     }
 
     // Send notification to company admins
+    const sendCompanyNotification = await loadSendCompanyNotification();
     await sendCompanyNotification({
       companyId,
       notificationType: 'new_member_domain',

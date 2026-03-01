@@ -39,7 +39,9 @@ async function sendViaNodemailer(
     throw new Error('Email sending is not available on client side');
   }
   
-  const nodemailer = await import('nodemailer');
+  // Use variable to prevent webpack from statically resolving the import
+  const pkg = 'nodemailer';
+  const nodemailer = await import(/* webpackIgnore: true */ pkg);
   
   const transporter = nodemailer.default.createTransport({
     host: process.env.SMTP_HOST,

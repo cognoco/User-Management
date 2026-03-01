@@ -14,7 +14,9 @@ import { User } from "@/core/auth/models";
 import toast, { Toaster } from "react-hot-toast";
 import { OAuthProvider } from "@/types/oauth";
 import { SessionPolicyEnforcer } from "@/ui/styled/session/SessionPolicyEnforcer";
-import { registerAllServices } from "@/scripts/fix-initialization";
+// Dynamically imported to avoid bundling server-only deps (nodemailer etc.) into the client
+const loadRegisterAllServices = () =>
+  import("@/scripts/fix-initialization").then((m) => m.registerAllServices);
 import { AuthProvider } from '@/lib/context/AuthContext';
 
 // Define the callbacks inside the Client Component
@@ -103,6 +105,7 @@ export function UserManagementClientBoundary({
     async function initializeServices() {
       try {
         console.log("[UserManagementClientBoundary] Initializing services...");
+        const registerAllServices = await loadRegisterAllServices();
         await registerAllServices();
         console.log("[UserManagementClientBoundary] Services initialized successfully");
         setIsInitialized(true);
