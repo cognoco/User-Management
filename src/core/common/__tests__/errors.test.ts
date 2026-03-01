@@ -22,12 +22,14 @@ import {
   isDatabaseError,
   isTokenRefreshError,
   isInvalidRefreshTokenError,
+  DataExportError,
+  isDataExportError,
   createErrorFromUnknown,
   serializeError,
   deserializeError,
   createError,
 } from "..";
-import { SERVER_ERROR, AUTH_ERROR } from "../error-codes";
+import { SERVER_ERROR, AUTH_ERROR, EXPORT_ERROR } from "../error-codes";
 
 describe("ApplicationError hierarchy", () => {
   it("preserves inheritance and properties", () => {
