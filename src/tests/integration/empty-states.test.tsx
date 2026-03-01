@@ -24,7 +24,7 @@ describe('Empty States', () => {
     render(<DataTable data={[]} columns={[]} />);
     
     // Verify empty state is displayed
-    await waitFor(() => {
+    await waitFor(async () => {
       await screen.findByText(/no projects found/i);
       await screen.findByText(/create your first project/i);
     });
@@ -52,7 +52,7 @@ describe('Empty States', () => {
     render(<DataTable data={[]} columns={[]} />);
     
     // Verify empty state is displayed
-    await waitFor(() => {
+    await waitFor(async () => {
       await screen.findByText(/no projects found/i);
     });
     
@@ -71,7 +71,7 @@ describe('Empty States', () => {
     render(<SearchResults query="nonexistent term" />);
     
     // Verify empty search results state is displayed
-    await waitFor(() => {
+    await waitFor(async () => {
       await screen.findByText(/no results found/i);
       await screen.findByText(/try different keywords/i);
     });
@@ -91,7 +91,7 @@ describe('Empty States', () => {
     await user.keyboard('{Enter}');
     
     // Verify results are displayed instead of empty state
-    await waitFor(() => {
+    await waitFor(async () => {
       await screen.findByText('Search Result');
       expect(screen.queryByText(/no results found/i)).not.toBeInTheDocument();
     });
@@ -102,7 +102,7 @@ describe('Empty States', () => {
     render(<NotificationCenter />);
     
     // Verify empty notifications state is displayed
-    await waitFor(() => {
+    await waitFor(async () => {
       await screen.findByText(/no notifications/i);
       await screen.findByText(/you're all caught up/i);
     });
@@ -138,7 +138,7 @@ describe('Empty States', () => {
     }
     
     // Verify empty state is replaced with notification
-    await waitFor(() => {
+    await waitFor(async () => {
       await screen.findByText('New notification');
       expect(screen.queryByText(/no notifications/i)).not.toBeInTheDocument();
     });
@@ -149,7 +149,7 @@ describe('Empty States', () => {
     render(<DataTable data={[]} columns={[]} />);
     
     // Verify admin-specific empty state content
-    await waitFor(() => {
+    await waitFor(async () => {
       await screen.findByText(/no users found/i);
       await screen.findByText(/invite users/i);
     });
@@ -162,7 +162,7 @@ describe('Empty States', () => {
     render(<DataTable data={[]} columns={[]} />);
     
     // Verify user-specific empty state content
-    await waitFor(() => {
+    await waitFor(async () => {
       await screen.findByText(/no users found/i);
       // Different message for regular users
       await screen.findByText(/contact your administrator/i);
@@ -171,7 +171,7 @@ describe('Empty States', () => {
   
   test('handles loading state before showing empty state', async () => {
     // Create a promise that won't resolve immediately
-    let resolvePromise;
+    let resolvePromise: ((value: unknown) => void) | undefined;
     const pendingPromise = new Promise(resolve => {
       resolvePromise = resolve;
     });
@@ -188,13 +188,13 @@ describe('Empty States', () => {
     expect(screen.queryByText(/no projects found/i)).not.toBeInTheDocument();
     
     // Resolve the promise with empty data
-    resolvePromise({
+    resolvePromise!({
       data: [],
       error: null
     });
     
     // Verify loading is replaced by empty state
-    await waitFor(() => {
+    await waitFor(async () => {
       expect(screen.queryByTestId('loading-spinner')).not.toBeInTheDocument();
       await screen.findByText(/no projects found/i);
     });
