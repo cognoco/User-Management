@@ -29,7 +29,6 @@ describe('IDP Configuration API Routes', () => {
   });
 
   describe('SAML Configuration', () => {
-    const mockParams = { params: { orgId: mockOrgId, idpType: 'saml' } };
     const validSamlConfig = {
       entityId: 'https://test-idp.com/metadata',
       ssoUrl: 'https://test-idp.com/sso',
@@ -42,7 +41,7 @@ describe('IDP Configuration API Routes', () => {
         new URL(`http://localhost/api/organizations/${mockOrgId}/sso/saml/config`)
       );
 
-      const response = await GET(request, mockParams);
+      const response = await GET(request);
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -63,7 +62,7 @@ describe('IDP Configuration API Routes', () => {
         }
       );
 
-      const response = await PUT(request, mockParams);
+      const response = await PUT(request);
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -74,7 +73,7 @@ describe('IDP Configuration API Routes', () => {
       const getRequest = new NextRequest(
         new URL(`http://localhost/api/organizations/${mockOrgId}/sso/saml/config`)
       );
-      const getResponse = await GET(getRequest, mockParams);
+      const getResponse = await GET(getRequest);
       const getdata = await getResponse.json();
 
       expect(getdata).toEqual(validSamlConfig);
@@ -96,7 +95,7 @@ describe('IDP Configuration API Routes', () => {
         }
       );
 
-      const response = await PUT(request, mockParams);
+      const response = await PUT(request);
       const data = await response.json();
 
       expect(response.status).toBe(400);
@@ -106,7 +105,6 @@ describe('IDP Configuration API Routes', () => {
   });
 
   describe('OIDC Configuration', () => {
-    const mockParams = { params: { orgId: mockOrgId, idpType: 'oidc' } };
     const validOidcConfig = {
       clientId: 'test-client-id',
       clientSecret: 'test-client-secret',
@@ -122,7 +120,7 @@ describe('IDP Configuration API Routes', () => {
         new URL(`http://localhost/api/organizations/${mockOrgId}/sso/oidc/config`)
       );
 
-      const response = await GET(request, mockParams);
+      const response = await GET(request);
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -146,7 +144,7 @@ describe('IDP Configuration API Routes', () => {
         }
       );
 
-      const response = await PUT(request, mockParams);
+      const response = await PUT(request);
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -157,7 +155,7 @@ describe('IDP Configuration API Routes', () => {
       const getRequest = new NextRequest(
         new URL(`http://localhost/api/organizations/${mockOrgId}/sso/oidc/config`)
       );
-      const getResponse = await GET(getRequest, mockParams);
+      const getResponse = await GET(getRequest);
       const getdata = await getResponse.json();
 
       expect(getdata).toEqual(validOidcConfig);
@@ -182,7 +180,7 @@ describe('IDP Configuration API Routes', () => {
         }
       );
 
-      const response = await PUT(request, mockParams);
+      const response = await PUT(request);
       const data = await response.json();
 
       expect(response.status).toBe(400);
@@ -192,12 +190,11 @@ describe('IDP Configuration API Routes', () => {
   });
 
   it('returns 404 for invalid IDP type', async () => {
-    const mockParams = { params: { orgId: mockOrgId, idpType: 'invalid' } };
     const request = new NextRequest(
       new URL(`http://localhost/api/organizations/${mockOrgId}/sso/invalid/config`)
     );
 
-    const response = await GET(request, mockParams);
+    const response = await GET(request);
     const data = await response.json();
 
     expect(response.status).toBe(404);
