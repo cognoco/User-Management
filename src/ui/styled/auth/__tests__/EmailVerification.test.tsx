@@ -1,12 +1,12 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { EmailVerification } from '../EmailVerification';
+import EmailVerification from '../EmailVerification';
 
 let state: any;
 
 vi.mock('../../../headless/auth/EmailVerification', () => ({
-  default: ({ render }: any) => render(state)
+  EmailVerification: ({ render }: any) => render(state)
 }));
 
 describe('EmailVerification styled component', () => {

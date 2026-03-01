@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 import { RegistrationForm } from '@/ui/styled/auth/RegistrationForm';
-import { EmailVerification } from '@/ui/styled/auth/EmailVerification';
+import EmailVerification from '@/ui/styled/auth/EmailVerification';
 import { UserManagementProvider } from '@/lib/auth/UserManagementProvider';
 import { UserType } from '@/types/user-type';
 
@@ -106,7 +106,7 @@ describe('Email Verification Component', () => {
   beforeEach(() => vi.clearAllMocks());
 
   it('verifies token and allows resending email', async () => {
-    mockVerifyEmail.mockResolvedValueOnce();
+    mockVerifyEmail.mockResolvedValueOnce(undefined);
     mockSendVerification.mockResolvedValueOnce({ success: true });
     const user = userEvent.setup();
     render(<EmailVerification />);
