@@ -1,13 +1,15 @@
 import { vi } from "vitest";
+import type { UserService } from "@/core/user/interfaces";
 import type {
-  UserService,
   UserProfile,
   ProfileUpdatePayload,
   UserProfileResult,
   ProfileVisibility,
   UserSearchParams,
   UserSearchResult,
-} from "@/core/user/interfaces";
+} from "@/core/user/models";
+import { UserType } from "@/types/user-type";
+import { VisibilityLevel } from "@/core/user/models";
 
 export function createMockUserService(
   overrides: Partial<UserService> = {},
@@ -15,16 +17,23 @@ export function createMockUserService(
   const defaultProfile: UserProfile = {
     id: "user-1",
     email: "user@example.com",
-    name: "Test User",
-    bio: "",
-    location: "",
-    website: "",
-    profilePictureUrl: null,
+    firstName: "Test",
+    lastName: "User",
+    fullName: "Test User",
+    profilePictureUrl: "http://example.com/avatar.png",
+    isActive: true,
+    isVerified: true,
+    userType: UserType.PRIVATE,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
-    visibility: { showEmail: false, showLocation: false },
-    type: "personal",
-  } as UserProfile;
+    visibility: {
+      email: VisibilityLevel.PRIVATE,
+      fullName: VisibilityLevel.PUBLIC,
+      profilePicture: VisibilityLevel.PUBLIC,
+      companyInfo: VisibilityLevel.PRIVATE,
+      lastLogin: VisibilityLevel.PRIVATE,
+    },
+  };
 
   const service: UserService = {
     getUserProfile: vi.fn(async () => defaultProfile),
@@ -34,7 +43,7 @@ export function createMockUserService(
         data: ProfileUpdatePayload,
       ): Promise<UserProfileResult> => ({
         success: true,
-        profile: { ...defaultProfile, ...data },
+        profile: { ...defaultProfile, ...data } as UserProfile,
       }),
     ),
     getUserPreferences: vi.fn(async () => ({
@@ -49,6 +58,17 @@ export function createMockUserService(
       imageUrl: "http://example.com/avatar.png",
     })),
     deleteProfilePicture: vi.fn(async () => ({ success: true })),
+    uploadCompanyLogo: vi.fn(async () => ({
+      success: true,
+      url: "http://example.com/logo.png",
+      fileId: "logo-1",
+      fileName: "logo.png",
+      mimeType: "image/png",
+      size: 1024,
+    })),
+    deleteCompanyLogo: vi.fn(async () => ({
+      success: true,
+    })),
     updateProfileVisibility: vi.fn(
       async (_id: string, visibility: ProfileVisibility) => ({
         success: true,
