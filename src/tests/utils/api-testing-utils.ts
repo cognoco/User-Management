@@ -1,14 +1,25 @@
 // __tests__/utils/api-testing-utils.js
 
-import { createMocks } from 'node-mocks-http';
+import { createMocks, RequestMethod } from 'node-mocks-http';
 import { NextApiRequest, NextApiResponse } from 'next';
+
+interface ApiMockOptions {
+  method?: RequestMethod;
+  body?: Record<string, unknown>;
+  query?: Record<string, unknown>;
+  headers?: Record<string, string>;
+  cookies?: Record<string, string>;
+  authUser?: { id: string; [key: string]: unknown } | null;
+  url?: string;
+}
+
+type NextApiHandler = (req: NextApiRequest, res: NextApiResponse) => Promise<void> | void;
+type Middleware = (req: NextApiRequest, res: NextApiResponse, next: () => Promise<void>) => Promise<void> | void;
 
 /**
  * Creates mock req/res objects with common defaults for API route testing
- * @param {Object} options - Options to customize the mocks
- * @returns {Object} Object containing req and res mocks
  */
-export function createApiMocks(options = {}) {
+export function createApiMocks(options: ApiMockOptions = {}) {
   const { 
     method = 'GET', 
     body = {}, 
@@ -20,7 +31,7 @@ export function createApiMocks(options = {}) {
   } = options;
   
   // Add authorization header if user is provided
-  const finalHeaders = { ...headers };
+  const finalHeaders: Record<string, string> = { ...headers };
   if (authUser) {
     finalHeaders.authorization = `Bearer mock-token-for-${authUser.id}`;
   }
@@ -36,39 +47,36 @@ export function createApiMocks(options = {}) {
   
   // Add user to request if provided
   if (authUser) {
-    req.user = authUser;
+    (req as NextApiRequest & { user: unknown }).user = authUser;
   }
   
   // Add helper methods for testing responses
-  res.getJsonData = () => JSON.parse(res._getData());
+  (res as unknown as { getJsonData: () => unknown }).getJsonData = () => JSON.parse(res._getData());
   
   return { req, res };
 }
 
 /**
  * Creates a test handler for API routes
- * @param {Function} handler - The API route handler
- * @param {Function} middleware - Optional middleware to apply
- * @returns {Function} A function that takes request options and returns a promise
  */
-export function createTestHandler(handler, middleware = null) {
-  return async (options = {}) => {
+export function createTestHandler(handler: NextApiHandler, middleware: Middleware | null = null) {
+  return async (options: ApiMockOptions = {}) => {
     const { req, res } = createApiMocks(options);
     
     if (middleware) {
       // Create a simple next function for middleware
       const next = vi.fn().mockImplementation(async () => {
-        await handler(req, res);
+        await handler(req as unknown as NextApiRequest, res as unknown as NextApiResponse);
       });
       
-      await middleware(req, res, next);
+      await middleware(req as unknown as NextApiRequest, res as unknown as NextApiResponse, next);
       
       // If next wasn't called, the middleware handled the response
       if (next.mock.calls.length === 0) {
         return { req, res };
       }
     } else {
-      await handler(req, res);
+      await handler(req as unknown as NextApiRequest, res as unknown as NextApiResponse);
     }
     
     return { req, res };
@@ -77,78 +85,60 @@ export function createTestHandler(handler, middleware = null) {
 
 /**
  * Simulates a GET request to an API route
- * @param {Function} handler - The API route handler
- * @param {Object} options - Options for the request
- * @returns {Promise<Object>} Response data and status
  */
-export async function testGet(handler, options = {}) {
+export async function testGet(handler: NextApiHandler, options: ApiMockOptions = {}) {
   const testHandler = createTestHandler(handler);
   const { res } = await testHandler({ ...options, method: 'GET' });
   return {
     status: res._getStatusCode(),
-    data: res.getJsonData()
+    data: (res as unknown as { getJsonData: () => unknown }).getJsonData()
   };
 }
 
 /**
  * Simulates a POST request to an API route
- * @param {Function} handler - The API route handler
- * @param {Object} body - Body for the request
- * @param {Object} options - Additional options for the request
- * @returns {Promise<Object>} Response data and status
  */
-export async function testPost(handler, body = {}, options = {}) {
+export async function testPost(handler: NextApiHandler, body: Record<string, unknown> = {}, options: ApiMockOptions = {}) {
   const testHandler = createTestHandler(handler);
   const { res } = await testHandler({ ...options, method: 'POST', body });
   return {
     status: res._getStatusCode(),
-    data: res.getJsonData()
+    data: (res as unknown as { getJsonData: () => unknown }).getJsonData()
   };
 }
 
 /**
  * Simulates a PUT request to an API route
- * @param {Function} handler - The API route handler
- * @param {Object} body - Body for the request
- * @param {Object} options - Additional options for the request
- * @returns {Promise<Object>} Response data and status
  */
-export async function testPut(handler, body = {}, options = {}) {
+export async function testPut(handler: NextApiHandler, body: Record<string, unknown> = {}, options: ApiMockOptions = {}) {
   const testHandler = createTestHandler(handler);
   const { res } = await testHandler({ ...options, method: 'PUT', body });
   return {
     status: res._getStatusCode(),
-    data: res.getJsonData()
+    data: (res as unknown as { getJsonData: () => unknown }).getJsonData()
   };
 }
 
 /**
  * Simulates a DELETE request to an API route
- * @param {Function} handler - The API route handler
- * @param {Object} options - Options for the request
- * @returns {Promise<Object>} Response data and status
  */
-export async function testDelete(handler, options = {}) {
+export async function testDelete(handler: NextApiHandler, options: ApiMockOptions = {}) {
   const testHandler = createTestHandler(handler);
   const { res } = await testHandler({ ...options, method: 'DELETE' });
   return {
     status: res._getStatusCode(),
-    data: res.getJsonData()
+    data: (res as unknown as { getJsonData: () => unknown }).getJsonData()
   };
 }
 
 /**
  * Simulates an authenticated request to an API route
- * @param {Function} handler - The API route handler
- * @param {Object} user - User object to authenticate with
- * @param {Object} options - Additional options for the request
- * @returns {Promise<Object>} Response data and status
  */
-export async function testAuthenticated(handler, user, options = {}) {
+export async function testAuthenticated(handler: NextApiHandler, user: { id: string; [key: string]: unknown }, options: ApiMockOptions = {}) {
   const testHandler = createTestHandler(handler);
   const { res } = await testHandler({ ...options, authUser: user });
   return {
     status: res._getStatusCode(),
-    data: res.getJsonData()
+    data: (res as unknown as { getJsonData: () => unknown }).getJsonData()
   };
 }
