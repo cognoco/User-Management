@@ -1,18 +1,14 @@
-import { describe, test, expect, beforeEach, vi } from 'vitest';
+import { describe, test, expect, beforeEach, vi, type Mock } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { UpgradeToBusinessFlow } from '@/ui/styled/auth/UpgradeToBusinessFlow';
-import { api } from '@/lib/api';
+import { apiRequest } from '@/lib/api';
 import { useAuth } from '@/hooks/auth/useAuth';
 import { useNotificationStore } from '@/lib/stores/notification-store';
 
 // Mock API calls
 vi.mock('@/lib/api', () => ({
-  api: {
-    post: vi.fn(),
-    get: vi.fn(),
-    patch: vi.fn()
-  }
+  apiRequest: vi.fn()
 }));
 
 // Mock auth store
@@ -46,26 +42,31 @@ describe('UpgradeToBusinessFlow', () => {
     vi.resetAllMocks();
     
     // Setup default mocks
-    useAuth.mockReturnValue({
+    (useAuth as Mock).mockReturnValue({
       user: mockPersonalUser,
       updateUser: vi.fn()
     });
     
-    useNotificationStore.mockReturnValue({
+    (useNotificationStore as unknown as Mock).mockReturnValue({
       showNotification: mockShowNotification,
       showError: mockShowError
     });
     
-    // Mock successful API responses
-    (api.post as any).mockResolvedValue({ 
-      data: { 
-        success: true, 
-        user: { ...mockPersonalUser, accountType: 'business' } 
-      } 
-    });
-    
-    (api.get as any).mockResolvedValue({ 
-      data: { industries: ['Technology', 'Healthcare', 'Finance', 'Education', 'Other'] } 
+    // Mock successful API responses based on endpoint
+    (apiRequest as Mock).mockImplementation((endpoint: string, options?: { method?: string }) => {
+      const method = options?.method?.toUpperCase() ?? 'GET';
+      if (method === 'POST' && endpoint.includes('upgrade-to-business')) {
+        return Promise.resolve({
+          data: {
+            success: true,
+            user: { ...mockPersonalUser, accountType: 'business' }
+          }
+        });
+      }
+      // Default: return industries list (GET)
+      return Promise.resolve({
+        data: { industries: ['Technology', 'Healthcare', 'Finance', 'Education', 'Other'] }
+      });
     });
   });
 
@@ -86,7 +87,7 @@ describe('UpgradeToBusinessFlow', () => {
     
     // Wait for industry dropdown to load options
     await waitFor(() => {
-      expect(api.get).toHaveBeenCalled();
+      expect(apiRequest).toHaveBeenCalled();
     });
     
     // Ensure required business fields are present
@@ -142,7 +143,7 @@ describe('UpgradeToBusinessFlow', () => {
     
     // Verify API call with correct data
     await waitFor(() => {
-      expect(api.post).toHaveBeenCalledWith('/api/auth/upgrade-to-business', expect.objectContaining({
+      expect(apiRequest).toHaveBeenCalledWith('/api/auth/upgrade-to-business', expect.objectContaining({
         userId: mockPersonalUser.id,
         companyName: 'Acme Corp',
         jobTitle: 'Software Engineer',
@@ -181,7 +182,7 @@ describe('UpgradeToBusinessFlow', () => {
     expect(screen.getByText(/business phone is required/i)).toBeInTheDocument();
     
     // API should not be called
-    expect(api.post).not.toHaveBeenCalled();
+    expect(apiRequest).not.toHaveBeenCalled();
   });
   
   test('shows invalid format errors for contact fields', async () => {
@@ -220,12 +221,12 @@ describe('UpgradeToBusinessFlow', () => {
     expect(screen.getByText(/enter a valid phone number/i)).toBeInTheDocument();
     
     // API should not be called
-    expect(api.post).not.toHaveBeenCalled();
+    expect(apiRequest).not.toHaveBeenCalled();
   });
   
   test('handles server error during upgrade', async () => {
     // Mock API error
-    (api.post as any).mockRejectedValue({
+    (apiRequest as Mock).mockRejectedValue({
       response: {
         data: { error: 'Server error occurred during upgrade' }
       }
@@ -281,12 +282,12 @@ describe('UpgradeToBusinessFlow', () => {
     expect(mockHandleCancel).toHaveBeenCalled();
     
     // API should not be called
-    expect(api.post).not.toHaveBeenCalled();
+    expect(apiRequest).not.toHaveBeenCalled();
   });
   
   test('handles case where user already has a business account', async () => {
     // Mock a user who is already a business user
-    useAuth.mockReturnValue({
+    (useAuth as Mock).mockReturnValue({
       user: { ...mockPersonalUser, accountType: 'business' },
       updateUser: vi.fn()
     });

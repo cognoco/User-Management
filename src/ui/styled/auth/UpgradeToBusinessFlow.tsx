@@ -1,7 +1,8 @@
 import React from 'react';
 
-interface UpgradeToBusinessFlowProps {
+export interface UpgradeToBusinessFlowProps {
   onCompleted: () => void;
+  onCancel?: () => void;
 }
 
 export function UpgradeToBusinessFlow({ onCompleted }: UpgradeToBusinessFlowProps) {
