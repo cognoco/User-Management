@@ -3,12 +3,14 @@ import { vi } from 'vitest';
 import { PermissionService } from '../../../../core/permission/interfaces';
 import { 
   Permission, 
+  PermissionValues,
   Role, 
   RoleWithPermissions, 
   UserRole,
   PermissionAssignment,
   RoleCreationPayload,
-  RoleUpdatePayload
+  RoleUpdatePayload,
+  ResourcePermission,
 } from '../../../../core/permission/models';
 import {
   PermissionEventHandler,
@@ -24,56 +26,53 @@ export class MockPermissionService implements PermissionService {
   private mockPermissions: Permission[] = [];
   private mockUserRoles: Record<string, UserRole[]> = {}; // userId -> UserRole[]
   private mockRolePermissions: Record<string, Permission[]> = {}; // roleId -> Permission[]
+  private mockResourcePermissions: ResourcePermission[] = [];
   
   constructor() {
     // Initialize with some default permissions
     this.mockPermissions = [
-      { name: 'user:read', description: 'Read user data' },
-      { name: 'user:write', description: 'Write user data' },
-      { name: 'team:read', description: 'Read team data' },
-      { name: 'team:write', description: 'Write team data' },
-      { name: 'permission:read', description: 'Read permission data' },
-      { name: 'permission:write', description: 'Write permission data' }
+      PermissionValues.EDIT_USER_PROFILES,
+      PermissionValues.VIEW_TEAM_MEMBERS,
+      PermissionValues.MANAGE_TEAMS,
+      PermissionValues.MANAGE_ROLES,
+      PermissionValues.VIEW_ANALYTICS,
+      PermissionValues.EXPORT_DATA,
     ];
     
     // Initialize with some default roles
     this.createRole({
       name: 'admin',
       description: 'Administrator with all permissions',
-      permissions: this.mockPermissions
+      permissions: [...this.mockPermissions],
     });
     
     this.createRole({
       name: 'user',
       description: 'Regular user with limited permissions',
       permissions: [
-        { name: 'user:read', description: 'Read user data' },
-        { name: 'team:read', description: 'Read team data' }
-      ]
+        PermissionValues.EDIT_USER_PROFILES,
+        PermissionValues.VIEW_TEAM_MEMBERS,
+      ],
     });
   }
 
   // Mock implementations with Vitest spies
   hasPermission = vi.fn().mockImplementation(async (userId: string, permission: Permission): Promise<boolean> => {
-    // Get all roles assigned to the user
     const userRoles = this.mockUserRoles[userId] || [];
-    
-    // Check if any of the user's roles has the permission
     for (const userRole of userRoles) {
       const rolePermissions = this.mockRolePermissions[userRole.roleId] || [];
-      if (rolePermissions.some(p => p.name === permission.name)) {
+      if (rolePermissions.includes(permission)) {
         return true;
       }
     }
-    
     return false;
   });
 
   hasRole = vi.fn().mockImplementation(async (userId: string, role: Role): Promise<boolean> => {
     const userRoles = this.mockUserRoles[userId] || [];
     return userRoles.some(ur => {
-      const userRole = this.mockRoles[ur.roleId];
-      return userRole && userRole.name === role.name;
+      const roleEntity = this.mockRoles[ur.roleId];
+      return roleEntity && roleEntity.name === role;
     });
   });
 
@@ -85,15 +84,22 @@ export class MockPermissionService implements PermissionService {
     return this.mockRoles[roleId] || null;
   });
 
-  createRole = vi.fn().mockImplementation(async (roleData: RoleCreationPayload): Promise<RoleWithPermissions> => {
+  createRole = vi.fn().mockImplementation(async (
+    roleData: RoleCreationPayload,
+    _performedBy?: string,
+    _reason?: string,
+    _ticket?: string,
+  ): Promise<RoleWithPermissions> => {
     const roleId = `role-${Date.now()}`;
+    const now = new Date();
     const role: RoleWithPermissions = {
       id: roleId,
       name: roleData.name,
       description: roleData.description || '',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      permissions: roleData.permissions || []
+      isSystemRole: roleData.isSystemRole,
+      createdAt: now,
+      updatedAt: now,
+      permissions: roleData.permissions || [],
     };
     
     this.mockRoles[roleId] = role;
@@ -101,26 +107,36 @@ export class MockPermissionService implements PermissionService {
     
     this._emitEvent({
       type: PermissionEventTypes.ROLE_CREATED,
-      payload: { role }
+      timestamp: now,
+      role,
     });
     
     return role;
   });
 
-  updateRole = vi.fn().mockImplementation(async (roleId: string, roleData: RoleUpdatePayload): Promise<RoleWithPermissions> => {
+  updateRole = vi.fn().mockImplementation(async (
+    roleId: string,
+    roleData: RoleUpdatePayload,
+    _performedBy?: string,
+    _reason?: string,
+    _ticket?: string,
+  ): Promise<RoleWithPermissions> => {
     if (!this.mockRoles[roleId]) {
       throw new Error('Role not found');
     }
     
+    const now = new Date();
+    const previousRole = { ...this.mockRoles[roleId] };
     const updatedRole: RoleWithPermissions = {
       ...this.mockRoles[roleId],
-      ...roleData,
-      updatedAt: new Date().toISOString()
+      ...(roleData.name !== undefined && { name: roleData.name }),
+      ...(roleData.description !== undefined && { description: roleData.description }),
+      ...(roleData.isSystemRole !== undefined && { isSystemRole: roleData.isSystemRole }),
+      updatedAt: now,
+      permissions: roleData.permissions ?? this.mockRoles[roleId].permissions,
     };
     
-    // Update permissions if provided
     if (roleData.permissions) {
-      updatedRole.permissions = roleData.permissions;
       this.mockRolePermissions[roleId] = [...roleData.permissions];
     }
     
@@ -128,18 +144,24 @@ export class MockPermissionService implements PermissionService {
     
     this._emitEvent({
       type: PermissionEventTypes.ROLE_UPDATED,
-      payload: { role: updatedRole }
+      timestamp: now,
+      role: updatedRole,
+      previousRole,
     });
     
     return updatedRole;
   });
 
-  deleteRole = vi.fn().mockImplementation(async (roleId: string): Promise<boolean> => {
+  deleteRole = vi.fn().mockImplementation(async (
+    roleId: string,
+    _performedBy?: string,
+    _reason?: string,
+    _ticket?: string,
+  ): Promise<boolean> => {
     if (!this.mockRoles[roleId]) {
       return false;
     }
     
-    const _role = { ...this.mockRoles[roleId] };
     delete this.mockRoles[roleId];
     delete this.mockRolePermissions[roleId];
     
@@ -150,7 +172,8 @@ export class MockPermissionService implements PermissionService {
     
     this._emitEvent({
       type: PermissionEventTypes.ROLE_DELETED,
-      payload: { roleId }
+      timestamp: new Date(),
+      roleId,
     });
     
     return true;
@@ -170,32 +193,31 @@ export class MockPermissionService implements PermissionService {
       throw new Error('Role not found');
     }
     
+    const now = new Date();
     const userRole: UserRole = {
       id: `user-role-${Date.now()}`,
       userId,
       roleId,
       assignedBy,
-      assignedAt: new Date().toISOString(),
-      expiresAt: expiresAt?.toISOString()
+      createdAt: now,
+      expiresAt,
     };
     
     if (!this.mockUserRoles[userId]) {
       this.mockUserRoles[userId] = [];
     }
     
-    // Check if user already has this role
     const existingRoleIndex = this.mockUserRoles[userId].findIndex(ur => ur.roleId === roleId);
     if (existingRoleIndex !== -1) {
-      // Update existing role assignment
       this.mockUserRoles[userId][existingRoleIndex] = userRole;
     } else {
-      // Add new role assignment
       this.mockUserRoles[userId].push(userRole);
     }
     
     this._emitEvent({
       type: PermissionEventTypes.ROLE_ASSIGNED,
-      payload: { userRole }
+      timestamp: now,
+      userRole,
     });
     
     return userRole;
@@ -214,7 +236,9 @@ export class MockPermissionService implements PermissionService {
     if (removed) {
       this._emitEvent({
         type: PermissionEventTypes.ROLE_REMOVED,
-        payload: { userId, roleId }
+        timestamp: new Date(),
+        userId,
+        roleId,
       });
     }
     
@@ -223,7 +247,7 @@ export class MockPermissionService implements PermissionService {
 
   roleHasPermission = vi.fn().mockImplementation(async (roleId: string, permission: Permission): Promise<boolean> => {
     const permissions = this.mockRolePermissions[roleId] || [];
-    return permissions.some(p => p.name === permission.name);
+    return permissions.includes(permission);
   });
 
   addPermissionToRole = vi.fn().mockImplementation(async (roleId: string, permission: Permission): Promise<PermissionAssignment> => {
@@ -231,34 +255,32 @@ export class MockPermissionService implements PermissionService {
       throw new Error('Role not found');
     }
     
-    // Check if permission already exists
-    if (!this.mockPermissions.some(p => p.name === permission.name)) {
+    if (!this.mockPermissions.includes(permission)) {
       this.mockPermissions.push(permission);
     }
     
-    // Check if role already has this permission
     if (!this.mockRolePermissions[roleId]) {
       this.mockRolePermissions[roleId] = [];
     }
     
-    const hasPermission = this.mockRolePermissions[roleId].some(p => p.name === permission.name);
-    if (!hasPermission) {
+    if (!this.mockRolePermissions[roleId].includes(permission)) {
       this.mockRolePermissions[roleId].push(permission);
-      
-      // Update the role's permissions array
       this.mockRoles[roleId].permissions = [...this.mockRolePermissions[roleId]];
     }
     
+    const now = new Date();
     const permissionAssignment: PermissionAssignment = {
       id: `permission-assignment-${Date.now()}`,
       roleId,
       permission,
-      assignedAt: new Date().toISOString()
+      createdAt: now,
     };
     
     this._emitEvent({
       type: PermissionEventTypes.PERMISSION_ADDED,
-      payload: { roleId, permission }
+      timestamp: now,
+      roleId,
+      permission,
     });
     
     return permissionAssignment;
@@ -270,9 +292,7 @@ export class MockPermissionService implements PermissionService {
     }
     
     const initialLength = this.mockRolePermissions[roleId].length;
-    this.mockRolePermissions[roleId] = this.mockRolePermissions[roleId].filter(p => p.name !== permission.name);
-    
-    // Update the role's permissions array
+    this.mockRolePermissions[roleId] = this.mockRolePermissions[roleId].filter(p => p !== permission);
     this.mockRoles[roleId].permissions = [...this.mockRolePermissions[roleId]];
     
     const removed = initialLength > this.mockRolePermissions[roleId].length;
@@ -280,7 +300,9 @@ export class MockPermissionService implements PermissionService {
     if (removed) {
       this._emitEvent({
         type: PermissionEventTypes.PERMISSION_REMOVED,
-        payload: { roleId, permission }
+        timestamp: new Date(),
+        roleId,
+        permission,
       });
     }
     
@@ -295,8 +317,78 @@ export class MockPermissionService implements PermissionService {
     return this.mockRolePermissions[roleId] || [];
   });
 
+  // Resource permission methods
+  assignResourcePermission = vi.fn().mockImplementation(async (
+    userId: string,
+    permission: Permission,
+    resourceType: string,
+    resourceId: string,
+    _performedBy?: string,
+    _reason?: string,
+    _ticket?: string,
+  ): Promise<ResourcePermission> => {
+    const rp: ResourcePermission = {
+      id: `rp-${Date.now()}`,
+      userId,
+      permission,
+      resourceType,
+      resourceId,
+      createdAt: new Date(),
+    };
+    this.mockResourcePermissions.push(rp);
+    return rp;
+  });
+
+  removeResourcePermission = vi.fn().mockImplementation(async (
+    userId: string,
+    permission: Permission,
+    resourceType: string,
+    resourceId: string,
+  ): Promise<boolean> => {
+    const initialLength = this.mockResourcePermissions.length;
+    this.mockResourcePermissions = this.mockResourcePermissions.filter(rp =>
+      !(rp.userId === userId && rp.permission === permission &&
+        rp.resourceType === resourceType && rp.resourceId === resourceId)
+    );
+    return this.mockResourcePermissions.length < initialLength;
+  });
+
+  hasResourcePermission = vi.fn().mockImplementation(async (
+    userId: string,
+    permission: Permission,
+    resourceType: string,
+    resourceId: string,
+  ): Promise<boolean> => {
+    return this.mockResourcePermissions.some(rp =>
+      rp.userId === userId && rp.permission === permission &&
+      rp.resourceType === resourceType && rp.resourceId === resourceId
+    );
+  });
+
+  getUserResourcePermissions = vi.fn().mockImplementation(async (userId: string): Promise<ResourcePermission[]> => {
+    return this.mockResourcePermissions.filter(rp => rp.userId === userId);
+  });
+
+  getPermissionsForResource = vi.fn().mockImplementation(async (
+    resourceType: string,
+    resourceId: string,
+  ): Promise<ResourcePermission[]> => {
+    return this.mockResourcePermissions.filter(rp =>
+      rp.resourceType === resourceType && rp.resourceId === resourceId
+    );
+  });
+
+  getUsersWithResourcePermission = vi.fn().mockImplementation(async (
+    resourceType: string,
+    resourceId: string,
+    permission: Permission,
+  ): Promise<string[]> => {
+    return this.mockResourcePermissions
+      .filter(rp => rp.resourceType === resourceType && rp.resourceId === resourceId && rp.permission === permission)
+      .map(rp => rp.userId);
+  });
+
   syncRolePermissions = vi.fn().mockImplementation(async (): Promise<boolean> => {
-    // This is a no-op in the mock implementation
     return true;
   });
 
@@ -334,6 +426,7 @@ export class MockPermissionService implements PermissionService {
     this.mockPermissions = [];
     this.mockUserRoles = {};
     this.mockRolePermissions = {};
+    this.mockResourcePermissions = [];
     this.permissionEventHandlers = [];
   }
 }
