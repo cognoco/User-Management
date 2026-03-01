@@ -13,7 +13,14 @@ This file tests the internationalization functionality:
 */
 
 import { test, expect } from '@playwright/test';
-import { loginAs } from '../utils/auth-utils';
+import { loginUser } from '../utils/auth-utils';
+
+declare global {
+  interface Window {
+    originalLanguage?: string;
+    i18n?: { language?: string };
+  }
+}
 
 // Constants for URLs and test data
 const HOME_URL = '/';
@@ -461,7 +468,7 @@ test.describe('Internationalization (i18n) Features', () => {
     }
     
     // Log in first
-    await loginAs(page, TEST_USER, TEST_PASSWORD);
+    await loginUser(page, TEST_USER, TEST_PASSWORD);
     
     // Wait for logged-in state
     await page.waitForTimeout(2000);
@@ -633,7 +640,7 @@ test.describe('Internationalization (i18n) Features', () => {
       // Look for language in different potential locations depending on the i18n implementation
       return window.i18n?.language || 
              document.documentElement.lang || 
-             document.querySelector('html').getAttribute('lang') || 
+             document.querySelector('html')?.getAttribute('lang') || 
              localStorage.getItem('i18nextLng') || 
              localStorage.getItem('language') || 
              'unknown';
