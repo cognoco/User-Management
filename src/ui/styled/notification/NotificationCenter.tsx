@@ -29,7 +29,7 @@ const getIconForCategory = (category: string) => {
 };
 
 const NotificationItem: React.FC<{ notification: Notification; onMarkAsRead: (id: string) => void; }> = ({ notification, onMarkAsRead }) => {
-  const formattedDate = formatDistanceToNow(new Date(notification.createdAt || notification.created_at), { addSuffix: true });
+  const formattedDate = formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true });
   return (
     <div className={`p-3 hover:bg-gray-50 transition-colors ${notification.isRead ? 'opacity-60' : ''}`}>
       <div className="flex justify-between items-start">

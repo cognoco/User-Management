@@ -14,7 +14,11 @@ export function objectsToCSV<T extends Record<string, any>>(
   }[]
 ): string {
   if (!data.length) return '';
-  const cols =
+  const cols: {
+    key: keyof T;
+    header: string;
+    format?: (value: any) => string;
+  }[] =
     columns ||
     (Object.keys(data[0]) as (keyof T)[]).map((key) => ({
       key,
