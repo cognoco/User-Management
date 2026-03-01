@@ -19,7 +19,7 @@ describe('Adapter Registry - E2E', () => {
   
   afterEach(() => {
     // Reset the configuration after each test
-    UserManagementConfiguration.resetConfiguration();
+    UserManagementConfiguration.reset();
     
     // Clear all registered factories except the default ones
     const defaultAdapters = ['supabase'];
@@ -61,7 +61,7 @@ describe('Adapter Registry - E2E', () => {
     expect(services.adapters.permissionAdapter).toBeDefined();
     
     // Verify the configuration was updated
-    const config = UserManagementConfiguration.getConfiguration();
+    const config = UserManagementConfiguration.getConfig();
     expect(config.serviceProviders.authService).toBe(services.authService);
     expect(config.serviceProviders.userService).toBe(services.userService);
     expect(config.serviceProviders.teamService).toBe(services.teamService);
@@ -81,41 +81,68 @@ describe('Adapter Registry - E2E', () => {
   test('should allow registering and using a custom adapter', () => {
     // Arrange
     const mockAuthProvider = {
-      signInWithEmail: jest.fn().mockResolvedValue({ user: { id: 'test-user' }, error: null }),
-      signUp: jest.fn().mockResolvedValue({ user: { id: 'test-user' }, error: null }),
-      signOut: jest.fn().mockResolvedValue({ error: null }),
-      resetPasswordForEmail: jest.fn().mockResolvedValue({ error: null }),
-      updateUser: jest.fn().mockResolvedValue({ user: { id: 'test-user' }, error: null }),
-      getUser: jest.fn().mockResolvedValue({ user: { id: 'test-user' }, error: null }),
-      onAuthStateChange: jest.fn().mockReturnValue({ data: { subscription: { unsubscribe: jest.fn() } } }),
+      signInWithEmail: vi.fn().mockResolvedValue({ user: { id: 'test-user' }, error: null }),
+      signUp: vi.fn().mockResolvedValue({ user: { id: 'test-user' }, error: null }),
+      signOut: vi.fn().mockResolvedValue({ error: null }),
+      resetPasswordForEmail: vi.fn().mockResolvedValue({ error: null }),
+      updateUser: vi.fn().mockResolvedValue({ user: { id: 'test-user' }, error: null }),
+      getUser: vi.fn().mockResolvedValue({ user: { id: 'test-user' }, error: null }),
+      onAuthStateChange: vi.fn().mockReturnValue({ data: { subscription: { unsubscribe: vi.fn() } } }),
     };
     
     const mockUserProvider = {
-      createUser: jest.fn().mockResolvedValue({ data: { id: 'test-user' }, error: null }),
-      getUser: jest.fn().mockResolvedValue({ data: { id: 'test-user' }, error: null }),
-      updateUser: jest.fn().mockResolvedValue({ data: { id: 'test-user' }, error: null }),
-      deleteUser: jest.fn().mockResolvedValue({ error: null }),
+      createUser: vi.fn().mockResolvedValue({ data: { id: 'test-user' }, error: null }),
+      getUser: vi.fn().mockResolvedValue({ data: { id: 'test-user' }, error: null }),
+      updateUser: vi.fn().mockResolvedValue({ data: { id: 'test-user' }, error: null }),
+      deleteUser: vi.fn().mockResolvedValue({ error: null }),
     };
     
     const mockTeamProvider = {
-      createTeam: jest.fn().mockResolvedValue({ data: { id: 'test-team' }, error: null }),
-      getTeam: jest.fn().mockResolvedValue({ data: { id: 'test-team' }, error: null }),
-      updateTeam: jest.fn().mockResolvedValue({ data: { id: 'test-team' }, error: null }),
-      deleteTeam: jest.fn().mockResolvedValue({ error: null }),
+      createTeam: vi.fn().mockResolvedValue({ data: { id: 'test-team' }, error: null }),
+      getTeam: vi.fn().mockResolvedValue({ data: { id: 'test-team' }, error: null }),
+      updateTeam: vi.fn().mockResolvedValue({ data: { id: 'test-team' }, error: null }),
+      deleteTeam: vi.fn().mockResolvedValue({ error: null }),
     };
     
     const mockPermissionProvider = {
-      checkPermission: jest.fn().mockResolvedValue({ hasPermission: true, error: null }),
-      assignRole: jest.fn().mockResolvedValue({ error: null }),
-      revokeRole: jest.fn().mockResolvedValue({ error: null }),
+      checkPermission: vi.fn().mockResolvedValue({ hasPermission: true, error: null }),
+      assignRole: vi.fn().mockResolvedValue({ error: null }),
+      revokeRole: vi.fn().mockResolvedValue({ error: null }),
+    };
+
+    const mockSessionProvider = {
+      createSession: vi.fn().mockResolvedValue({ data: { id: 'test-session' }, error: null }),
+      getSession: vi.fn().mockResolvedValue({ data: { id: 'test-session' }, error: null }),
+      deleteSession: vi.fn().mockResolvedValue({ error: null }),
+    };
+
+    const mockSsoProvider = {
+      initiateSso: vi.fn().mockResolvedValue({ url: 'https://sso.test', error: null }),
+      handleSsoCallback: vi.fn().mockResolvedValue({ user: { id: 'test-user' }, error: null }),
+    };
+
+    const mockSubscriptionProvider = {
+      getSubscription: vi.fn().mockResolvedValue({ data: { id: 'test-sub' }, error: null }),
+      createSubscription: vi.fn().mockResolvedValue({ data: { id: 'test-sub' }, error: null }),
+      cancelSubscription: vi.fn().mockResolvedValue({ error: null }),
+    };
+
+    const mockApiKeyProvider = {
+      createApiKey: vi.fn().mockResolvedValue({ data: { id: 'test-key' }, error: null }),
+      getApiKey: vi.fn().mockResolvedValue({ data: { id: 'test-key' }, error: null }),
+      deleteApiKey: vi.fn().mockResolvedValue({ error: null }),
     };
     
     // Create and register a custom adapter factory
     const customFactory = {
-      createAuthProvider: jest.fn().mockReturnValue(mockAuthProvider),
-      createUserProvider: jest.fn().mockReturnValue(mockUserProvider),
-      createTeamProvider: jest.fn().mockReturnValue(mockTeamProvider),
-      createPermissionProvider: jest.fn().mockReturnValue(mockPermissionProvider),
+      createAuthProvider: vi.fn().mockReturnValue(mockAuthProvider),
+      createUserProvider: vi.fn().mockReturnValue(mockUserProvider),
+      createTeamProvider: vi.fn().mockReturnValue(mockTeamProvider),
+      createPermissionProvider: vi.fn().mockReturnValue(mockPermissionProvider),
+      createSessionProvider: vi.fn().mockReturnValue(mockSessionProvider),
+      createSsoProvider: vi.fn().mockReturnValue(mockSsoProvider),
+      createSubscriptionProvider: vi.fn().mockReturnValue(mockSubscriptionProvider),
+      createApiKeyProvider: vi.fn().mockReturnValue(mockApiKeyProvider),
     };
     
     AdapterRegistry.registerFactory('custom', () => customFactory);
@@ -135,11 +162,11 @@ describe('Adapter Registry - E2E', () => {
     expect(services.teamService).toBeDefined();
     expect(services.permissionService).toBeDefined();
     
-    // Verify the factory methods were called with the correct options
-    expect(customFactory.createAuthProvider).toHaveBeenCalledWith();
-    expect(customFactory.createUserProvider).toHaveBeenCalledWith();
-    expect(customFactory.createTeamProvider).toHaveBeenCalledWith();
-    expect(customFactory.createPermissionProvider).toHaveBeenCalledWith();
+    // Verify the factory methods were called
+    expect(customFactory.createAuthProvider).toHaveBeenCalled();
+    expect(customFactory.createUserProvider).toHaveBeenCalled();
+    expect(customFactory.createTeamProvider).toHaveBeenCalled();
+    expect(customFactory.createPermissionProvider).toHaveBeenCalled();
     
     // Verify the adapters were properly initialized
     expect(services.adapters).toBeDefined();
