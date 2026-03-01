@@ -5,6 +5,9 @@ import { MockAuthService } from '../../services/auth/__tests__/mocks/mock-auth-s
 import { MockUserService } from '../../services/user/__tests__/mocks/mock-user-service';
 import { MockTeamService } from '../../services/team/__tests__/mocks/mock-team-service';
 import { MockPermissionService } from '../../services/permission/__tests__/mocks/mock-permission-service';
+import { UserType } from '../../types/user-type';
+import { TeamVisibility } from '../../core/team/models';
+import { PermissionValues } from '../../core/permission/models';
 
 /**
  * Sets up mock services for UI component testing
@@ -69,7 +72,7 @@ function setupDefaultMockData(
     fullName: 'Test User',
     isActive: true,
     isVerified: true,
-    userType: 'private'
+    userType: UserType.PRIVATE
   });
   
   // Setup default team
@@ -78,9 +81,11 @@ function setupDefaultMockData(
     name: 'Test Team',
     description: 'A team for testing',
     ownerId: 'user-123',
+    isActive: true,
+    visibility: TeamVisibility.PRIVATE,
+    memberLimit: 0,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
-    isPublic: false
   };
   
   teamService.setMockTeam(defaultTeam);
@@ -90,13 +95,13 @@ function setupDefaultMockData(
     id: 'role-admin',
     name: 'admin',
     description: 'Administrator role',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    createdAt: new Date(),
+    updatedAt: new Date(),
     permissions: [
-      { name: 'user:read', description: 'Read user data' },
-      { name: 'user:write', description: 'Write user data' },
-      { name: 'team:read', description: 'Read team data' },
-      { name: 'team:write', description: 'Write team data' }
+      PermissionValues.EDIT_USER_PROFILES,
+      PermissionValues.DELETE_USER_ACCOUNTS,
+      PermissionValues.VIEW_TEAM_MEMBERS,
+      PermissionValues.MANAGE_TEAMS
     ]
   };
   
@@ -108,6 +113,6 @@ function setupDefaultMockData(
     userId: 'user-123',
     roleId: 'role-admin',
     assignedBy: 'system',
-    assignedAt: new Date().toISOString()
+    createdAt: new Date()
   }]);
 }
