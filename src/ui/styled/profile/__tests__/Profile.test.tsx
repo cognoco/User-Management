@@ -14,8 +14,8 @@ import { createMockUser, createMockProfile } from '@/tests/utils/testing-utils';
 import { describe, test, beforeAll, afterAll, beforeEach, afterEach, expect, vi } from 'vitest';
 
 // Mock the Profile module at the top level to control module caching
-vi.mock('../Profile.jsx', async () => {
-  const actual = await vi.importActual('../Profile.jsx');
+vi.mock('../Profile', async () => {
+  const actual = await vi.importActual('../Profile');
   return {
     ...actual,
     default: actual.default
@@ -121,8 +121,8 @@ describe('Profile Component', () => {
     const originalFrom = supabase.from;
     (supabase.from as any) = vi.fn((table: string) => (table === 'profiles' ? builder : {}));
     
-    const Profile = (await import('../Profile.jsx')).default;
-    renderWithWrapper(<Profile user={mockUser} />);
+    const Profile = (await import('../Profile')).default;
+    renderWithWrapper(<Profile />);
     
     await waitFor(() => {
       expect(screen.getByDisplayValue('John Doe')).toBeInTheDocument();
@@ -165,8 +165,8 @@ describe('Profile Component', () => {
       website: 'https://updated-example.com',
     };
     
-    const Profile = (await import('../Profile.jsx')).default;
-    renderWithWrapper(<Profile user={mockUser} />);
+    const Profile = (await import('../Profile')).default;
+    renderWithWrapper(<Profile />);
     
     await waitFor(() => {
       expect(screen.getByDisplayValue('John Doe')).toBeInTheDocument();
@@ -205,8 +205,8 @@ describe('Profile Component', () => {
     const originalFrom = supabase.from;
     (supabase.from as any) = vi.fn((table: string) => (table === 'profiles' ? builder : {}));
     
-    const Profile = (await import('../Profile.jsx')).default;
-    renderWithWrapper(<Profile user={mockUser} />);
+    const Profile = (await import('../Profile')).default;
+    renderWithWrapper(<Profile />);
     
     await waitFor(() => {
       expect(screen.getByAltText(/avatar/i)).toBeInTheDocument();
@@ -242,8 +242,8 @@ describe('Profile Component', () => {
     const originalFrom = supabase.from;
     (supabase.from as any) = vi.fn((table: string) => (table === 'profiles' ? builder : {}));
     
-    const Profile = (await import('../Profile.jsx')).default;
-    renderWithWrapper(<Profile user={mockUser} />);
+    const Profile = (await import('../Profile')).default;
+    renderWithWrapper(<Profile />);
     
     await waitFor(() => {
       expect(screen.getByDisplayValue('John Doe')).toBeInTheDocument();
@@ -279,8 +279,8 @@ describe('Profile Component', () => {
     // Override uploadSpy to simulate error
     uploadSpy.mockResolvedValue({ data: null, error: { message: 'Failed to upload avatar' } });
     
-    const Profile = (await import('../Profile.jsx')).default;
-    renderWithWrapper(<Profile user={mockUser} />);
+    const Profile = (await import('../Profile')).default;
+    renderWithWrapper(<Profile />);
     
     await waitFor(() => {
       expect(screen.getByAltText(/avatar/i)).toBeInTheDocument();
