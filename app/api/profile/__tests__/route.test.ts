@@ -97,12 +97,12 @@ describe('/api/profile', () => {
       };
 
       // Mock authenticated user
-      vi.mocked(mockAuthService.getCurrentUser).mockResolvedValue({
+      vi.mocked(mockAuthService.getCurrentUser!).mockResolvedValue({
         id: '123',
         email: 'jane@example.com',
       } as any);
       
-      vi.mocked(mockUserService.updateUserProfile).mockResolvedValue(mockResult as any);
+      vi.mocked(mockUserService.updateUserProfile!).mockResolvedValue(mockResult as any);
 
       const request = new NextRequest('http://localhost:3000/api/profile', {
         method: 'PATCH',
@@ -128,7 +128,7 @@ describe('/api/profile', () => {
       };
 
       // Mock authenticated user
-      vi.mocked(mockAuthService.getCurrentUser).mockResolvedValue({
+      vi.mocked(mockAuthService.getCurrentUser!).mockResolvedValue({
         id: '123',
         email: 'jane@example.com',
       } as any);
