@@ -1,9 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { GET } from '../route';
-import { prisma } from '@/lib/database/prisma';
 import { checkRolePermission } from '@/lib/rbac/roleService';
 import { routeAuthMiddleware } from '@/middleware/createMiddlewareChain';
-import { NextResponse } from 'next/server';
+
+const mockTeamService = {
+  getUserTeams: vi.fn(),
+  getTeamMembers: vi.fn(),
+  getTeamLicenseInfo: vi.fn(),
+};
 
 vi.mock('@/middleware/createMiddlewareChain', async () => {
   const actual = await vi.importActual<any>('@/middleware/createMiddlewareChain');
@@ -23,27 +27,17 @@ vi.mock('@/middleware/createMiddlewareChain', async () => {
         }, data)),
     rateLimitMiddleware: vi.fn(() => (handler: any) =>
       (req: any, ctx?: any, data?: any) => handler(req, ctx, data)),
+    errorHandlingMiddleware: vi.fn(() => (handler: any) =>
+      (req: any, ctx?: any, data?: any) => handler(req, ctx, data)),
   };
 });
 
-// Mock dependencies
-
-vi.mock('@/lib/database/prisma', () => ({
-  prisma: {
-    teamMember: {
-      groupBy: vi.fn()
-    },
-    subscription: {
-      findUnique: vi.fn()
-    },
-    activityLog: {
-      findMany: vi.fn()
-    }
-  }
+vi.mock('@/services/team/factory', () => ({
+  getApiTeamService: vi.fn(() => mockTeamService),
 }));
 
 vi.mock('@/lib/rbac/roleService', () => ({
-  checkRolePermission: vi.fn()
+  checkRolePermission: vi.fn(),
 }));
 
 describe('Admin Dashboard API', () => {
@@ -52,14 +46,16 @@ describe('Admin Dashboard API', () => {
   });
 
   it('returns 401 when user is not authenticated', async () => {
+    // Override middleware to pass auth context without user/userId
     vi.mocked(routeAuthMiddleware).mockReturnValueOnce((handler: any) =>
-      (_req: any, _ctx?: any, data?: any) => {
-        // Simulate auth middleware returning error directly without calling handler
-        return Promise.resolve(NextResponse.json({ error: 'Unauthorized' }, { status: 401 }));
-      }
+      (req: any, _ctx?: any, data?: any) =>
+        handler(req, { userId: null, role: null, user: null }, data)
     );
 
-    const response = await GET({} as any);
+    // Need to re-import to pick up the new mock
+    vi.resetModules();
+    const { GET: freshGET } = await import('../route');
+    const response = await freshGET({} as any);
     const data = await response.json();
 
     expect(response.status).toBe(401);
@@ -92,34 +88,24 @@ describe('Admin Dashboard API', () => {
   it('returns dashboard data for authorized admin', async () => {
     vi.mocked(checkRolePermission).mockResolvedValueOnce(true);
 
-    // Mock team stats
-    vi.mocked(prisma.teamMember.groupBy).mockResolvedValueOnce([
-      { status: 'ACTIVE', _count: { _all: 5 } },
-      { status: 'PENDING', _count: { _all: 2 } }
-    ] as any);
+    mockTeamService.getUserTeams.mockResolvedValueOnce([
+      { id: 'team-1', name: 'Test Team' },
+    ]);
 
-    // Mock subscription data
-    vi.mocked(prisma.subscription.findUnique).mockResolvedValueOnce({
-      plan: 'PRO',
-      status: 'ACTIVE',
-      seats: 10,
-      trialEndsAt: null,
-      currentPeriodEndsAt: new Date('2025-01-01')
-    } as any);
+    mockTeamService.getTeamMembers.mockResolvedValueOnce([
+      { id: 'm1', isActive: true },
+      { id: 'm2', isActive: true },
+      { id: 'm3', isActive: true },
+      { id: 'm4', isActive: true },
+      { id: 'm5', isActive: true },
+      { id: 'm6', isActive: false },
+      { id: 'm7', isActive: false },
+    ]);
 
-    // Mock activity logs
-    const mockActivity = {
-      id: '1',
-      type: 'MEMBER_ADDED',
-      description: 'New member added',
-      createdAt: new Date('2025-06-02T19:43:30.075Z'),
-      user: {
-        id: '1',
-        name: 'John Doe',
-        email: 'john@example.com'
-      }
-    };
-    vi.mocked(prisma.activityLog.findMany).mockResolvedValueOnce([mockActivity] as any);
+    mockTeamService.getTeamLicenseInfo.mockResolvedValueOnce({
+      totalSeats: 10,
+      usedSeats: 7,
+    });
 
     const response = await GET({} as any);
     const data = await response.json();
@@ -133,32 +119,22 @@ describe('Admin Dashboard API', () => {
         seatUsage: {
           used: 7,
           total: 10,
-          percentage: 70
-        }
+          percentage: 70,
+        },
       },
       subscription: {
-        plan: 'PRO',
+        plan: 'TEAM',
         status: 'ACTIVE',
         trialEndsAt: null,
-        currentPeriodEndsAt: '2025-01-01T00:00:00.000Z'
+        currentPeriodEndsAt: null,
       },
-      recentActivity: [{
-        id: '1',
-        type: 'MEMBER_ADDED',
-        description: 'New member added',
-        createdAt: '2025-06-02T19:43:30.075Z',
-        user: {
-          id: '1',
-          name: 'John Doe',
-          email: 'john@example.com'
-        }
-      }]
+      recentActivity: [],
     });
   });
 
   it('handles database errors gracefully', async () => {
     vi.mocked(checkRolePermission).mockResolvedValueOnce(true);
-    vi.mocked(prisma.teamMember.groupBy).mockRejectedValueOnce(new Error('Database error'));
+    mockTeamService.getUserTeams.mockRejectedValueOnce(new Error('Database error'));
 
     const response = await GET({} as any);
     const data = await response.json();
@@ -167,21 +143,32 @@ describe('Admin Dashboard API', () => {
     expect(data).toEqual({ error: 'Failed to fetch dashboard data' });
   });
 
-  it('handles missing subscription data', async () => {
+  it('handles no teams gracefully', async () => {
     vi.mocked(checkRolePermission).mockResolvedValueOnce(true);
-    vi.mocked(prisma.teamMember.groupBy).mockResolvedValueOnce([]);
-    vi.mocked(prisma.subscription.findUnique).mockResolvedValueOnce(null);
-    vi.mocked(prisma.activityLog.findMany).mockResolvedValueOnce([]);
+    mockTeamService.getUserTeams.mockResolvedValueOnce([]);
 
     const response = await GET({} as any);
     const data = await response.json();
 
     expect(response.status).toBe(200);
-    expect(data.subscription).toEqual({
-      plan: 'NO_PLAN',
-      status: 'INACTIVE',
-      trialEndsAt: null,
-      currentPeriodEndsAt: null
+    expect(data).toEqual({
+      team: {
+        activeMembers: 0,
+        pendingMembers: 0,
+        totalMembers: 0,
+        seatUsage: {
+          used: 0,
+          total: 0,
+          percentage: 0,
+        },
+      },
+      subscription: {
+        plan: 'TEAM',
+        status: 'ACTIVE',
+        trialEndsAt: null,
+        currentPeriodEndsAt: null,
+      },
+      recentActivity: [],
     });
   });
 });
