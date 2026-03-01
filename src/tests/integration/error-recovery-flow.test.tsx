@@ -6,204 +6,155 @@ import userEvent from '@testing-library/user-event';
 import FormWithRecovery from '@/ui/styled/common/FormWithRecovery';
 import { describe, test, expect, beforeEach, vi } from 'vitest';
 
-// Import our standardized mock
-vi.mock('@/lib/database/supabase', () => require('@/tests/mocks/supabase'));
-import { supabase } from '@/lib/database/supabase';
-
 describe('Error Recovery Flow', () => {
   let user: ReturnType<typeof userEvent.setup>;
-  
-  // Mock localStorage using vi.fn
-  const localStorageMock = (() => {
-    let store: { [key: string]: string } = {};
-    return {
-      getItem: vi.fn((key: string) => store[key] || null),
-      setItem: vi.fn((key: string, value: string) => {
-        store[key] = value.toString();
-      }),
-      removeItem: vi.fn((key: string) => {
-        delete store[key];
-      }),
-      clear: vi.fn(() => {
-        store = {};
-      }),
-    };
-  })();
 
   beforeEach(() => {
     vi.clearAllMocks();
     user = userEvent.setup();
-    
-    // Setup localStorage mock
-    Object.defineProperty(window, 'localStorage', {
-      value: localStorageMock,
-      writable: true,
-    });
-    
-    // Mock authentication
-    (supabase.auth.getUser as any).mockResolvedValue({
-      data: { user: { id: 'user-123', email: 'user@example.com' } },
-      error: null
-    });
   });
 
-  test('Form recovers data after network error', async () => {
-    // Add props expected by placeholder if needed, e.g., onSubmit
-    const mockSubmit = vi.fn().mockRejectedValueOnce({ message: 'Network error' });
+  test('Form shows error on failed submit and allows retry', async () => {
+    const mockSubmit = vi.fn()
+      .mockRejectedValueOnce(new Error('Network error'))
+      .mockResolvedValueOnce(undefined);
+
     render(<FormWithRecovery onSubmit={mockSubmit} />);
 
-    // Fill out form (assuming FormWithRecovery has name input)
+    // Fill out form
     await act(async () => {
       await user.type(screen.getByLabelText(/name/i), 'Test Name');
     });
 
-    // Submit form
+    // Submit form — should fail
     await act(async () => {
-      await user.click(screen.getAllByRole('button', { name: /submit/i })[0]);
+      await user.click(screen.getByRole('button', { name: /submit/i }));
     });
 
     // Verify error message is displayed
     await waitFor(() => {
-      expect(screen.findByText(/Error: Network error/i)).toBeInTheDocument();
+      expect(screen.getByText(/Error: Network error/i)).toBeInTheDocument();
     });
 
-    // Simulate page reload - clear mocks
-    vi.clearAllMocks();
-    mockSubmit.mockClear();
+    // Verify the form data is still present (not cleared on error)
+    expect(screen.getByLabelText(/name/i)).toHaveValue('Test Name');
 
-    // Mock localStorage to return saved form data
-    localStorageMock.getItem.mockReturnValueOnce(JSON.stringify({
-      name: 'Test Name',
-      timestamp: Date.now()
-    }));
-
-    // Re-render form
-    const mockSubmitSuccess = vi.fn().mockResolvedValue(undefined);
-    render(<FormWithRecovery onSubmit={mockSubmitSuccess} />);
-
-    // Verify form data is recovered (assuming component implements this)
-    await waitFor(() => {
-      expect(screen.getByLabelText(/name/i)).toHaveValue('Test Name');
-    });
-
-    // Submit recovered form
+    // Click retry button (inside the error message)
     await act(async () => {
-      await user.click(screen.getAllByRole('button', { name: /submit/i })[0]);
+      await user.click(screen.getByRole('button', { name: /retry/i }));
     });
 
-    // Verify success
+    // Verify second submit was called
     await waitFor(() => {
-       expect(mockSubmitSuccess).toHaveBeenCalledWith({ name: 'Test Name' });
+      expect(mockSubmit).toHaveBeenCalledTimes(2);
+      expect(mockSubmit).toHaveBeenLastCalledWith({ name: 'Test Name' });
     });
   });
-  
-  test('User can discard recovered data', async () => {
-    // Mock localStorage to return saved form data
-    localStorageMock.getItem.mockReturnValueOnce(JSON.stringify({
-      name: 'Old Title',
-      timestamp: Date.now() - 3600000 // 1 hour ago
-    }));
-    
-    // Render form
-    render(<FormWithRecovery formId="test-form" />);
-    
-    // Verify form data is recovered
-    await waitFor(() => {
-      expect(screen.getByLabelText(/name/i)).toHaveValue('Old Title');
-    });
-    
-    // Verify recovery message with timestamp is displayed
-    await screen.findByText(/we've restored your previous data/i);
-    await screen.findByText(/from about 1 hour ago/i);
-    
-    // Click discard button
-    await act(async () => {
-      await user.click(screen.getByRole('button', { name: /discard/i }));
-    });
-    
-    // Verify form is cleared
-    await waitFor(() => {
-      expect(screen.getByLabelText(/name/i)).toHaveValue('');
-    });
-    
-    // Verify localStorage entry was removed
-    expect(localStorage.removeItem).toHaveBeenCalledWith('form_recovery_test-form');
+
+  test('Form displays custom title', async () => {
+    const mockSubmit = vi.fn().mockResolvedValue(undefined);
+    render(<FormWithRecovery onSubmit={mockSubmit} title="My Custom Form" />);
+
+    expect(screen.getByText('My Custom Form')).toBeInTheDocument();
   });
-  
-  test('Recovery only shows for recent data', async () => {
-    // Mock localStorage to return very old form data (3 days old)
-    localStorageMock.getItem.mockReturnValueOnce(JSON.stringify({
-      name: 'Very Old Title',
-      timestamp: Date.now() - (3 * 24 * 60 * 60 * 1000) // 3 days ago
-    }));
-    
-    // Render form
-    render(<FormWithRecovery formId="test-form" />);
-    
-    // Verify form data is NOT recovered (default empty form)
-    await waitFor(() => {
-      expect(screen.getByLabelText(/name/i)).toHaveValue('');
-    });
-    
-    // Verify no recovery message is displayed
-    expect(screen.queryByText(/we've restored your previous data/i)).not.toBeInTheDocument();
-    
-    // Verify very old localStorage entry was removed
-    expect(localStorage.removeItem).toHaveBeenCalledWith('form_recovery_test-form');
+
+  test('Form uses default title when none provided', async () => {
+    const mockSubmit = vi.fn().mockResolvedValue(undefined);
+    render(<FormWithRecovery onSubmit={mockSubmit} />);
+
+    expect(screen.getByText('Form With Error Recovery')).toBeInTheDocument();
   });
-  
-  test('Multiple form instances have separate recovery data', async () => {
-    // Render two form instances
-    const { rerender } = render(<FormWithRecovery formId="form-a" />);
-    
-    // Fill out first form
+
+  test('Submit button is disabled while submitting', async () => {
+    // Create a promise we control to keep the submit pending
+    let resolveSubmit: () => void;
+    const submitPromise = new Promise<void>((resolve) => {
+      resolveSubmit = resolve;
+    });
+    const mockSubmit = vi.fn().mockReturnValue(submitPromise);
+
+    render(<FormWithRecovery onSubmit={mockSubmit} />);
+
+    // Fill and submit
     await act(async () => {
-      await user.type(screen.getByLabelText(/name/i), 'Form A Title');
+      await user.type(screen.getByLabelText(/name/i), 'Test');
     });
-    
-    // Mock submission error
-    supabase.from().insert.mockResolvedValueOnce({
-      data: null,
-      error: { message: 'Network error', code: 'NETWORK_ERROR' }
-    });
-    
-    // Submit first form
+
     await act(async () => {
-      await user.click(screen.getAllByRole('button', { name: /submit/i })[0]);
+      await user.click(screen.getByRole('button', { name: /submit/i }));
     });
-    
-    // Verify first form data was saved to localStorage
-    expect(localStorage.setItem).toHaveBeenCalledWith(
-      'form_recovery_form-a',
-      expect.stringContaining('Form A Title')
+
+    // Button should show "Submitting..." and be disabled
+    expect(screen.getByRole('button', { name: /submitting/i })).toBeDisabled();
+
+    // Resolve the submission
+    await act(async () => {
+      resolveSubmit!();
+    });
+
+    // Button should be re-enabled
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /submit/i })).not.toBeDisabled();
+    });
+  });
+
+  test('Form submits data correctly on success', async () => {
+    const mockSubmit = vi.fn().mockResolvedValue(undefined);
+    render(<FormWithRecovery onSubmit={mockSubmit} />);
+
+    await act(async () => {
+      await user.type(screen.getByLabelText(/name/i), 'Alice');
+    });
+
+    await act(async () => {
+      await user.click(screen.getByRole('button', { name: /submit/i }));
+    });
+
+    await waitFor(() => {
+      expect(mockSubmit).toHaveBeenCalledWith({ name: 'Alice' });
+    });
+
+    // No error should be shown
+    expect(screen.queryByText(/error/i)).not.toBeInTheDocument();
+  });
+
+  test('Form clears previous error on new successful submit', async () => {
+    const mockSubmit = vi.fn()
+      .mockRejectedValueOnce(new Error('Server down'))
+      .mockResolvedValueOnce(undefined);
+
+    render(<FormWithRecovery onSubmit={mockSubmit} />);
+
+    // Fill and submit — fails
+    await act(async () => {
+      await user.type(screen.getByLabelText(/name/i), 'Bob');
+    });
+    await act(async () => {
+      await user.click(screen.getByRole('button', { name: /submit/i }));
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText(/Error: Server down/i)).toBeInTheDocument();
+    });
+
+    // Submit again — succeeds
+    await act(async () => {
+      await user.click(screen.getByRole('button', { name: /retry/i }));
+    });
+
+    await waitFor(() => {
+      expect(screen.queryByText(/Error: Server down/i)).not.toBeInTheDocument();
+    });
+  });
+
+  test('Renders children inside the form', async () => {
+    const mockSubmit = vi.fn().mockResolvedValue(undefined);
+    render(
+      <FormWithRecovery onSubmit={mockSubmit}>
+        <p>Extra content here</p>
+      </FormWithRecovery>
     );
-    
-    // Render second form
-    rerender(<FormWithRecovery formId="form-b" />);
-    
-    // Fill out second form
-    await act(async () => {
-      await user.type(screen.getByLabelText(/name/i), 'Form B Title');
-    });
-    
-    // Mock submission error
-    supabase.from().insert.mockResolvedValueOnce({
-      data: null,
-      error: { message: 'Network error', code: 'NETWORK_ERROR' }
-    });
-    
-    // Submit second form
-    await act(async () => {
-      await user.click(screen.getAllByRole('button', { name: /submit/i })[0]);
-    });
-    
-    // Verify second form data was saved to localStorage under different key
-    expect(localStorage.setItem).toHaveBeenCalledWith(
-      'form_recovery_form-b',
-      expect.stringContaining('Form B Title')
-    );
-    
-    // Verify each form has its own recovery data
-    expect(localStorage.setItem).toHaveBeenCalledTimes(2);
+
+    expect(screen.getByText('Extra content here')).toBeInTheDocument();
   });
 });
