@@ -1,51 +1,56 @@
 
-
-import { AdapterRegistry, AdapterFactory } from '../registry';
+import { AdapterRegistry, AdapterFactory, FactoryCreator } from '../registry';
 import { SupabaseAdapterFactory, createSupabaseAdapterFactory } from '../supabase-factory';
-import { AuthService as AuthDataProvider } from '@/core/auth/interfaces';
-import { IUserDataProvider as UserDataProvider } from '@/core/user/IUserDataProvider';
-import { ITeamDataProvider as TeamDataProvider } from '@/core/team/ITeamDataProvider';
-import { IPermissionDataProvider as PermissionDataProvider } from '@/core/permission/IPermissionDataProvider';
+import type { AuthDataProvider } from '@/adapters/auth/interfaces';
+import type { IUserDataProvider } from '@/core/user/IUserDataProvider';
+import type { ITeamDataProvider } from '@/core/team/ITeamDataProvider';
+import type { IPermissionDataProvider } from '@/core/permission/IPermissionDataProvider';
+import type { SessionDataProvider } from '@/core/session/ISessionDataProvider';
+import type { SsoDataProvider } from '@/core/sso/ISsoDataProvider';
+import type { ISubscriptionDataProvider } from '@/core/subscription/ISubscriptionDataProvider';
+import type { IApiKeyDataProvider } from '@/core/api-keys/IApiKeyDataProvider';
 
 // Mock the environment variables
 const originalEnv = process.env;
 
-// Mock implementations for testing
-class TestAuthProvider implements AuthDataProvider {
-  async signInWithEmail() { return { user: null, session: null, error: null }; }
-  async signUp() { return { user: null, session: null, error: null }; }
-  async signOut() { return { error: null }; }
-  async resetPasswordForEmail() { return { error: null }; }
-  async updateUser() { return { user: null, error: null }; }
-  async getUser() { return { user: null, error: null }; }
-  async onAuthStateChange() { return { data: { subscription: { unsubscribe: vi.fn() } } }; }
+/**
+ * Create a minimal mock that satisfies a provider interface for registry tests.
+ * The registry only stores and retrieves providers — it never calls their methods —
+ * so we only need the correct shape at the type level.
+ */
+function mockProvider<T>(label: string): T {
+  return { __mock: label } as unknown as T;
 }
 
-class TestUserProvider implements UserDataProvider {
-  async createUser() { return { data: null, error: null }; }
-  async getUser() { return { data: null, error: null }; }
-  async updateUser() { return { data: null, error: null }; }
-  async deleteUser() { return { error: null }; }
-}
-
-class TestTeamProvider implements TeamDataProvider {
-  async createTeam() { return { data: null, error: null }; }
-  async getTeam() { return { data: null, error: null }; }
-  async updateTeam() { return { data: null, error: null }; }
-  async deleteTeam() { return { error: null }; }
-}
-
-class TestPermissionProvider implements PermissionDataProvider {
-  async checkPermission() { return { hasPermission: false, error: null }; }
-  async assignRole() { return { error: null }; }
-  async revokeRole() { return { error: null }; }
-}
-
+/**
+ * A test factory that satisfies all required AdapterFactory methods.
+ * Returns lightweight mock objects for each provider type.
+ */
 class TestAdapterFactory implements AdapterFactory {
-  createAuthProvider() { return new TestAuthProvider(); }
-  createUserProvider() { return new TestUserProvider(); }
-  createTeamProvider() { return new TestTeamProvider(); }
-  createPermissionProvider() { return new TestPermissionProvider(); }
+  createAuthProvider(): AuthDataProvider {
+    return mockProvider<AuthDataProvider>('auth');
+  }
+  createUserProvider(): IUserDataProvider {
+    return mockProvider<IUserDataProvider>('user');
+  }
+  createTeamProvider(): ITeamDataProvider {
+    return mockProvider<ITeamDataProvider>('team');
+  }
+  createPermissionProvider(): IPermissionDataProvider {
+    return mockProvider<IPermissionDataProvider>('permission');
+  }
+  createSessionProvider(): SessionDataProvider {
+    return mockProvider<SessionDataProvider>('session');
+  }
+  createSsoProvider(): SsoDataProvider {
+    return mockProvider<SsoDataProvider>('sso');
+  }
+  createSubscriptionProvider(): ISubscriptionDataProvider {
+    return mockProvider<ISubscriptionDataProvider>('subscription');
+  }
+  createApiKeyProvider(): IApiKeyDataProvider {
+    return mockProvider<IApiKeyDataProvider>('apiKey');
+  }
 }
 
 describe('AdapterRegistry', () => {
@@ -63,14 +68,14 @@ describe('AdapterRegistry', () => {
 
   describe('registerFactory', () => {
     it('should register a factory', () => {
-      const factoryCreator = () => new TestAdapterFactory();
+      const factoryCreator: FactoryCreator = () => new TestAdapterFactory();
       AdapterRegistry.registerFactory('test', factoryCreator);
       
       expect(AdapterRegistry.listAvailableAdapters()).toContain('test');
     });
 
     it('should throw if factory is already registered', () => {
-      const factoryCreator = () => new TestAdapterFactory();
+      const factoryCreator: FactoryCreator = () => new TestAdapterFactory();
       AdapterRegistry.registerFactory('test', factoryCreator);
       
       expect(() => {
@@ -100,7 +105,8 @@ describe('AdapterRegistry', () => {
 
   describe('isAdapterAvailable', () => {
     it('should return true for registered adapters', () => {
-      AdapterRegistry.registerFactory('test', () => new TestAdapterFactory());
+      const factoryCreator: FactoryCreator = () => new TestAdapterFactory();
+      AdapterRegistry.registerFactory('test', factoryCreator);
       expect(AdapterRegistry.isAdapterAvailable('test')).toBe(true);
     });
 
@@ -127,12 +133,8 @@ describe('SupabaseAdapterFactory', () => {
       const provider = factory.createAuthProvider();
       
       expect(provider).toBeDefined();
-      // This is a basic test - in a real test, you'd mock the Supabase client
-      // and verify it's instantiated with the correct options
     });
   });
-
-  // Similar tests for other provider methods...
 });
 
 describe('createSupabaseAdapterFactory', () => {
