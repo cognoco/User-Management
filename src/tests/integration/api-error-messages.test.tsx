@@ -6,10 +6,10 @@ import { supabase } from '@/lib/database/supabase';
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { LoginForm } from '@/ui/styled/auth/LoginForm';
+import LoginForm from '@/ui/styled/auth/LoginForm';
 
 describe('API Error Messages', () => {
-  let user;
+  let user: ReturnType<typeof userEvent.setup>;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -59,8 +59,8 @@ describe('API Error Messages', () => {
       await user.click(screen.getByRole('button', { name: /sign in/i }));
       
       // Verify user-friendly error message is displayed
-      await waitFor(() => {
-        expect(await screen.findByText(scenario.expectedMessage)).toBeInTheDocument();
+      await waitFor(async () => {
+        expect(screen.getByText(scenario.expectedMessage)).toBeInTheDocument();
       });
       
       // Clear the form for next scenario
@@ -102,8 +102,10 @@ describe('API Error Messages', () => {
       await user.click(screen.getByRole('button', { name: /sign in/i }));
       
       // Verify error message and suggestion are displayed
-      expect(await screen.findByText(scenario.expectedError)).toBeInTheDocument();
-      expect(await screen.findByText(scenario.expectedSuggestion)).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByText(scenario.expectedError)).toBeInTheDocument();
+        expect(screen.getByText(scenario.expectedSuggestion)).toBeInTheDocument();
+      });
     }
   });
   
@@ -118,9 +120,11 @@ describe('API Error Messages', () => {
     await user.click(screen.getByRole('button', { name: /sign in/i }));
     
     // Verify error message has correct aria attributes
-    const errorMessage = await screen.findByText(/please enter a valid email address/i);
-    expect(errorMessage).toHaveAttribute('role', 'alert');
-    expect(errorMessage).toHaveAttribute('aria-live', 'assertive');
+    await waitFor(() => {
+      const errorMessage = screen.getByText(/please enter a valid email address/i);
+      expect(errorMessage).toHaveAttribute('role', 'alert');
+      expect(errorMessage).toHaveAttribute('aria-live', 'assertive');
+    });
     
     // Verify input is marked as invalid
     const emailInput = screen.getByLabelText(/email/i);
@@ -130,7 +134,8 @@ describe('API Error Messages', () => {
   
   test('displays consolidated error messages for multiple issues', async () => {
     // Render form with multiple fields
-    render(<LoginForm showRegistration={true} />);
+    // Note: showRegistration is not currently in LoginFormProps but tested for future support
+    render(<LoginForm {...{ showRegistration: true } as any} />);
     
     // View registration form
     await user.click(await screen.findByText(/create account/i));
@@ -169,7 +174,7 @@ describe('API Error Messages', () => {
     
     // Check for recovery options
     await waitFor(() => {
-      expect(await screen.findByText(/forgot your password/i)).toBeInTheDocument();
+      expect(screen.getByText(/forgot your password/i)).toBeInTheDocument();
       expect(screen.getByRole('link', { name: /reset password/i })).toBeInTheDocument();
     });
     
@@ -190,7 +195,7 @@ describe('API Error Messages', () => {
     
     // Check for resend verification option
     await waitFor(() => {
-      expect(await screen.findByText(/resend verification email/i)).toBeInTheDocument();
+      expect(screen.getByText(/resend verification email/i)).toBeInTheDocument();
     });
   });
   
@@ -213,11 +218,13 @@ describe('API Error Messages', () => {
     
     // Check for generic error message
     await waitFor(() => {
-      expect(await screen.findByText(/something went wrong/i)).toBeInTheDocument();
+      expect(screen.getByText(/something went wrong/i)).toBeInTheDocument();
     });
     
     // Check for error code information for support
-    expect(await screen.findByText(/support reference/i)).toBeInTheDocument();
-    expect(await screen.findByText(/500/i)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText(/support reference/i)).toBeInTheDocument();
+      expect(screen.getByText(/500/i)).toBeInTheDocument();
+    });
   });
 });
