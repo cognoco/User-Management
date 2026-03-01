@@ -2,8 +2,8 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { SupabaseUserProvider } from '../supabase-user-provider';
 import { setTableMockData, resetSupabaseMock } from '@/tests/mocks/supabase';
 
-const NEXT_PUBLIC_SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const NEXT_PUBLIC_SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const NEXT_PUBLIC_SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'http://localhost:54321';
+const NEXT_PUBLIC_SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? 'test-anon-key';
 
 const sampleProfile = {
   user_id: 'user-1',

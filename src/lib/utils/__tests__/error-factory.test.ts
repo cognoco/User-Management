@@ -29,7 +29,7 @@ describe('error factory', () => {
   });
 
   it('creates validation error with missing locale', () => {
-    const err = createValidationError({ field: 'x' }, undefined, undefined, 'zz');
+    const err = createValidationError({ field: 'x' }, undefined, undefined, 'zz' as any);
     expect(err.message).toBe('Validation failed.');
   });
 
@@ -45,7 +45,7 @@ describe('error factory', () => {
   });
 
   it('uses fallback for unknown locale', () => {
-    const err = createAuthenticationError(undefined as any, undefined, 'zz');
+    const err = createAuthenticationError(undefined as any, undefined, 'zz' as any);
     expect(err.message).toBe('Authentication required.');
   });
 
@@ -56,7 +56,7 @@ describe('error factory', () => {
   });
 
   it('falls back to default locale', () => {
-    const err = createNotFoundError('item', '2', undefined, 'zz');
+    const err = createNotFoundError('item', '2', undefined, 'zz' as any);
     expect(err.message).toBe('item 2 not found.');
   });
 

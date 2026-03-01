@@ -3,8 +3,8 @@ import { SupabasePermissionProvider } from '../supabase-permission-provider';
 import { setTableMockData, resetSupabaseMock } from '@/tests/mocks/supabase';
 import type { Permission } from '@/core/permission/models';
 
-const NEXT_PUBLIC_SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const NEXT_PUBLIC_SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const NEXT_PUBLIC_SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'http://localhost:54321';
+const NEXT_PUBLIC_SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? 'test-anon-key';
 
 const userRoles = [
   { user_id: 'user-1', role_id: 'role-1' }

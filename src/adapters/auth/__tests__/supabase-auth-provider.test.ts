@@ -3,8 +3,8 @@ import { SupabaseAuthProvider } from '../providers/supabase-auth-provider';
 import { supabase, resetSupabaseMock } from '@/tests/mocks/supabase';
 import type { LoginPayload, RegistrationPayload } from '@/core/auth/models';
 
-const NEXT_PUBLIC_SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const NEXT_PUBLIC_SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const NEXT_PUBLIC_SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'http://localhost:54321';
+const NEXT_PUBLIC_SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? 'test-anon-key';
 
 describe('SupabaseAuthProvider', () => {
   beforeEach(() => {
