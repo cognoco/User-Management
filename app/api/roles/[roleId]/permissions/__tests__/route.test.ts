@@ -1,25 +1,26 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
 import { GET, POST, DELETE } from '../route';
 import { configureServices, resetServiceContainer } from '@/lib/config/service-container';
 import type { PermissionService } from '@/core/permission/interfaces';
 import type { AuthService } from '@/core/auth/interfaces';
 import { createAuthenticatedRequest } from '@/tests/utils/request-helpers';
 
-const mockService: Partial<PermissionService> = {
+const mockService = {
   getRolePermissions: vi.fn(),
   addPermissionToRole: vi.fn(),
   removePermissionFromRole: vi.fn(),
-};
-const mockAuth: Partial<AuthService> = {
+} satisfies Record<string, Mock>;
+
+const mockAuth = {
   getCurrentUser: vi.fn().mockResolvedValue({ id: 'u1' }),
-};
+} satisfies Record<string, Mock>;
 
 beforeEach(() => {
   vi.clearAllMocks();
   resetServiceContainer();
   configureServices({
-    permissionService: mockService as PermissionService,
-    authService: mockAuth as AuthService,
+    permissionService: mockService as unknown as PermissionService,
+    authService: mockAuth as unknown as AuthService,
   });
 });
 
