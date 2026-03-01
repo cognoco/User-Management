@@ -128,7 +128,7 @@ test.describe('4.4 MFA Verify (TOTP) During Login', () => {
       } else {
         // Take screenshot to help diagnose the situation
         await page.screenshot({ path: 'no-mfa-prompt.png' });
-        test.skip('No MFA prompt detected and not logged in, test can\'t proceed');
+        test.skip(true, 'No MFA prompt detected and not logged in, test can\'t proceed');
       }
       return;
     }
@@ -425,12 +425,12 @@ test.describe('4.4 MFA Verify (TOTP) During Login', () => {
     
     // Store cookies and localStorage for simulating browser restart
     const cookies = await initialLoginPage.context().cookies();
-    const localStorage = await initialLoginPage.evaluate(() => {
-      const items = {};
+    const storedLocalStorage: Record<string, string> = await initialLoginPage.evaluate(() => {
+      const items: Record<string, string> = {};
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
         if (key) {
-          items[key] = localStorage.getItem(key);
+          items[key] = localStorage.getItem(key) ?? '';
         }
       }
       return items;
@@ -452,7 +452,7 @@ test.describe('4.4 MFA Verify (TOTP) During Login', () => {
       for (const [key, value] of Object.entries(storedItems)) {
         localStorage.setItem(key, value as string);
       }
-    }, localStorage);
+    }, storedLocalStorage);
     
     // Navigate to a protected page
     await newPage.goto('/dashboard/overview');
