@@ -106,7 +106,9 @@ export class Telemetry extends TypedEventEmitter<TelemetryEvent> {
     m.resolutionTimes.push(now - m.lastSeen);
   }
 
-  getMetrics(type?: string) {
+  getMetrics(type: string): ErrorMetrics | undefined;
+  getMetrics(): Record<string, ErrorMetrics>;
+  getMetrics(type?: string): ErrorMetrics | Record<string, ErrorMetrics> | undefined {
     if (type) return this.metrics.get(type);
     const obj: Record<string, ErrorMetrics> = {};
     this.metrics.forEach((v, k) => (obj[k] = v));
