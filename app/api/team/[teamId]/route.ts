@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { createApiHandler, emptySchema } from '@/lib/api/route-helpers';
 import {
   createSuccessResponse,
@@ -19,12 +19,13 @@ const UpdateTeamSchema = z.object({
 const ParamSchema = z.object({ teamId: z.string().min(1, 'Invalid team id') });
 
 async function handleGet(
-  _req: Request,
+  _req: NextRequest,
   _auth: AuthContext,
   _data: unknown,
   services: ServiceContainer,
   teamId: string
 ) {
+  if (!services.team) throw new ApiError(ERROR_CODES.SERVICE_UNAVAILABLE, 'Team service unavailable', 503);
   const team = await services.team.getTeam(teamId);
   if (!team) {
     throw createTeamNotFoundError(teamId);
@@ -33,12 +34,13 @@ async function handleGet(
 }
 
 async function handlePatch(
-  _req: Request,
+  _req: NextRequest,
   _auth: AuthContext,
   data: z.infer<typeof UpdateTeamSchema>,
   services: ServiceContainer,
   teamId: string
 ) {
+  if (!services.team) throw new ApiError(ERROR_CODES.SERVICE_UNAVAILABLE, 'Team service unavailable', 503);
   const result = await services.team.updateTeam(teamId, data);
   if (!result.success || !result.team) {
     throw new ApiError(ERROR_CODES.INVALID_REQUEST, result.error || 'Failed to update team', 400);
@@ -47,12 +49,13 @@ async function handlePatch(
 }
 
 async function handleDelete(
-  _req: Request,
+  _req: NextRequest,
   _auth: AuthContext,
   _data: unknown,
   services: ServiceContainer,
   teamId: string
 ) {
+  if (!services.team) throw new ApiError(ERROR_CODES.SERVICE_UNAVAILABLE, 'Team service unavailable', 503);
   const result = await services.team.deleteTeam(teamId);
   if (!result.success) {
     throw new ApiError(ERROR_CODES.INVALID_REQUEST, result.error || 'Failed to delete team', 400);
@@ -61,7 +64,7 @@ async function handleDelete(
 }
 
 export const GET = (
-  req: Request,
+  req: NextRequest,
   ctx: { params: { teamId: string } }
 ) => {
   const parsed = ParamSchema.safeParse(ctx.params);
@@ -75,7 +78,7 @@ export const GET = (
 };
 
 export const PATCH = (
-  req: Request,
+  req: NextRequest,
   ctx: { params: { teamId: string } }
 ) => {
   const parsed = ParamSchema.safeParse(ctx.params);
@@ -89,7 +92,7 @@ export const PATCH = (
 };
 
 export const DELETE = (
-  req: Request,
+  req: NextRequest,
   ctx: { params: { teamId: string } }
 ) => {
   const parsed = ParamSchema.safeParse(ctx.params);

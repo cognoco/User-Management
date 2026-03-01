@@ -19,6 +19,7 @@ async function handleGet(
   _data: unknown,
   services: ServiceContainer
 ) {
+  if (!services.team) throw new ApiError(ERROR_CODES.SERVICE_UNAVAILABLE, 'Team service unavailable', 503);
   const teams = await services.team.getUserTeams(auth.userId!);
   return createSuccessResponse({ teams });
 }
@@ -29,6 +30,7 @@ async function handlePost(
   data: z.infer<typeof CreateTeamSchema>,
   services: ServiceContainer
 ) {
+  if (!services.team) throw new ApiError(ERROR_CODES.SERVICE_UNAVAILABLE, 'Team service unavailable', 503);
   const result = await services.team.createTeam(auth.userId!, data);
   if (!result.success || !result.team) {
     throw new ApiError(ERROR_CODES.INVALID_REQUEST, result.error || 'Failed to create team', 400);
