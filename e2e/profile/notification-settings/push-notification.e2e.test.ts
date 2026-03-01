@@ -19,6 +19,13 @@ This file tests the following user flows and scenarios:
 
 import { test, expect, Page } from '@playwright/test';
 
+// Extend Window interface for test-specific properties
+declare global {
+  interface Window {
+    __testPushNotificationShown: boolean;
+  }
+}
+
 // Helper function for more resilient login
 async function loginUser(page: Page, email = 'testuser@example.com', password = 'password123'): Promise<void> {
   await page.goto('/auth/login');
@@ -310,11 +317,15 @@ test.describe('Push Notification Setup', () => {
           unsubscribe: () => Promise.resolve(true)
         };
         
-        navigator.serviceWorker.ready = Promise.resolve({
-          pushManager: {
-            getSubscription: () => Promise.resolve(mockSubscription)
-          }
-        } as any);
+        Object.defineProperty(navigator.serviceWorker, 'ready', {
+          value: Promise.resolve({
+            pushManager: {
+              getSubscription: () => Promise.resolve(mockSubscription)
+            }
+          }),
+          writable: true,
+          configurable: true
+        });
       }
     });
     
@@ -373,9 +384,9 @@ test.describe('Push Notification Service Worker', () => {
     }
     
     // Check for service worker registration
-    const serviceWorkerStatus = await page.evaluate(() => {
+    const serviceWorkerStatus = await page.evaluate((): Promise<Record<string, unknown>> => {
       if (!('serviceWorker' in navigator)) {
-        return { supported: false, reason: 'Service Worker API not supported' };
+        return Promise.resolve({ supported: false, reason: 'Service Worker API not supported' });
       }
       
       // Check for active service worker
@@ -475,11 +486,15 @@ test.describe('Push Notification Service Worker', () => {
       
       if (navigator.serviceWorker) {
         // Simulate service worker already registered
-        navigator.serviceWorker.ready = Promise.resolve({
-          pushManager: {
-            getSubscription: () => Promise.resolve(mockSubscription)
-          }
-        } as any);
+        Object.defineProperty(navigator.serviceWorker, 'ready', {
+          value: Promise.resolve({
+            pushManager: {
+              getSubscription: () => Promise.resolve(mockSubscription)
+            }
+          }),
+          writable: true,
+          configurable: true
+        });
       }
       
       // Store whether a notification was created
