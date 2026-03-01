@@ -89,11 +89,11 @@ test.describe('User Logout Flow', () => {
         // If direct form fill fails, try JavaScript approach
         await page.evaluate(
           ([email, password]) => {
-            const emailInput = document.querySelector('input[type="email"]') || 
-                             document.querySelector('input[name="email"]');
-            const passwordInput = document.querySelector('input[type="password"]') || 
-                                document.querySelector('input[name="password"]');
-            const submitButton = document.querySelector('button[type="submit"]');
+            const emailInput = document.querySelector<HTMLInputElement>('input[type="email"]') || 
+                             document.querySelector<HTMLInputElement>('input[name="email"]');
+            const passwordInput = document.querySelector<HTMLInputElement>('input[type="password"]') || 
+                                document.querySelector<HTMLInputElement>('input[name="password"]');
+            const submitButton = document.querySelector<HTMLElement>('button[type="submit"]');
             
             if (emailInput) {
               emailInput.value = email;
@@ -190,11 +190,11 @@ test.describe('User Logout Flow', () => {
         // If direct form fill fails, try JavaScript approach
         await page.evaluate(
           ([email, password]) => {
-            const emailInput = document.querySelector('input[type="email"]') || 
-                             document.querySelector('input[name="email"]');
-            const passwordInput = document.querySelector('input[type="password"]') || 
-                                document.querySelector('input[name="password"]');
-            const submitButton = document.querySelector('button[type="submit"]');
+            const emailInput = document.querySelector<HTMLInputElement>('input[type="email"]') || 
+                             document.querySelector<HTMLInputElement>('input[name="email"]');
+            const passwordInput = document.querySelector<HTMLInputElement>('input[type="password"]') || 
+                                document.querySelector<HTMLInputElement>('input[name="password"]');
+            const submitButton = document.querySelector<HTMLElement>('button[type="submit"]');
             
             if (emailInput) {
               emailInput.value = email;
