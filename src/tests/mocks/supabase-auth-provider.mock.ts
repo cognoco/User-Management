@@ -47,16 +47,12 @@ export function createMockSupabaseAuthProvider(
         email: _payload.email,
         firstName: '',
         lastName: '',
-        emailVerified: true,
-        phoneNumber: '',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        lastLoginAt: new Date(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
         mfaEnabled: false,
-        isActive: true,
       };
       state.token = 'mock-token';
-      return { success: true, user: state.user };
+      return { success: true, user: state.user ?? undefined };
     }),
 
     register: vi.fn(async (_payload: RegistrationPayload): Promise<AuthResult> => {
@@ -77,10 +73,10 @@ export function createMockSupabaseAuthProvider(
     sendMagicLink: vi.fn(async (_email: string) => ({ success: true })),
     verifyMagicLink: vi.fn(async (_token: string) => ({ success: true })),
     deleteAccount: vi.fn(async (_password?: string) => {}),
-    setupMFA: vi.fn(async (): Promise<MFASetupResponse> => ({ secret: 'secret', qrCode: 'qr' })),
+    setupMFA: vi.fn(async (): Promise<MFASetupResponse> => ({ success: true, secret: 'secret', qrCode: 'qr' })),
     verifyMFA: vi.fn(async (_code: string): Promise<MFAVerifyResponse> => ({ success: true, token: 'mock-token' })),
     disableMFA: vi.fn(async (_code: string) => ({ success: true })),
-    startWebAuthnRegistration: vi.fn(async (): Promise<MFASetupResponse> => ({ secret: 'secret', qrCode: 'qr' })),
+    startWebAuthnRegistration: vi.fn(async (): Promise<MFASetupResponse> => ({ success: true, secret: 'secret', qrCode: 'qr' })),
     verifyWebAuthnRegistration: vi.fn(async (_data: unknown): Promise<MFAVerifyResponse> => ({ success: true, token: 'mock-token' })),
     refreshToken: vi.fn(async () => ({ accessToken: 'refreshed-token', refreshToken: 'refresh', expiresAt: Date.now() + 60_000 })),
     onAuthStateChanged: vi.fn((cb: (user: User | null) => void) => {
