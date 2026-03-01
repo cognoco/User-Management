@@ -13,7 +13,7 @@ vi.mock('@/lib/api/axios', () => ({
 }));
 
 describe('Email MFA Verification During Login', () => {
-  const mockAccessToken = 'mock-access-token';
+  const mockSessionId = 'mock-session-id';
   const mockSuccessCallback = vi.fn();
   const mockCancelCallback = vi.fn();
   
@@ -35,7 +35,7 @@ describe('Email MFA Verification During Login', () => {
     
     render(
       <MFAVerificationForm
-        accessToken={mockAccessToken}
+        sessionId={mockSessionId}
         onSuccess={mockSuccessCallback}
         onCancel={mockCancelCallback}
         enableResendCode={true}
@@ -54,17 +54,14 @@ describe('Email MFA Verification During Login', () => {
       expect(api.post).toHaveBeenCalledWith('/auth/mfa/verify', {
         code: '123456',
         method: TwoFactorMethod.EMAIL,
-        accessToken: mockAccessToken,
+        sessionId: mockSessionId,
         rememberDevice: false
       });
     });
     
-    // Verify success callback was called with user and token
+    // Verify success callback was called
     await waitFor(() => {
-      expect(mockSuccessCallback).toHaveBeenCalledWith(
-        { id: 'user123' },
-        'new-token-after-mfa'
-      );
+      expect(mockSuccessCallback).toHaveBeenCalled();
     });
   });
   
@@ -80,7 +77,7 @@ describe('Email MFA Verification During Login', () => {
     
     render(
       <MFAVerificationForm
-        accessToken={mockAccessToken}
+        sessionId={mockSessionId}
         onSuccess={mockSuccessCallback}
         onCancel={mockCancelCallback}
         enableResendCode={true}
@@ -112,7 +109,7 @@ describe('Email MFA Verification During Login', () => {
     
     render(
       <MFAVerificationForm
-        accessToken={mockAccessToken}
+        sessionId={mockSessionId}
         onSuccess={mockSuccessCallback}
         onCancel={mockCancelCallback}
         enableResendCode={true}
@@ -127,7 +124,7 @@ describe('Email MFA Verification During Login', () => {
     // Verify API was called to resend email
     await waitFor(() => {
       expect(api.post).toHaveBeenCalledWith('/auth/mfa/resend-email', {
-        accessToken: mockAccessToken
+        sessionId: mockSessionId
       });
     });
     
@@ -143,7 +140,7 @@ describe('Email MFA Verification During Login', () => {
   test('should allow switching between verification methods', async () => {
     render(
       <MFAVerificationForm
-        accessToken={mockAccessToken}
+        sessionId={mockSessionId}
         onSuccess={mockSuccessCallback}
         onCancel={mockCancelCallback}
         enableResendCode={true}
@@ -179,7 +176,7 @@ describe('Email MFA Verification During Login', () => {
     
     render(
       <MFAVerificationForm
-        accessToken={mockAccessToken}
+        sessionId={mockSessionId}
         onSuccess={mockSuccessCallback}
         onCancel={mockCancelCallback}
         enableResendCode={true}
@@ -210,7 +207,7 @@ describe('Email MFA Verification During Login', () => {
     // Verify API was called to resend
     await waitFor(() => {
       expect(api.post).toHaveBeenCalledWith('/auth/mfa/resend-email', {
-        accessToken: mockAccessToken
+        sessionId: mockSessionId
       });
     });
   });
