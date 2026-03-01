@@ -4,7 +4,6 @@ import { addressCreateSchema } from "@/core/address/models";
 import { createApiHandler } from "@/lib/api/route-helpers";
 import { createSuccessResponse } from "@/lib/api/common";
 import { getApiAddressService } from "@/services/address/factory";
-import { getApiCompanyService } from "@/services/company/factory";
 
 import { z } from "zod";
 type AddressRequest = z.infer<typeof addressCreateSchema>;
@@ -16,30 +15,22 @@ async function handlePost(
 ) {
   try {
     const userId = auth.userId!;
-    const companyService = getApiCompanyService();
     const addressService = getApiAddressService();
-    const companyProfile = await companyService.getProfileByUserId(userId);
-    if (!companyProfile) {
-      return NextResponse.json(
-        { error: 'Company profile not found' },
-        { status: 404 },
-      );
-    }
 
-    const result = await addressService.createAddress(
-      companyProfile.id,
-      data,
-    );
+    const created = await addressService.createAddress({
+      userId,
+      type: data.type as 'billing' | 'shipping',
+      isDefault: data.is_primary ?? false,
+      fullName: '',
+      street1: data.street_line1,
+      street2: data.street_line2,
+      city: data.city,
+      state: data.state ?? '',
+      postalCode: data.postal_code,
+      country: data.country,
+    });
 
-    if (!result.success || !result.address) {
-      console.error('Error creating address:', result.error);
-      return NextResponse.json(
-        { error: 'Failed to create address' },
-        { status: 500 },
-      );
-    }
-
-    return createSuccessResponse(result.address, 201);
+    return createSuccessResponse(created, 201);
   } catch (error) {
     console.error('Unexpected error in POST /api/company/addresses:', error);
     return NextResponse.json(
@@ -56,18 +47,9 @@ async function handleGet(
 ) {
   try {
     const userId = auth.userId!;
-    const companyService = getApiCompanyService();
     const addressService = getApiAddressService();
-    const companyProfile = await companyService.getProfileByUserId(userId);
 
-    if (!companyProfile) {
-      return NextResponse.json(
-        { error: 'Company profile not found' },
-        { status: 404 },
-      );
-    }
-
-    const addresses = await addressService.getAddresses(companyProfile.id);
+    const addresses = await addressService.getAddresses(userId);
 
     return createSuccessResponse(addresses);
   } catch (error) {

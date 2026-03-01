@@ -5,7 +5,6 @@ import { addressUpdateSchema } from "@/core/address/models";
 import { createApiHandler } from "@/lib/api/route-helpers";
 import { createSuccessResponse } from "@/lib/api/common";
 import { getApiAddressService } from "@/services/address/factory";
-import { getApiCompanyService } from "@/services/company/factory";
 
 // Use the shared address update schema from the core layer
 type AddressUpdateRequest = z.infer<typeof addressUpdateSchema>;
@@ -18,32 +17,15 @@ async function handlePut(
 ) {
   try {
     const userId = auth.userId!;
-    const companyService = getApiCompanyService();
     const addressService = getApiAddressService();
-    const companyProfile = await companyService.getProfileByUserId(userId);
 
-    if (!companyProfile) {
-      return NextResponse.json(
-        { error: "Company profile not found" },
-        { status: 404 },
-      );
-    }
-
-    const result = await addressService.updateAddress(
-      companyProfile.id,
+    const updated = await addressService.updateAddress(
       params.addressId,
-      data,
+      data as any,
+      userId,
     );
 
-    if (!result.success) {
-      console.error("Error updating address:", result.error);
-      return NextResponse.json(
-        { error: "Failed to update address" },
-        { status: 500 },
-      );
-    }
-
-    return createSuccessResponse(result.address);
+    return createSuccessResponse(updated);
   } catch (error) {
     console.error(
       "Unexpected error in PUT /api/company/addresses/[addressId]:",
@@ -63,29 +45,9 @@ async function handleDelete(
 ) {
   try {
     const userId = auth.userId!;
-    const companyService = getApiCompanyService();
     const addressService = getApiAddressService();
-    const companyProfile = await companyService.getProfileByUserId(userId);
 
-    if (!companyProfile) {
-      return NextResponse.json(
-        { error: "Company profile not found" },
-        { status: 404 },
-      );
-    }
-
-    const result = await addressService.deleteAddress(
-      companyProfile.id,
-      params.addressId,
-    );
-
-    if (!result.success) {
-      console.error("Error deleting address:", result.error);
-      return NextResponse.json(
-        { error: "Failed to delete address" },
-        { status: 500 },
-      );
-    }
+    await addressService.deleteAddress(params.addressId, userId);
 
     return createSuccessResponse({ success: true });
   } catch (error) {
@@ -113,6 +75,6 @@ export const DELETE = (
 ) =>
   createApiHandler(
     z.object({}),
-    (r, auth, d) => handleDelete(r, ctx.params, auth),
+    (r, auth, _d) => handleDelete(r, ctx.params, auth),
     { requireAuth: true }
   )(req);

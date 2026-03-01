@@ -82,7 +82,7 @@ async function handlePost(
       tax_id_verified: validationResult.isValid,
       tax_id_last_checked: new Date().toISOString(),
       tax_id_validation_details: validationResult.details,
-    });
+    } as any);
 
     return createSuccessResponse({
       status: validationResult.status,

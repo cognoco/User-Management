@@ -239,7 +239,7 @@ async function handlePut(
     const fieldsToUpdate = data;
     const updatedProfile = await companyService.updateProfile(
       companyProfileIdForLogging,
-      fieldsToUpdate,
+      fieldsToUpdate as unknown as Partial<import('@/types/company').CompanyProfile>,
     );
 
     if (!updatedProfile) {

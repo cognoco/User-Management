@@ -3,6 +3,8 @@ import { createSupabaseSubscriptionProvider } from '@/adapters/subscription/fact
 import { z } from 'zod';
 import { NextResponse, type NextRequest } from 'next/server';
 import type { AuthContext } from '@/core/config/interfaces';
+import { withRouteAuth } from '@/middleware/auth';
+import type { SubscriptionStatus } from '@/types/subscription';
 
 const SubscriptionSchema = z.object({ plan: z.string() });
 
@@ -18,9 +20,10 @@ async function handleGet(_req: NextRequest, auth: AuthContext) {
   }
   // Optionally fetch from Stripe for up-to-date status
   let stripeSub = null;
-  if (subscription.stripe_subscription_id) {
+  const stripeSubId = subscription.paymentProviderData?.stripe_subscription_id as string | undefined;
+  if (stripeSubId) {
     try {
-      stripeSub = await stripe.subscriptions.retrieve(subscription.stripe_subscription_id);
+      stripeSub = await stripe.subscriptions.retrieve(stripeSubId);
     } catch (e) {
       // Ignore if not found
     }
@@ -72,7 +75,7 @@ async function handlePost(request: NextRequest, auth: AuthContext) {
     userId: auth.userId!,
     planId: priceId,
     id: existing?.id,
-    status: stripeSub.status,
+    status: stripeSub.status as unknown as SubscriptionStatus,
     startDate: new Date().toISOString(),
   });
   return NextResponse.json({ success: true, subscription: stripeSub });
