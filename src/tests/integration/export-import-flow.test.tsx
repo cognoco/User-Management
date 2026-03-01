@@ -86,7 +86,7 @@ describe('User Preferences Flow', () => {
     
     // Verify save was successful
     await waitFor(() => {
-      expect(await screen.findByText(/preferences saved/i)).toBeInTheDocument();
+      expect(screen.getByText(/preferences saved/i)).toBeInTheDocument();
     });
     
     // Verify update was called with correct data
@@ -390,7 +390,7 @@ describe('User Preferences Flow', () => {
       expect(screen.getByLabelText(/language/i)).toHaveValue('fr');
       expect(screen.getByLabelText(/timezone/i)).toHaveValue('Europe/Paris');
       expect(screen.getByLabelText(/date format/i)).toHaveValue('DD/MM/YYYY');
-      expect(await screen.findByText(/preferences reset/i)).toBeInTheDocument();
+      expect(screen.getByText(/preferences reset/i)).toBeInTheDocument();
     });
 
     // Restore mocks
