@@ -81,7 +81,7 @@ async function fillLoginForm(page: Page, email: string, password: string): Promi
 }
 
 // Helper function to navigate with fallbacks
-async function navigateWithFallback(page, url, options = {}) {
+async function navigateWithFallback(page: Page, url: string, options: { timeout?: number } = {}): Promise<boolean> {
   const timeout = options.timeout || 10000;
   
   try {
@@ -90,7 +90,7 @@ async function navigateWithFallback(page, url, options = {}) {
     console.log(`Navigation to ${url} succeeded on first attempt`);
     return true;
   } catch (error) {
-    console.log(`First navigation attempt failed: ${error.message}`);
+    console.log(`First navigation attempt failed: ${(error as Error).message}`);
     
     try {
       // Second attempt with shorter timeout
@@ -98,7 +98,7 @@ async function navigateWithFallback(page, url, options = {}) {
       console.log(`Navigation to ${url} succeeded on second attempt`);
       return true;
     } catch (error2) {
-      console.log(`Second navigation attempt also failed: ${error2.message}`);
+      console.log(`Second navigation attempt also failed: ${(error2 as Error).message}`);
       
       // Check if we ended up at the correct URL anyway
       if (page.url().includes(url.split('?')[0])) {
@@ -115,11 +115,11 @@ async function navigateWithFallback(page, url, options = {}) {
 
 // Simulate receiving and opening an email with invite link
 // In real tests this would be replaced with actual email API access
-async function simulateInviteEmailReceived(page, email) {
+async function simulateInviteEmailReceived(page: Page, email: string): Promise<void> {
   console.log(`Simulating email receipt for ${email}`);
   
   // Inject a simulated email view for testing
-  await page.evaluate((inviteeEmail) => {
+  await page.evaluate((inviteeEmail: string) => {
     document.body.insertAdjacentHTML('beforeend', `
       <div id="simulated-email" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 9999; display: flex; align-items: center; justify-content: center; color: white;">
         <div style="background: white; color: black; padding: 20px; border-radius: 8px; max-width: 500px; width: 100%;">
@@ -239,7 +239,7 @@ test.describe('Team Invite Flow', () => {
           
           document.getElementById('invite-form')?.addEventListener('submit', (e) => {
             e.preventDefault();
-            const email = document.getElementById('invite-email')?.value;
+            const email = (document.getElementById('invite-email') as HTMLInputElement)?.value;
             document.getElementById('invite-form-modal')?.remove();
             
             // Show success message
@@ -343,7 +343,7 @@ test.describe('Team Invite Flow', () => {
         // Use JS-based form filling as fallback
         await page.evaluate((password) => {
           // Set password fields
-          const passwordInputs = document.querySelectorAll('input[type="password"]');
+          const passwordInputs = document.querySelectorAll<HTMLInputElement>('input[type="password"]');
           if (passwordInputs.length >= 1) {
             passwordInputs[0].value = password;
             passwordInputs[0].dispatchEvent(new Event('input', { bubbles: true }));
@@ -354,8 +354,8 @@ test.describe('Team Invite Flow', () => {
           }
           
           // Set name fields if they exist
-          const firstNameInput = document.querySelector('#first-name, input[name="firstName"]');
-          const lastNameInput = document.querySelector('#last-name, input[name="lastName"]');
+          const firstNameInput = document.querySelector<HTMLInputElement>('#first-name, input[name="firstName"]');
+          const lastNameInput = document.querySelector<HTMLInputElement>('#last-name, input[name="lastName"]');
           
           if (firstNameInput) {
             firstNameInput.value = 'Test';
