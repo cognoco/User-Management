@@ -10,12 +10,13 @@ async function handleGet(type: string, id: string) {
   return createSuccessResponse({ ancestors });
 }
 
-export const GET = (
+export const GET = async (
   req: NextRequest,
-  ctx: { params: { type: string; id: string } },
-) =>
-  withRouteAuth(
-    (r) =>
-      withErrorHandling(() => handleGet(ctx.params.type, ctx.params.id), r),
+  ctx: { params: Promise<{ type: string; id: string }> },
+) => {
+  const { type, id } = await ctx.params;
+  return withRouteAuth(
+    (r) => withErrorHandling(() => handleGet(type, id), r),
     req,
   );
+};

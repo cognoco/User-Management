@@ -27,7 +27,7 @@ describe('[orgId] API', () => {
   });
 
   it('GET returns organization', async () => {
-    const res = await GET(createAuthenticatedRequest('GET', 'http://test'), { params: { orgId: 'o1' } });
+    const res = await GET(createAuthenticatedRequest('GET', 'http://test'), { params: Promise.resolve({ orgId: 'o1' }) });
     expect(res.status).toBe(200);
     expect(service.getOrganization).toHaveBeenCalledWith('o1');
   });
@@ -35,13 +35,13 @@ describe('[orgId] API', () => {
   it('PUT updates organization', async () => {
     const req = createAuthenticatedRequest('PUT', 'http://test', { name: 'New' });
     (req as any).json = async () => ({ name: 'New' });
-    const res = await PUT(req, { params: { orgId: 'o1' } });
+    const res = await PUT(req, { params: Promise.resolve({ orgId: 'o1' }) });
     expect(res.status).toBe(200);
     expect(service.updateOrganization).toHaveBeenCalled();
   });
 
   it('DELETE removes organization', async () => {
-    const res = await DELETE(createAuthenticatedRequest('DELETE', 'http://test'), { params: { orgId: 'o1' } });
+    const res = await DELETE(createAuthenticatedRequest('DELETE', 'http://test'), { params: Promise.resolve({ orgId: 'o1' }) });
     expect(res.status).toBe(200);
     expect(service.deleteOrganization).toHaveBeenCalledWith('o1');
   });

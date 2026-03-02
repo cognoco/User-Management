@@ -52,12 +52,14 @@ async function handleDelete(
   }
 }
 
-export const DELETE = (
+export const DELETE = async (
   req: NextRequest,
-  ctx: { params: { documentId: string } }
-) =>
-  createApiHandler(
+  ctx: { params: Promise<{ documentId: string }> }
+) => {
+  const params = await ctx.params;
+  return createApiHandler(
     z.object({}),
-    (r, a) => handleDelete(r, ctx.params, a),
+    (r, a) => handleDelete(r, params, a),
     { requireAuth: true }
   )(req);
+};

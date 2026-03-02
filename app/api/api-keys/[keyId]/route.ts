@@ -27,5 +27,7 @@ const handler = async (req: NextRequest, ctx: any, _data: unknown, params: { key
   return createSuccessResponse({ message: 'API key revoked successfully' })
 }
 
-export const DELETE = (req: NextRequest, ctx: { params: { keyId: string } }) =>
-  createApiHandler(emptySchema, (r, auth, data) => handler(r, auth, data, ctx.params), { requireAuth: true })(req)
+export const DELETE = async (req: NextRequest, ctx: { params: Promise<{ keyId: string }> }) => {
+  const params = await ctx.params;
+  return createApiHandler(emptySchema, (r, auth, data) => handler(r, auth, data, params), { requireAuth: true })(req);
+};

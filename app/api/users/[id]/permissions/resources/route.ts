@@ -36,12 +36,14 @@ async function handleGet(
   return createSuccessResponse({ permissions });
 }
 
-export const GET = (
+export const GET = async (
   req: NextRequest,
-  ctx: { params: { id: string } },
-) =>
-  createApiHandler(
+  ctx: { params: Promise<{ id: string }> },
+) => {
+  const { id } = await ctx.params;
+  return createApiHandler(
     querySchema,
-    (r, auth, data, services) => handleGet(r, auth, data, services, ctx.params.id),
+    (r, auth, data, services) => handleGet(r, auth, data, services, id),
     { requireAuth: true, requiredPermissions: [PermissionValues.MANAGE_ROLES] },
   )(req);
+};

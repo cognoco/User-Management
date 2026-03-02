@@ -69,7 +69,7 @@ describe('PATCH /api/team/members/[memberId]/role', () => {
 
   it('updates member role successfully', async () => {
     const request = createRequest(MEMBER_ID, { role: 'viewer' });
-    const response = await PATCH(request, { params: { memberId: MEMBER_ID } });
+    const response = await PATCH(request, { params: Promise.resolve({ memberId: MEMBER_ID }) });
     const data = await response.json();
 
     expect(response.status).toBe(200);
@@ -87,7 +87,7 @@ describe('PATCH /api/team/members/[memberId]/role', () => {
     mockTeamService.hasTeamRole.mockResolvedValue(false);
 
     const request = createRequest(MEMBER_ID, { role: 'viewer' });
-    const response = await PATCH(request, { params: { memberId: MEMBER_ID } });
+    const response = await PATCH(request, { params: Promise.resolve({ memberId: MEMBER_ID }) });
     const data = await response.json();
 
     expect(response.status).toBe(403);
@@ -96,7 +96,7 @@ describe('PATCH /api/team/members/[memberId]/role', () => {
 
   it('returns 400 when role is invalid', async () => {
     const request = createRequest(MEMBER_ID, { role: 'superadmin' });
-    const response = await PATCH(request, { params: { memberId: MEMBER_ID } });
+    const response = await PATCH(request, { params: Promise.resolve({ memberId: MEMBER_ID }) });
 
     expect(response.status).toBe(400);
   });
@@ -105,7 +105,7 @@ describe('PATCH /api/team/members/[memberId]/role', () => {
     // Note: paramSchema.parse throws ZodError which withErrorHandling wraps as 500
     // TODO: Route should convert ZodError to 400 ApiError
     const request = createRequest('not-a-uuid', { role: 'viewer' });
-    const response = await PATCH(request, { params: { memberId: 'not-a-uuid' } });
+    const response = await PATCH(request, { params: Promise.resolve({ memberId: 'not-a-uuid' }) });
 
     expect(response.status).toBe(500);
   });
@@ -114,7 +114,7 @@ describe('PATCH /api/team/members/[memberId]/role', () => {
     mockTeamService.getTeamMemberById.mockResolvedValue(null);
 
     const request = createRequest(MEMBER_ID, { role: 'viewer' });
-    const response = await PATCH(request, { params: { memberId: MEMBER_ID } });
+    const response = await PATCH(request, { params: Promise.resolve({ memberId: MEMBER_ID }) });
     const data = await response.json();
 
     expect(response.status).toBe(404);
@@ -128,7 +128,7 @@ describe('PATCH /api/team/members/[memberId]/role', () => {
     });
 
     const request = createRequest(MEMBER_ID, { role: 'viewer' });
-    const response = await PATCH(request, { params: { memberId: MEMBER_ID } });
+    const response = await PATCH(request, { params: Promise.resolve({ memberId: MEMBER_ID }) });
     const data = await response.json();
 
     expect(response.status).toBe(404);
@@ -141,7 +141,7 @@ describe('PATCH /api/team/members/[memberId]/role', () => {
     });
 
     const request = createRequest(MEMBER_ID, { role: 'viewer' });
-    const response = await PATCH(request, { params: { memberId: MEMBER_ID } });
+    const response = await PATCH(request, { params: Promise.resolve({ memberId: MEMBER_ID }) });
 
     expect(response.status).toBe(500);
   });

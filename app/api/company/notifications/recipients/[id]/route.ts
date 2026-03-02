@@ -7,5 +7,7 @@ async function handleDelete(_req: NextRequest, auth: AuthContext, _data: unknown
   return NextResponse.json({ success: true, message: 'Recipient removed successfully' });
 }
 
-export const DELETE = (req: NextRequest, ctx: { params: { id: string } }) =>
-  createApiHandler(emptySchema, (r, a, d, s) => handleDelete(r, a, d, s, ctx.params.id), { requireAuth: true })(req);
+export const DELETE = async (req: NextRequest, ctx: { params: Promise<{ id: string }> }) => {
+  const { id } = await ctx.params;
+  return createApiHandler(emptySchema, (r, a, d, s) => handleDelete(r, a, d, s, id), { requireAuth: true })(req);
+};

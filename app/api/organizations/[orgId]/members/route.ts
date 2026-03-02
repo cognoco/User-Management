@@ -35,8 +35,8 @@ async function handlePost(
   return createSuccessResponse({ member: result.member }, 201);
 }
 
-export const GET = (req: NextRequest, ctx: { params: { orgId: string } }) => {
-  const parsed = ParamSchema.safeParse(ctx.params);
+export const GET = async (req: NextRequest, ctx: { params: Promise<{ orgId: string }> }) => {
+  const parsed = ParamSchema.safeParse(await ctx.params);
   if (!parsed.success) {
     return NextResponse.json(
       new ApiError(ERROR_CODES.INVALID_REQUEST, parsed.error.message, 400).toResponse(),
@@ -46,8 +46,8 @@ export const GET = (req: NextRequest, ctx: { params: { orgId: string } }) => {
   return createApiHandler(emptySchema, (r, a, d, s) => handleGet(r, a, d, s, parsed.data.orgId), { requireAuth: true })(req);
 };
 
-export const POST = (req: NextRequest, ctx: { params: { orgId: string } }) => {
-  const parsed = ParamSchema.safeParse(ctx.params);
+export const POST = async (req: NextRequest, ctx: { params: Promise<{ orgId: string }> }) => {
+  const parsed = ParamSchema.safeParse(await ctx.params);
   if (!parsed.success) {
     return NextResponse.json(
       new ApiError(ERROR_CODES.INVALID_REQUEST, parsed.error.message, 400).toResponse(),

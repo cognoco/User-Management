@@ -56,7 +56,7 @@ describe('Domain Verification Initiate API', () => {
       new URL(`http://localhost/api/company/domains/${mockDomainId}/verify-initiate`)
     );
     
-    const response = await POST(request, { params: { id: mockDomainId } });
+    const response = await POST(request, { params: Promise.resolve({ id: mockDomainId }) });
     expect(response.status).toBe(200);
 
     const data = await response.json();
@@ -78,7 +78,7 @@ describe('Domain Verification Initiate API', () => {
       new URL(`http://localhost/api/company/domains/${mockDomainId}/verify-initiate`)
     );
     
-    const response = await POST(request, { params: { id: mockDomainId } });
+    const response = await POST(request, { params: Promise.resolve({ id: mockDomainId }) });
     expect(response.status).toBe(401);
     
     const data = await response.json();
@@ -92,7 +92,7 @@ describe('Domain Verification Initiate API', () => {
       new URL(`http://localhost/api/company/domains/${mockDomainId}/verify-initiate`)
     );
     
-    const response = await POST(request, { params: { id: mockDomainId } });
+    const response = await POST(request, { params: Promise.resolve({ id: mockDomainId }) });
     expect(response.status).toBe(404);
     
     const data = await response.json();
@@ -106,7 +106,7 @@ describe('Domain Verification Initiate API', () => {
       new URL(`http://localhost/api/company/domains/${mockDomainId}/verify-initiate`)
     );
     
-    const response = await POST(request, { params: { id: mockDomainId } });
+    const response = await POST(request, { params: Promise.resolve({ id: mockDomainId }) });
     expect(response.status).toBe(403);
     
     const data = await response.json();
@@ -120,7 +120,7 @@ describe('Domain Verification Initiate API', () => {
       new URL(`http://localhost/api/company/domains/${mockDomainId}/verify-initiate`)
     );
     
-    const response = await POST(request, { params: { id: mockDomainId } });
+    const response = await POST(request, { params: Promise.resolve({ id: mockDomainId }) });
     expect(response.status).toBe(500);
     
     const data = await response.json();
@@ -132,7 +132,7 @@ describe('Domain Verification Initiate API', () => {
       new URL(`http://localhost/api/company/domains/${mockDomainId}/verify-initiate`)
     );
     
-    const response = await POST(request, { params: { id: mockDomainId } });
+    const response = await POST(request, { params: Promise.resolve({ id: mockDomainId }) });
     const data = await response.json();
 
     // Token should be a string and match expected pattern

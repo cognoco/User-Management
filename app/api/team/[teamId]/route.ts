@@ -63,11 +63,11 @@ async function handleDelete(
   return createSuccessResponse({ success: true });
 }
 
-export const GET = (
+export const GET = async (
   req: NextRequest,
-  ctx: { params: { teamId: string } }
+  ctx: { params: Promise<{ teamId: string }> }
 ) => {
-  const parsed = ParamSchema.safeParse(ctx.params);
+  const parsed = ParamSchema.safeParse(await ctx.params);
   if (!parsed.success) {
     return NextResponse.json(
       new ApiError(ERROR_CODES.INVALID_REQUEST, parsed.error.message, 400).toResponse(),
@@ -77,11 +77,11 @@ export const GET = (
   return createApiHandler(emptySchema, (r, a, d, s) => handleGet(r, a, d, s, parsed.data.teamId), { requireAuth: true })(req);
 };
 
-export const PATCH = (
+export const PATCH = async (
   req: NextRequest,
-  ctx: { params: { teamId: string } }
+  ctx: { params: Promise<{ teamId: string }> }
 ) => {
-  const parsed = ParamSchema.safeParse(ctx.params);
+  const parsed = ParamSchema.safeParse(await ctx.params);
   if (!parsed.success) {
     return NextResponse.json(
       new ApiError(ERROR_CODES.INVALID_REQUEST, parsed.error.message, 400).toResponse(),
@@ -91,11 +91,11 @@ export const PATCH = (
   return createApiHandler(UpdateTeamSchema, (r, a, d, s) => handlePatch(r, a, d, s, parsed.data.teamId), { requireAuth: true })(req);
 };
 
-export const DELETE = (
+export const DELETE = async (
   req: NextRequest,
-  ctx: { params: { teamId: string } }
+  ctx: { params: Promise<{ teamId: string }> }
 ) => {
-  const parsed = ParamSchema.safeParse(ctx.params);
+  const parsed = ParamSchema.safeParse(await ctx.params);
   if (!parsed.success) {
     return NextResponse.json(
       new ApiError(ERROR_CODES.INVALID_REQUEST, parsed.error.message, 400).toResponse(),

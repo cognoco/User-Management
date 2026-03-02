@@ -22,26 +22,26 @@ describe('[teamId] API', () => {
   });
 
   it('GET returns team', async () => {
-    const res = await GET(new NextRequest('http://test'), { params: { teamId: 't1' } });
+    const res = await GET(new NextRequest('http://test'), { params: Promise.resolve({ teamId: 't1' }) });
     expect(res.status).toBe(200);
     expect(service.getTeam).toHaveBeenCalledWith('t1');
   });
 
   it('GET validates teamId', async () => {
-    const res = await GET(new NextRequest('http://test'), { params: { teamId: '' } });
+    const res = await GET(new NextRequest('http://test'), { params: Promise.resolve({ teamId: '' }) });
     expect(res.status).toBe(400);
   });
 
   it('PATCH updates team', async () => {
     const req = new NextRequest('http://test', { method: 'PATCH', body: JSON.stringify({ name: 'New' }) });
     (req as any).json = async () => ({ name: 'New' });
-    const res = await PATCH(req, { params: { teamId: 't1' } });
+    const res = await PATCH(req, { params: Promise.resolve({ teamId: 't1' }) });
     expect(res.status).toBe(200);
     expect(service.updateTeam).toHaveBeenCalled();
   });
 
   it('DELETE removes team', async () => {
-    const res = await DELETE(new NextRequest('http://test'), { params: { teamId: 't1' } });
+    const res = await DELETE(new NextRequest('http://test'), { params: Promise.resolve({ teamId: 't1' }) });
     expect(res.status).toBe(200);
     expect(service.deleteTeam).toHaveBeenCalledWith('t1');
   });

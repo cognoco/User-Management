@@ -5,13 +5,13 @@ import { ShieldCheck, Users, Lock, Key, Bell, Settings, HomeIcon } from 'lucide-
 
 interface SettingsLayoutProps {
   children: ReactNode;
-  params: {
+  params: Promise<{
     orgId: string;
-  };
+  }>;
 }
 
-export default function SettingsLayout({ children, params }: SettingsLayoutProps): JSX.Element {
-  const { orgId } = params;
+export default async function SettingsLayout({ children, params }: SettingsLayoutProps): Promise<JSX.Element> {
+  const { orgId } = await params;
 
   return (
     <div className="container py-6">

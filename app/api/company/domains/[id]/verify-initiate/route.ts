@@ -56,5 +56,7 @@ async function handlePost(request: NextRequest, params: { id: string }, auth: { 
   }
 }
 
-export const POST = (req: NextRequest, ctx: { params: { id: string } }) =>
-  createApiHandler(z.object({}), (r, a) => handlePost(r, ctx.params, a), { requireAuth: true })(req);
+export const POST = async (req: NextRequest, ctx: { params: Promise<{ id: string }> }) => {
+  const params = await ctx.params;
+  return createApiHandler(z.object({}), (r, a) => handlePost(r, params, a), { requireAuth: true })(req);
+};

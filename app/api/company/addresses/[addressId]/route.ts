@@ -62,19 +62,23 @@ async function handleDelete(
   }
 }
 
-export const PUT = (req: NextRequest, ctx: { params: { addressId: string } }) =>
-  createApiHandler(
+export const PUT = async (req: NextRequest, ctx: { params: Promise<{ addressId: string }> }) => {
+  const params = await ctx.params;
+  return createApiHandler(
     addressUpdateSchema,
-    (r, auth, data) => handlePut(r, ctx.params, auth, data),
+    (r, auth, data) => handlePut(r, params, auth, data),
     { requireAuth: true }
   )(req);
+};
 
-export const DELETE = (
+export const DELETE = async (
   req: NextRequest,
-  ctx: { params: { addressId: string } }
-) =>
-  createApiHandler(
+  ctx: { params: Promise<{ addressId: string }> }
+) => {
+  const params = await ctx.params;
+  return createApiHandler(
     z.object({}),
-    (r, auth, _d) => handleDelete(r, ctx.params, auth),
+    (r, auth, _d) => handleDelete(r, params, auth),
     { requireAuth: true }
   )(req);
+};

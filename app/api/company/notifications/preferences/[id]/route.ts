@@ -13,5 +13,7 @@ async function handlePatch(_req: NextRequest, auth: AuthContext, data: z.infer<t
   return NextResponse.json(updated);
 }
 
-export const PATCH = (req: NextRequest, ctx: { params: { id: string } }) =>
-  createApiHandler(updateSchema, (r, a, d, s) => handlePatch(r, a, d, s, ctx.params.id), { requireAuth: true })(req);
+export const PATCH = async (req: NextRequest, ctx: { params: Promise<{ id: string }> }) => {
+  const { id } = await ctx.params;
+  return createApiHandler(updateSchema, (r, a, d, s) => handlePatch(r, a, d, s, id), { requireAuth: true })(req);
+};

@@ -84,7 +84,7 @@ beforeEach(() => {
 
 function makeRequest(memberId: string = MEMBER_ID) {
   const req = createAuthenticatedRequest('DELETE', `http://localhost/api/team/members/${memberId}`);
-  return DELETE(req, { params: { memberId } });
+  return DELETE(req, { params: Promise.resolve({ memberId }) });
 }
 
 describe('DELETE /api/team/members/[memberId]', () => {
@@ -103,7 +103,7 @@ describe('DELETE /api/team/members/[memberId]', () => {
 
   it('should return 401 when user is not authenticated', async () => {
     const req = createAuthenticatedRequest('DELETE', `http://localhost/api/team/members/${MEMBER_ID}`, undefined, null);
-    const response = await DELETE(req, { params: { memberId: MEMBER_ID } });
+    const response = await DELETE(req, { params: Promise.resolve({ memberId: MEMBER_ID }) });
     expect(response.status).toBe(401);
   });
 

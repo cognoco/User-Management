@@ -12,12 +12,12 @@ const ssoSettingsSchema = z.object({
 // GET /api/organizations/[orgId]/sso/settings
 export async function GET(
   req: NextRequest,
-  ctx: { params: { orgId: string } }
+  ctx: { params: Promise<{ orgId: string }> }
 ): Promise<NextResponse> {
   const handler = createApiHandler(
     emptySchema,
     async (request: NextRequest, authContext: any, data: any, services: any) => {
-      const orgId = ctx.params.orgId;
+      const orgId = (await ctx.params).orgId;
       const path = request.nextUrl.pathname;
 
       // Handle status endpoint
@@ -92,12 +92,12 @@ export async function GET(
 // PUT /api/organizations/[orgId]/sso/settings
 export async function PUT(
   req: NextRequest,
-  ctx: { params: { orgId: string } }
+  ctx: { params: Promise<{ orgId: string }> }
 ): Promise<NextResponse> {
   const handler = createApiHandler(
     ssoSettingsSchema,
     async (request: NextRequest, authContext: any, settings: z.infer<typeof ssoSettingsSchema>, services: any) => {
-      const orgId = ctx.params.orgId;
+      const orgId = (await ctx.params).orgId;
       const path = request.nextUrl.pathname;
 
       if (path.endsWith('/settings')) {

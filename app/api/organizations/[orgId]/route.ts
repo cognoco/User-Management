@@ -60,8 +60,8 @@ async function handleDelete(
   return createSuccessResponse({ success: true });
 }
 
-export const GET = (req: NextRequest, ctx: { params: { orgId: string } }) => {
-  const parsed = ParamSchema.safeParse(ctx.params);
+export const GET = async (req: NextRequest, ctx: { params: Promise<{ orgId: string }> }) => {
+  const parsed = ParamSchema.safeParse(await ctx.params);
   if (!parsed.success) {
     return NextResponse.json(
       new ApiError(ERROR_CODES.INVALID_REQUEST, parsed.error.message, 400).toResponse(),
@@ -71,8 +71,8 @@ export const GET = (req: NextRequest, ctx: { params: { orgId: string } }) => {
   return createApiHandler(emptySchema, (r, a, d, s) => handleGet(r, a, d, s, parsed.data.orgId), { requireAuth: true })(req);
 };
 
-export const PUT = (req: NextRequest, ctx: { params: { orgId: string } }) => {
-  const parsed = ParamSchema.safeParse(ctx.params);
+export const PUT = async (req: NextRequest, ctx: { params: Promise<{ orgId: string }> }) => {
+  const parsed = ParamSchema.safeParse(await ctx.params);
   if (!parsed.success) {
     return NextResponse.json(
       new ApiError(ERROR_CODES.INVALID_REQUEST, parsed.error.message, 400).toResponse(),
@@ -82,8 +82,8 @@ export const PUT = (req: NextRequest, ctx: { params: { orgId: string } }) => {
   return createApiHandler(UpdateOrgSchema, (r, a, d, s) => handlePut(r, a, d, s, parsed.data.orgId), { requireAuth: true })(req);
 };
 
-export const DELETE = (req: NextRequest, ctx: { params: { orgId: string } }) => {
-  const parsed = ParamSchema.safeParse(ctx.params);
+export const DELETE = async (req: NextRequest, ctx: { params: Promise<{ orgId: string }> }) => {
+  const parsed = ParamSchema.safeParse(await ctx.params);
   if (!parsed.success) {
     return NextResponse.json(
       new ApiError(ERROR_CODES.INVALID_REQUEST, parsed.error.message, 400).toResponse(),

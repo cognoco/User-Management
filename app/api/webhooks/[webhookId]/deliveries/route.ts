@@ -20,5 +20,7 @@ async function handleGet(req: NextRequest, ctx: any, data: z.infer<typeof queryS
   return createSuccessResponse({ deliveries })
 }
 
-export const GET = (req: NextRequest, ctx: { params: { webhookId: string } }) =>
-  createApiHandler(querySchema, (r, auth, q) => handleGet(r, auth, q, ctx.params), { requireAuth: true })(req)
+export async function GET(req: NextRequest, ctx: { params: Promise<{ webhookId: string }> }) {
+  const params = await ctx.params
+  return createApiHandler(querySchema, (r, auth, q) => handleGet(r, auth, q, params), { requireAuth: true })(req)
+}

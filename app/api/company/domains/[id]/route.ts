@@ -159,10 +159,12 @@ async function handlePatch(
   }
 }
 
-export const DELETE = (req: NextRequest, ctx: { params: { id: string } }) =>
-  baseMiddleware((r, auth) => handleDelete(r, auth, ctx.params))(req);
+export const DELETE = async (req: NextRequest, ctx: { params: Promise<{ id: string }> }) => {
+  const params = await ctx.params;
+  return baseMiddleware((r, auth) => handleDelete(r, auth, params))(req);
+};
 
-export const PATCH = (req: NextRequest, ctx: { params: { id: string } }) =>
-  patchMiddleware((r, auth, data) => handlePatch(r, auth, ctx.params, data))(
-    req,
-  );
+export const PATCH = async (req: NextRequest, ctx: { params: Promise<{ id: string }> }) => {
+  const params = await ctx.params;
+  return patchMiddleware((r, auth, data) => handlePatch(r, auth, params, data))(req);
+};

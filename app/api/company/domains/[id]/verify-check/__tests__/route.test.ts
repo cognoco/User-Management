@@ -67,7 +67,7 @@ describe('Domain Verification Check API', () => {
       new URL(`http://localhost/api/company/domains/${mockDomainId}/verify-check`)
     );
     
-    const response = await POST(request, { params: { id: mockDomainId } });
+    const response = await POST(request, { params: Promise.resolve({ id: mockDomainId }) });
     expect(response.status).toBe(200);
 
     const data = await response.json();
@@ -87,7 +87,7 @@ describe('Domain Verification Check API', () => {
       new URL(`http://localhost/api/company/domains/${mockDomainId}/verify-check`)
     );
     
-    const response = await POST(request, { params: { id: mockDomainId } });
+    const response = await POST(request, { params: Promise.resolve({ id: mockDomainId }) });
     expect(response.status).toBe(401);
     
     const data = await response.json();
@@ -101,7 +101,7 @@ describe('Domain Verification Check API', () => {
       new URL(`http://localhost/api/company/domains/${mockDomainId}/verify-check`)
     );
     
-    const response = await POST(request, { params: { id: mockDomainId } });
+    const response = await POST(request, { params: Promise.resolve({ id: mockDomainId }) });
     expect(response.status).toBe(404);
     
     const data = await response.json();
@@ -115,7 +115,7 @@ describe('Domain Verification Check API', () => {
       new URL(`http://localhost/api/company/domains/${mockDomainId}/verify-check`)
     );
     
-    const response = await POST(request, { params: { id: mockDomainId } });
+    const response = await POST(request, { params: Promise.resolve({ id: mockDomainId }) });
     expect(response.status).toBe(400);
     
     const data = await response.json();
@@ -130,7 +130,7 @@ describe('Domain Verification Check API', () => {
       new URL(`http://localhost/api/company/domains/${mockDomainId}/verify-check`)
     );
     
-    const response = await POST(request, { params: { id: mockDomainId } });
+    const response = await POST(request, { params: Promise.resolve({ id: mockDomainId }) });
     expect(response.status).toBe(400);
     
     const data = await response.json();
@@ -151,7 +151,7 @@ describe('Domain Verification Check API', () => {
       new URL(`http://localhost/api/company/domains/${mockDomainId}/verify-check`)
     );
     
-    const response = await POST(request, { params: { id: mockDomainId } });
+    const response = await POST(request, { params: Promise.resolve({ id: mockDomainId }) });
     expect(response.status).toBe(400);
     
     const data = await response.json();
@@ -170,7 +170,7 @@ describe('Domain Verification Check API', () => {
       new URL(`http://localhost/api/company/domains/${mockDomainId}/verify-check`)
     );
     
-    const response = await POST(request, { params: { id: mockDomainId } });
+    const response = await POST(request, { params: Promise.resolve({ id: mockDomainId }) });
     expect(response.status).toBe(400);
     
     const data = await response.json();
@@ -185,7 +185,7 @@ describe('Domain Verification Check API', () => {
       new URL(`http://localhost/api/company/domains/${mockDomainId}/verify-check`)
     );
     
-    const response = await POST(request, { params: { id: mockDomainId } });
+    const response = await POST(request, { params: Promise.resolve({ id: mockDomainId }) });
     expect(response.status).toBe(500);
     
     const data = await response.json();

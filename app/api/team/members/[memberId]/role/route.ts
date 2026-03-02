@@ -76,7 +76,7 @@ async function handlePatch(
 
 async function handler(
   req: NextRequest,
-  context: { params: { memberId: string } }
+  context: { params: Promise<{ memberId: string }> }
 ) {
   const params = paramSchema.parse(context.params);
   return withRouteAuth(
@@ -86,7 +86,7 @@ async function handler(
   );
 }
 
-export const PATCH = (
+export const PATCH = async (
   req: NextRequest,
-  ctx: { params: { memberId: string } }
+  ctx: { params: Promise<{ memberId: string }> }
 ) => withSecurity((r) => withErrorHandling((req2) => handler(req2, ctx), r))(req);

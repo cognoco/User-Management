@@ -7,7 +7,7 @@ vi.mock('@/services/sso/factory', () => ({ getApiSsoService: vi.fn() }));
 
 describe('SSO API Routes', () => {
   const mockOrgId = 'test-org-123';
-  const mockParams = { params: { orgId: mockOrgId } };
+  const mockParams = { params: Promise.resolve({ orgId: mockOrgId }) };
   const store: any[] = [];
   const mockService = {
     getProviders: vi.fn(async (orgId: string) => store.filter(p => p.organizationId === orgId)),

@@ -62,13 +62,15 @@ async function handleGet(
   });
 }
 
-export const GET = (
+export const GET = async (
   req: NextRequest,
-  ctx: { params: { type: string; id: string } },
-) =>
-  createApiHandler(
+  ctx: { params: Promise<{ type: string; id: string }> },
+) => {
+  const { type, id } = await ctx.params;
+  return createApiHandler(
     querySchema,
     (r, auth, data, services) =>
-      handleGet(r, auth, data, services, ctx.params.type, ctx.params.id),
+      handleGet(r, auth, data, services, type, id),
     { requireAuth: true },
   )(req);
+};

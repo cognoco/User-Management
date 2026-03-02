@@ -12,6 +12,7 @@ async function handleGet(roleId: string) {
   return createSuccessResponse({ role });
 }
 
-export async function GET(req: NextRequest, ctx: { params: { roleId: string } }) {
-  return withErrorHandling(() => handleGet(ctx.params.roleId), req);
+export async function GET(req: NextRequest, ctx: { params: Promise<{ roleId: string }> }) {
+  const { roleId } = await ctx.params;
+  return withErrorHandling(() => handleGet(roleId), req);
 }

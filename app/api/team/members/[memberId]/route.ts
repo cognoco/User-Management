@@ -67,11 +67,11 @@ async function handleDelete(
   return createSuccessResponse({ message: 'Team member removed successfully' });
 }
 
-export function DELETE(
+export async function DELETE(
   req: NextRequest,
-  ctx: { params: { memberId: string } }
+  ctx: { params: Promise<{ memberId: string }> }
 ) {
-  const parsed = paramSchema.parse(ctx.params);
+  const parsed = paramSchema.parse(await ctx.params);
   return createApiHandler(
     emptySchema,
     (r, a, d, s) => handleDelete(r, a, d, s, parsed.memberId),

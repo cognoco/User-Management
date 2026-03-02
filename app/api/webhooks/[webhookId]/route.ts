@@ -91,11 +91,17 @@ async function handleDelete(
   return createSuccessResponse({ message: 'Webhook deleted successfully' })
 }
 
-export const GET = (req: NextRequest, ctx: { params: { webhookId: string } }) =>
-  createApiHandler(emptySchema, (r, auth) => handleGet(r, auth, {}, ctx.params), { requireAuth: true })(req)
+export async function GET(req: NextRequest, ctx: { params: Promise<{ webhookId: string }> }) {
+  const params = await ctx.params
+  return createApiHandler(emptySchema, (r, auth) => handleGet(r, auth, {}, params), { requireAuth: true })(req)
+}
 
-export const PATCH = (req: NextRequest, ctx: { params: { webhookId: string } }) =>
-  createApiHandler(updateSchema, (r, auth, data) => handlePatch(r, auth, data, ctx.params), { requireAuth: true })(req)
+export async function PATCH(req: NextRequest, ctx: { params: Promise<{ webhookId: string }> }) {
+  const params = await ctx.params
+  return createApiHandler(updateSchema, (r, auth, data) => handlePatch(r, auth, data, params), { requireAuth: true })(req)
+}
 
-export const DELETE = (req: NextRequest, ctx: { params: { webhookId: string } }) =>
-  createApiHandler(emptySchema, (r, auth, data) => handleDelete(r, auth, data, ctx.params), { requireAuth: true })(req)
+export async function DELETE(req: NextRequest, ctx: { params: Promise<{ webhookId: string }> }) {
+  const params = await ctx.params
+  return createApiHandler(emptySchema, (r, auth, data) => handleDelete(r, auth, data, params), { requireAuth: true })(req)
+}
