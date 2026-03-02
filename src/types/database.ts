@@ -91,7 +91,7 @@ export const activityLogSchema = baseEntitySchema.extend({
 // Types
 export type BaseEntity = z.infer<typeof baseEntitySchema>;
 export type User = z.infer<typeof userSchema>;
-export type Profile = z.infer<typeof profileSchema>;
+export interface Profile extends z.infer<typeof profileSchema> {}
 export type UserPreferences = z.infer<typeof userPreferencesSchema>;
 export type ActivityLog = z.infer<typeof activityLogSchema>;
 
