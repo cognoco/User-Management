@@ -81,7 +81,7 @@ test.describe('Debug: Settings Page', () => {
       const text = await el.textContent().catch(() => '');
       const id = await el.getAttribute('id').catch(() => 'no-id');
       const classes = await el.getAttribute('class').catch(() => 'no-class');
-      console.log(`  ${i + 1}. <${tag}>`, { id, class: classes, text: text.trim() });
+      console.log(`  ${i + 1}. <${tag}>`, { id, class: classes, text: (text ?? '').trim() });
     }
     
     // Check if we can find the account deletion section
@@ -96,7 +96,7 @@ test.describe('Debug: Settings Page', () => {
       for (let i = 0; i < destructiveButtons.length; i++) {
         const btn = destructiveButtons[i];
         const btnText = await btn.textContent().catch(() => '');
-        console.log(`  Button ${i + 1}:`, btnText.trim());
+        console.log(`  Button ${i + 1}:`, (btnText ?? '').trim());
       }
     }
     

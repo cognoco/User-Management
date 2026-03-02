@@ -1,4 +1,4 @@
-import { test, expect, Page } from '@playwright/test';
+import { test, expect, Page, chromium } from '@playwright/test';
 import { loginAs } from '../../utils/auth';
 
 // --- Constants and Test Data --- //
@@ -356,7 +356,7 @@ test.describe('4.5: Backup Codes / MFA Fallback', () => {
       
       // Close browser and create a new one to simulate returning later
       await browser.close();
-      const newBrowser = await browser.playwright.chromium.launch();
+      const newBrowser = await chromium.launch();
       const context = await newBrowser.newContext();
       const newPage = await context.newPage();
       

@@ -1517,7 +1517,7 @@ test.describe('Registration End-to-End Flow', () => {
     // Test each company size option
     const companyOptions = await page.$$eval('[data-testid="company-size-select"] option', options => {
       return options.map(option => ({
-        value: option.value,
+        value: (option as HTMLOptionElement).value,
         text: option.textContent
       }));
     });
@@ -1542,7 +1542,7 @@ test.describe('Registration End-to-End Flow', () => {
     // Test industry dropdown similarly
     const industryOptions = await page.$$eval('[data-testid="industry-select"] option', options => {
       return options.map(option => ({
-        value: option.value,
+        value: (option as HTMLOptionElement).value,
         text: option.textContent
       }));
     });

@@ -158,11 +158,11 @@ test.describe('Payment Management Flows', () => {
         expect(download.suggestedFilename()).toBeTruthy();
       } else {
         // Skip test if no download option
-        test.skip('No receipt download option available');
+        test.skip(true, 'No receipt download option available');
       }
     } else {
       // Skip test if no payment history
-      test.skip('No payment history to test receipt download');
+      test.skip(true, 'No payment history to test receipt download');
     }
   });
 });

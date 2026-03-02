@@ -48,7 +48,7 @@ test.describe('Subscription Management Flows', () => {
     
     // Verify multiple plans are displayed
     const planCards = page.locator('.plan-card').or(page.locator('[data-testid="plan-card"]'));
-    await expect(planCards).toHaveCount({ min: 1 });
+    expect(await planCards.count()).toBeGreaterThanOrEqual(1);
     
     // Check for plan details
     await expect(page.getByText(/free/i)).toBeVisible();

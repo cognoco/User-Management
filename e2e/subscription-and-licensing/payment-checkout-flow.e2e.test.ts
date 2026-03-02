@@ -15,7 +15,7 @@ This file tests the complete payment/checkout/invoice journey:
 */
 
 import { test, expect } from '@playwright/test';
-import { loginAs } from '../utils/auth-utils';
+import { loginAs } from '../utils/auth';
 
 // Constants for URLs and test data
 const PLANS_URL = '/pricing';

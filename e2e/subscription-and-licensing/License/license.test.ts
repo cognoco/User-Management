@@ -114,7 +114,7 @@ test.describe('License Management Flows', () => {
       await expect(usageIndicator).toBeVisible();
     } else {
       // Skip test if no usage details available for this license type
-      test.skip('No usage details available for this license type');
+      test.skip(true, 'No usage details available for this license type');
     }
   });
 
@@ -155,7 +155,7 @@ test.describe('License Management Flows', () => {
       await expect(page.getByRole('heading', { name: /license information|license details/i })).toBeVisible();
     } else {
       // Skip test if no management options available
-      test.skip('No license deactivation or transfer options available');
+      test.skip(true, 'No license deactivation or transfer options available');
     }
   });
 });

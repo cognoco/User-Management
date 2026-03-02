@@ -284,7 +284,7 @@ test.describe('7.2: Session Management (Admin)', () => {
     
     // Look for indication of current session
     const currentSessionRow = page.locator('tr').filter({ hasText: /current session/i })
-      .or(page.locator('tr').filter({ hasClass: /current/ }));
+      .or(page.locator('tr.current, tr[class*="current"]'));
       
     // If we can't identify the current session, look for admin's email in a row
     if (await currentSessionRow.count() === 0) {

@@ -1,4 +1,4 @@
-import { test, expect, Page } from '@playwright/test';
+import { test, expect, Page, Locator } from '@playwright/test';
 import { loginAs } from '../../utils/auth';
 
 // --- Constants and Test Data --- //
@@ -79,7 +79,7 @@ test.describe('2.5: Account Deletion', () => {
     for (let i = 0; i < allButtons.length; i++) {
       const button = allButtons[i];
       const buttonText = await button.textContent().catch(() => '');
-      if (/delete.*account|remove.*account|gdpr/i.test(buttonText)) {
+      if (/delete.*account|remove.*account|gdpr/i.test(buttonText ?? '')) {
         console.log(`Found potential delete button with text: ${buttonText}`);
         await testAccountDeletionFlow(page, button);
         return;

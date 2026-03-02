@@ -77,7 +77,7 @@ test.describe('Check Delete Account Button', () => {
           const id = await button.getAttribute('id').catch(() => '');
           
           console.log(`Button ${i + 1}:`, { 
-            text: text.trim(), 
+            text: (text ?? '').trim(), 
             visible: isVisible,
             class: className,
             id
@@ -114,7 +114,7 @@ test.describe('Check Delete Account Button', () => {
         const id = await button.getAttribute('id').catch(() => '');
         
         console.log(`Button ${i + 1}:`, { 
-          text: text.trim(), 
+          text: (text ?? '').trim(), 
           class: className,
           id
         });

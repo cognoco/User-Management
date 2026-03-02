@@ -15,7 +15,7 @@ async function fillLoginForm(page: any, email: string, password: string) {
   } catch (e) {
     // Method 2: JS-based form filling for problematic browsers
     await page.evaluate(
-      ([email, password]) => {
+      ([email, password]: [string, string]) => {
         const emailInput = document.querySelector('input[type="email"]') as HTMLInputElement;
         const passwordInput = document.querySelector('input[type="password"]') as HTMLInputElement;
         if (emailInput) {
