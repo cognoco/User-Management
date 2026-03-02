@@ -72,7 +72,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   }
 }
 
-export function withErrorBoundary<P>(
+export function withErrorBoundary<P extends Record<string, unknown>>(
   Component: React.ComponentType<P>,
   options?: ErrorBoundaryOptions
 ): React.ComponentType<P> {

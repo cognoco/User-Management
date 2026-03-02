@@ -7,7 +7,7 @@ export interface RetryStrategy {
 }
 
 export interface UseErrorHandlingOptions {
-  retryFn?: () => Promise<void>;
+  retryFn?: () => Promise<void> | void;
   maxRetries?: number;
   retryStrategy?: RetryStrategy;
 }
