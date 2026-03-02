@@ -61,7 +61,7 @@ import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ResetPasswordForm } from '@/ui/styled/auth/ResetPasswordForm';
-import { ForgotPasswordForm } from '@/ui/styled/auth/ForgotPasswordForm';
+import ForgotPasswordForm from '@/ui/styled/auth/ForgotPasswordForm';
 
 // Store original window location
 const originalLocation = window.location;

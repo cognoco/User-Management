@@ -3,9 +3,9 @@ import React from "react";
 import { render, act } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { MFASetup } from '../MFASetup';
-import { useAuth } from '@/hooks/auth/useMFA';
+import { useAuth } from '@/hooks/auth/useAuth';
 
-vi.mock('@/hooks/auth/useMFA', () => ({
+vi.mock('@/hooks/auth/useAuth', () => ({
   useAuth: vi.fn(),
 }));
 

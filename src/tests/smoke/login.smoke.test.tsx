@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen } from '../utils/test-utils';
 import userEvent from '@testing-library/user-event';
-import { LoginForm } from '@/ui/styled/auth/LoginForm';
+import LoginForm from '@/ui/styled/auth/LoginForm';
 import { describe, it, expect } from 'vitest';
 
 describe('Smoke: Login Form', () => {

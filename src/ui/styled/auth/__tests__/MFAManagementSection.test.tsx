@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { vi, Mock } from 'vitest';
-import { MFAManagementSection } from '../MFAManagementSection';
+import MFAManagementSection from '../MFAManagementSection';
 
 // Mock useAuth hook globally
 vi.mock('@/hooks/auth/useAuth', () => ({

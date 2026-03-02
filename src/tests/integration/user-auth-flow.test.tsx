@@ -8,7 +8,7 @@ import { render, screen, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 // Import specific forms instead of generic Auth
 import { RegistrationForm } from '@/ui/styled/auth/RegistrationForm';
-import { LoginForm } from '@/ui/styled/auth/LoginForm';
+import LoginForm from '@/ui/styled/auth/LoginForm';
 import { ProfileEditor } from '@/ui/styled/profile/ProfileEditor'; // Assuming ProfileEditor handles profile updates
 import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest'; // Add SpyInstance
 // Remove the module mock for auth.store
