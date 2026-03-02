@@ -52,7 +52,7 @@ describe('useWebhooks', () => {
     ]);
     const { result } = renderHook(() => useWebhooks('u1'), { wrapper: createWrapper() });
     await act(async () => {
-      await result.current.createWebhook.mutateAsync({ name: 'n', url: 'u', events: [] });
+      await result.current.createWebhook.mutateAsync({ name: 'n', url: 'u', events: ['user.created'], isActive: true });
     });
     expect(mockService.createWebhook).toHaveBeenCalled();
     await waitFor(() => expect(result.current.webhooks.length).toBe(1));
