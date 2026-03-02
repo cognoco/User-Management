@@ -36,7 +36,7 @@ export function Dashboard({ children }: DashboardProps) {
 
   const fetchItems = async () => {
     setIsLoading(true);
-    const { data, error } = await supabase.from('items').select('*');
+    const { data, error } = await supabase.from('items').select('*').returns<Item[]>();
     if (error) {
       setError(error.message);
     } else {

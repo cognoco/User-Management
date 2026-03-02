@@ -13,7 +13,7 @@ import { ProfileEditor } from '@/ui/styled/profile/ProfileEditor';
 import { useUserProfile } from '@/hooks/user/useUserProfile';
 import { useAccountSettings } from '@/hooks/user/useAccountSettings';
 
-export default function ProfilePage(): React.ReactElement {
+export default function ProfilePage(): React.ReactElement | null {
   const { t } = useTranslation();
   
   // Use our hooks from the new architecture
