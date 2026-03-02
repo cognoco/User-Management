@@ -7,7 +7,7 @@
  */
 
 import { UserManagementConfiguration } from "@/core/config";
-import { api } from "@/lib/api/axios";
+import type { UserManagementOptions } from "@/core/config/interfaces";
 
 // Import factory functions
 import { createAuthService } from "@/services/auth";
@@ -85,7 +85,6 @@ function registerAllServices() {
       permissionDataProvider: permissionProvider
     });
     const webhookService = createWebhookService({
-      apiClient: api,
       webhookDataProvider: webhookProvider
     });
 
@@ -116,7 +115,7 @@ function registerAllServices() {
       enableInAppNotifications: true
     });
 
-    // Configure options
+    // Configure options (partial — configure() deep-merges with defaults)
     UserManagementConfiguration.configure({
       options: {
         redirects: {
@@ -125,7 +124,7 @@ function registerAllServices() {
           afterRegistration: '/auth/verify-email',
           afterPasswordReset: '/auth/login'
         }
-      }
+      } as UserManagementOptions
     });
 
     console.log("All services registered successfully");
