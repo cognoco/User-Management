@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { NextResponse } from 'next/server';
 import { GET, DELETE } from '../route';
 import { withRouteAuth } from '@/middleware/auth';
 import { getApiSessionService } from '@/services/session/factory';

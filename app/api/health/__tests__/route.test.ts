@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { GET } from '../route';
 import { getHealthService } from '@/services/health';
+import { NextRequest } from 'next/server';
 
 vi.mock('@/services/health', () => ({
   getHealthService: vi.fn()
@@ -13,7 +14,8 @@ describe('/api/health', () => {
     } as any;
     (getHealthService as unknown as vi.Mock).mockReturnValue(mockHealthService);
 
-    const response = await GET();
+    const req = new NextRequest('http://localhost/api/health');
+    const response = await GET(req);
     const data = await response.json();
 
     expect(data.status).toBe('healthy');

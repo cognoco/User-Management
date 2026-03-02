@@ -6,7 +6,8 @@ const mockRequest = (body: any) => new NextRequest('http://localhost', { method:
 
 describe('/api/subscription', () => {
   it('GET returns subscriptions array', async () => {
-    const res = await GET();
+    const req = new NextRequest('http://localhost/api/subscription');
+    const res = await GET(req);
     const json = await res.json();
     expect(Array.isArray(json.subscriptions)).toBe(true);
   });
