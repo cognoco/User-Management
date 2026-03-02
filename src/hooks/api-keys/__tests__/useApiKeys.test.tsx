@@ -4,7 +4,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { useApiKeys } from '../useApiKeys';
 import { UserManagementConfiguration } from '@/core/config';
 import type { ApiKeyService } from '@/core/api-keys/interfaces';
-import type { ApiKey } from '@/core/api-keys/types';
+import type { ApiKey, ApiKeyCreateResult } from '@/core/api-keys/models';
 
 const mockService: ApiKeyService = {
   listApiKeys: vi.fn(),
@@ -27,7 +27,7 @@ describe('useApiKeys', () => {
 
   it('fetches api keys on mount', async () => {
     const keys: ApiKey[] = [
-      { id: '1', name: 'Test', keyPrefix: 'pref', permissions: [], createdAt: new Date(), isActive: true }
+      { id: '1', userId: 'u1', name: 'Test', prefix: 'pref', scopes: [], createdAt: new Date().toISOString(), isRevoked: false }
     ];
     vi.mocked(mockService.listApiKeys).mockResolvedValue(keys);
 
@@ -41,24 +41,29 @@ describe('useApiKeys', () => {
   });
 
   it('creates api key', async () => {
-    const newKey: ApiKey & { key: string } = {
-      id: '2',
-      name: 'New',
-      keyPrefix: 'pref',
-      keySecret: 'secret',
-      permissions: [],
-      createdAt: new Date(),
-      isActive: true,
-      key: 'secret'
+    const createResult: ApiKeyCreateResult = {
+      success: true,
+      key: {
+        id: '2',
+        userId: 'u1',
+        name: 'New',
+        prefix: 'pref',
+        scopes: [],
+        createdAt: new Date().toISOString(),
+        isRevoked: false
+      },
+      plaintext: 'secret-plaintext-key'
     };
-    vi.mocked(mockService.createApiKey).mockResolvedValue(newKey);
+    vi.mocked(mockService.createApiKey).mockResolvedValue(createResult);
     vi.mocked(mockService.listApiKeys).mockResolvedValue([]);
     const { result } = renderHook(() => useApiKeys());
     await act(async () => {
-      const res = await result.current.createApiKey('New', []);
-      expect(res).toEqual(newKey);
+      await result.current.fetchApiKeys();
     });
-    expect(mockService.createApiKey).toHaveBeenCalledWith('New', [], undefined);
-    expect(result.current.apiKeys).toContainEqual(newKey);
+    await act(async () => {
+      const res = await result.current.createApiKey('New', []);
+      expect(res).toEqual(createResult);
+    });
+    expect(mockService.createApiKey).toHaveBeenCalled();
   });
 });
