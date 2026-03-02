@@ -23,7 +23,7 @@ beforeEach(() => {
 describe('user resource permissions API', () => {
   it('returns filtered permissions', async () => {
     const now = new Date();
-    mockService.getUserResourcePermissions.mockResolvedValue([
+    vi.mocked(mockService.getUserResourcePermissions!).mockResolvedValue([
       { id: '1', userId: 'u1', permission: 'VIEW_PROJECTS', resourceType: 'project', resourceId: 'p1', createdAt: now },
       { id: '2', userId: 'u1', permission: 'VIEW_PROJECTS', resourceType: 'doc', resourceId: 'd1', createdAt: now },
     ]);

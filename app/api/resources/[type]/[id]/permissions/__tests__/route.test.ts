@@ -25,7 +25,7 @@ beforeEach(() => {
 
 describe('resource permissions list API', () => {
   it('returns paginated permissions', async () => {
-    mockService.getPermissionsForResource.mockResolvedValue([
+    vi.mocked(mockService.getPermissionsForResource!).mockResolvedValue([
       { id: '1', userId: 'u1', permission: 'VIEW_PROJECTS', resourceType: 'project', resourceId: 'p1', createdAt: new Date() },
       { id: '2', userId: 'u2', permission: 'VIEW_PROJECTS', resourceType: 'project', resourceId: 'p1', createdAt: new Date() },
     ]);

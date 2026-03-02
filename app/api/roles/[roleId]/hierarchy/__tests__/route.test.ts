@@ -19,16 +19,16 @@ describe('role hierarchy API', () => {
   it('GET returns hierarchy info', async () => {
     mockService.getAncestorRoles.mockResolvedValue([{ id: 'a' }]);
     mockService.getDescendantRoles.mockResolvedValue([]);
-    const res = await GET({} as any, { params: { roleId: '1' } } as any);
+    const req = new NextRequest('http://test/api/roles/1/hierarchy');
+    const res = await GET(req);
     expect(res.status).toBe(200);
     expect(mockService.getAncestorRoles).toHaveBeenCalledWith('1');
   });
 
   it('PUT sets parent role', async () => {
-    const req = new NextRequest('http://test', { method: 'PUT', body: JSON.stringify({ parentRoleId: 'p' }) });
-    (req as any).json = async () => ({ parentRoleId: 'p' });
+    const req = new NextRequest('http://test/api/roles/1/hierarchy', { method: 'PUT', body: JSON.stringify({ parentRoleId: 'p' }) });
     mockService.setParentRole.mockResolvedValue(undefined);
-    const res = await PUT(req as any, { params: { roleId: '1' } } as any);
+    const res = await PUT(req);
     expect(res.status).toBe(200);
     expect(mockService.setParentRole).toHaveBeenCalledWith('1', 'p');
   });
