@@ -11,6 +11,9 @@ const config: Partial<RuntimeConfig> = {
     sessionCookieName: 'user-management-session',
     tokenExpiryDays: 7,
     database: { provider: 'supabase' },
+    auditLogRetentionDays: 90,
+    retentionPersonalMonths: 24,
+    retentionBusinessMonths: 36,
   },
   featureFlags: {},
 };

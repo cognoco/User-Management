@@ -1,6 +1,6 @@
 import type { RouteMiddleware, RouteHandler } from '@/middleware/createMiddlewareChain';
 import { createMiddlewareChain } from '@/middleware/createMiddlewareChain';
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
 /**
  * Helper to execute a set of middlewares with a handler for testing.
@@ -25,5 +25,5 @@ export async function runMiddlewareChain(
  * @param body Optional JSON body.
  */
 export function createJsonHandler(status = 200, body: unknown = null): RouteHandler {
-  return async () => new Response(body ? JSON.stringify(body) : null, { status });
+  return async () => NextResponse.json(body, { status });
 }

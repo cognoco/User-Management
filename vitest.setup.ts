@@ -372,7 +372,7 @@ vi.mock('../supabase', async () => {
     getServiceSupabase: mod.getServiceSupabase,
     default: mod.supabase
   };
-}, { virtual: true });
+});
 
 // Mock the core Supabase library to ensure all instances use our mock
 vi.mock('@supabase/supabase-js', async () => {
