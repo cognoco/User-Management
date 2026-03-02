@@ -80,7 +80,7 @@ export const Redis = {
 };
 
 // Shorthand for configuring mock responses
-export const configureMockRedis = (redis, configs = {}) => {
+export const configureMockRedis = (redis: Record<string, any>, configs: Record<string, any> = {}) => {
   Object.entries(configs).forEach(([method, response]) => {
     redis[method].mockResolvedValue(response);
   });

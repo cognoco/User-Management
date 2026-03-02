@@ -2,7 +2,8 @@
 // Utility helpers for Supabase authentication in tests
 
 import { vi, Mock } from 'vitest';
-import type { User, Session, AuthError } from '@supabase/auth-js';
+import type { User, Session } from '@supabase/auth-js';
+import { AuthError } from '@supabase/auth-js';
 import { supabase } from '@/tests/mocks/supabase';
 
 /**
@@ -69,7 +70,7 @@ export function mockSupabaseUserRole(
  * Force `supabase.auth.getUser` to return an authentication error.
  */
 export function mockAuthError(message = 'Invalid token'): AuthError {
-  const error: AuthError = { name: 'AuthError', message };
+  const error = new AuthError(message);
   (supabase.auth.getUser as Mock).mockResolvedValue({ data: { user: null }, error });
   return error;
 }
