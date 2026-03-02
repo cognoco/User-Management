@@ -107,6 +107,21 @@ export interface UserProfile {
   lastLogin?: string;
   
   /**
+   * Short biography / about text
+   */
+  bio?: string | null;
+
+  /**
+   * Privacy settings controlling profile field visibility
+   */
+  privacySettings?: {
+    showEmail: boolean;
+    showPhone: boolean;
+    showLocation: boolean;
+    profileVisibility: 'public' | 'private' | 'contacts';
+  };
+
+  /**
    * Additional metadata for the user
    */
   metadata?: Record<string, any>;
