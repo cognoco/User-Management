@@ -59,7 +59,7 @@ export function InviteMemberModal({ teamId, seatUsage }: InviteMemberModalProps)
                     {usage.used}/{usage.total} seats used
                   </span>
                 </div>
-                <Progress value={usage.percentage} className="h-2" />
+                <Progress value={usage.total > 0 ? (usage.used / usage.total) * 100 : 0} className="h-2" />
                 {!hasAvailableSeats && (
                   <Alert variant="destructive">
 

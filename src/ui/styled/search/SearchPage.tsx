@@ -29,7 +29,6 @@ const SearchPage: React.FC = () => {
       if (endDate) q = q.lte('date', endDate.toISOString().split('T')[0]);
       const { data, error } = await q;
       if (error) throw error;
-      setItems(data || []);
       return data || [];
     },
     [selectedCategories, startDate, endDate]

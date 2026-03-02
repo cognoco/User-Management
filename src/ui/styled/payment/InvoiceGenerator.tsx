@@ -40,7 +40,7 @@ export function InvoiceGenerator(props: StyledInvoiceGeneratorProps) {
                     <Badge
                       variant={
                         invoice.status === 'paid'
-                          ? 'success'
+                          ? 'default'
                           : invoice.status === 'overdue'
                           ? 'destructive'
                           : 'secondary'

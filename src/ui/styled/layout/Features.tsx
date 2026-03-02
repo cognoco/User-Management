@@ -7,6 +7,8 @@ import {
   FeaturesProps as HeadlessProps,
 } from "../../headless/layout/Features";
 
+export type { FeatureItem };
+
 export interface FeaturesProps extends Omit<HeadlessProps, "children"> {
   className?: string;
 }

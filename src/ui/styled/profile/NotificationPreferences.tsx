@@ -7,7 +7,7 @@ export default function NotificationPreferences() {
 
   return (
     <HeadlessNotificationPreferences
-      render={(props) => <NotificationPreferencesContent {...props} t={t} />}
+      render={(props) => <NotificationPreferencesContent {...props} t={(key: string, defaultValue?: string) => t(key, defaultValue ?? '')} />}
     />
   );
 }

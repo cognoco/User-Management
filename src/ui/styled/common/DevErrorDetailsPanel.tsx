@@ -8,7 +8,7 @@ interface DevErrorDetailsPanelProps {
 }
 
 export function DevErrorDetailsPanel({ error }: DevErrorDetailsPanelProps) {
-  if (!error?.details && !error?.message) {
+  if (!error?.message) {
     return null;
   }
 

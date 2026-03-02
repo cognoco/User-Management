@@ -10,7 +10,7 @@ export function PrivacyPreferences() {
   const marketing = !!preferences?.notifications?.marketing;
 
   const toggle = async () => {
-    await updatePreferences({ notifications: { ...preferences?.notifications, marketing: !marketing } });
+    await updatePreferences({ notifications: { push: false, email: false, ...preferences?.notifications, marketing: !marketing } });
   };
 
   return (

@@ -21,5 +21,7 @@ export function NotificationPreferences({ render }: NotificationPreferencesProps
 
   useEffect(() => { fetchPreferences(); }, [fetchPreferences]);
 
-  return <>{render({ preferences, isLoading, error, update: updatePreferences })}</>;
+  const update = async (prefs: Partial<UserPreferences>): Promise<void> => { await updatePreferences(prefs); };
+
+  return <>{render({ preferences, isLoading, error, update })}</>;
 }

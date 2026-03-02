@@ -31,7 +31,7 @@ export function FormErrorSummary({ errors }: FormErrorSummaryProps) {
       aria-labelledby="form-error-title"
     >
       <AlertTitle id="form-error-title">Please correct the following errors:</AlertTitle>
-      <AlertDescription asChild>
+      <AlertDescription>
         <ul className="list-disc list-inside space-y-1">
           {errorList.map(([field, message]) => (
             <li key={field}>{message}</li>
