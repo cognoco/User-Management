@@ -21,7 +21,7 @@ describe('withErrorHandling', () => {
 
   it('handles ApiError and logs it', async () => {
     const handler = vi.fn(async () => {
-      throw new ApiError('test/error', 'boom', 400);
+      throw new ApiError('AUTH_ACCESS_001', 'boom', 400);
     });
 
     const res = await withErrorHandling(handler, req);

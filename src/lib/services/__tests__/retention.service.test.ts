@@ -30,7 +30,7 @@ describe('RetentionService', () => {
         data: { id: '1', status: RetentionStatus.INACTIVE, retention_type: RetentionType.PERSONAL },
         error: null,
       });
-    supabase.update.mockReturnValueOnce({ eq: vi.fn().mockResolvedValue({ error: null }) });
+    supabase.update.mockReturnValueOnce({ eq: vi.fn().mockResolvedValue({ error: null }), error: null });
 
     const result = await service.reactivateAccount('123');
 

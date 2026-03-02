@@ -54,7 +54,7 @@ describe('error translator', () => {
     const log = formatErrorForLogging(err);
     const client = sanitizeErrorForClient(err);
     expect(log.stack).toBeDefined();
-    expect(client.stack as any).toBeUndefined();
+    expect((client as any).stack).toBeUndefined();
     expect(client.code).toBe(err.code);
   });
 });
