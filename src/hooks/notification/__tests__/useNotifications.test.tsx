@@ -36,6 +36,8 @@ const mockService: NotificationService = {
   scheduleNotification: vi.fn(),
   cancelScheduledNotification: vi.fn(),
   createTemplate: vi.fn(),
+  updateTemplate: vi.fn(),
+  deleteTemplate: vi.fn(),
   sendTemplatedNotification: vi.fn(),
   getUserPreferences: vi.fn(),
   updateUserPreferences: vi.fn(),
