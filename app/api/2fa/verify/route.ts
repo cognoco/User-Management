@@ -12,7 +12,7 @@ export const POST = createApiHandler(
   VerifySchema,
   async (_req, auth, data, services) => {
     const result = await services.twoFactor!.verifySetup({
-      userId: auth.userId,
+      userId: auth.userId!,
       method: data.method,
       code: data.code
     });

@@ -5,7 +5,7 @@ export const POST = createApiHandler(
   emptySchema,
   async (_req, auth, _data, services) => {
     const result = await services.twoFactor!.startSetup({
-      userId: auth.userId,
+      userId: auth.userId!,
       method: 'email'
     });
     if (!result.success) {

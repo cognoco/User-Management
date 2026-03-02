@@ -16,7 +16,7 @@ export default async function AdminLayout({
   children,
 }: AdminLayoutProps): Promise<JSX.Element> {
   // Create a Supabase client tied to the server session
-  const supabase = getSupabaseServerClient();
+  const supabase = await getSupabaseServerClient();
   const { data, error } = await supabase.auth.getUser();
   const user: SupabaseUser | null = data.user;
 

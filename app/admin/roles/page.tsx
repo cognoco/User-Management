@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 };
 
 export default async function RolesManagementPage(): Promise<JSX.Element> {
-  const supabase = getSupabaseServerClient();
+  const supabase = await getSupabaseServerClient();
   const { data, error } = await supabase.auth.getUser();
   const user: SupabaseUser | null = data.user;
 

@@ -19,6 +19,10 @@ export const POST = createApiHandler(
     const ipAddress = request.headers.get('x-forwarded-for') || 'unknown';
     const userAgent = request.headers.get('user-agent') || 'unknown';
 
+    if (!services.oauth) {
+      throw new ApiError(ERROR_CODES.INTERNAL_ERROR, 'OAuth service not configured', 500);
+    }
+
     const result = await services.oauth.linkProvider(data.provider, data.code);
 
     await logUserAction({

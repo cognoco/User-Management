@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 export default async function AdminAuditLogsPage(): Promise<JSX.Element> {
   // Get current user and check permissions
-  const supabase = getSupabaseServerClient();
+  const supabase = await getSupabaseServerClient();
   const { data, error } = await supabase.auth.getUser();
   const user: SupabaseUser | null = data.user;
 

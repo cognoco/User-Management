@@ -7,7 +7,7 @@ const DisableSchema = z.object({ password: z.string().optional() });
 export const POST = createApiHandler(
   DisableSchema,
   async (_req, auth, _data, services) => {
-    const result = await services.twoFactor!.disable(auth.userId, 'totp');
+    const result = await services.twoFactor!.disable(auth.userId!, 'totp');
     if (!result.success) {
       throw new ApiError(
         ERROR_CODES.INVALID_REQUEST,
