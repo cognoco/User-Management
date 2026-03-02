@@ -1,5 +1,6 @@
 import { describe, test, expect, beforeEach, vi } from 'vitest';
-import { GET, POST, DELETE, PATCH } from '../route';
+import { GET, POST } from '../route';
+import { DELETE, PATCH } from '../[id]/route';
 import { getApiCompanyService } from '@/services/company/factory';
 import { createAuthenticatedRequest } from '@/tests/utils/request-helpers';
 
