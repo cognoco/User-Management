@@ -1,3 +1,4 @@
+import React from 'react';
 import {
   PaymentHistory as HeadlessPaymentHistory,
   type PaymentHistoryProps,
@@ -22,7 +23,20 @@ export function PaymentHistory(props: StyledPaymentHistoryProps) {
           return <Alert variant="destructive">{error}</Alert>;
         }
 
-        const columns = [
+        type FormattedPayment = {
+          date: string;
+          description: string;
+          amount: string;
+          status: 'succeeded' | 'failed' | 'pending';
+          id: string;
+        };
+
+        const columns: Array<{
+          key: keyof FormattedPayment;
+          header: string;
+          sortable: boolean;
+          render?: (value: any, record: FormattedPayment) => React.ReactNode;
+        }> = [
           { key: 'date', header: 'Date', sortable: true },
           { key: 'description', header: 'Description', sortable: true },
           { key: 'amount', header: 'Amount', sortable: true },
@@ -34,7 +48,7 @@ export function PaymentHistory(props: StyledPaymentHistoryProps) {
               <Badge
                 variant={
                   status === 'succeeded'
-                    ? 'success'
+                    ? 'default'
                     : status === 'failed'
                     ? 'destructive'
                     : 'secondary'
