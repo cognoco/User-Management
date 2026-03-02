@@ -5,6 +5,7 @@ import { Button } from '@/ui/primitives/button';
 import { Checkbox } from '@/ui/primitives/checkbox';
 import { Card, CardContent, CardHeader, CardTitle } from '@/ui/primitives/card';
 import type { WebhookCreatePayload } from '@/core/webhooks/models';
+import type { WebhookFormRenderProps } from '@/ui/headless/webhooks/WebhookForm';
 
 export interface WebhookFormProps {
   userId: string;
@@ -35,15 +36,9 @@ export function WebhookForm({
     data, 
     setData, 
     submit, 
-    loading, 
+    isSubmitting, 
     error: formError 
-  }: {
-    data: WebhookCreatePayload;
-    setData: (data: WebhookCreatePayload) => void;
-    submit: () => Promise<void>;
-    loading: boolean;
-    error: string | null;
-  }) => {
+  }: WebhookFormRenderProps) => {
     const toggleEvent = (event: string) => {
       setData({
         ...data,
@@ -58,7 +53,7 @@ export function WebhookForm({
       void submit();
     };
 
-    const isLoading = loading || externalLoading;
+    const isLoading = isSubmitting || externalLoading;
     const error = formError || externalError;
 
     return (
@@ -115,9 +110,19 @@ export function WebhookForm({
     );
   };
 
+  const adaptedChildren = children
+    ? (props: WebhookFormRenderProps) => children({
+        data: props.data,
+        setData: props.setData,
+        submit: props.submit,
+        loading: props.isSubmitting,
+        error: props.error,
+      })
+    : renderDefault;
+
   return (
     <HeadlessWebhookForm userId={userId} onSubmit={onSubmit}>
-      {children || renderDefault}
+      {adaptedChildren}
     </HeadlessWebhookForm>
   );
 }

@@ -18,7 +18,7 @@ export default function TeamWebhooksPage() {
         <WebhookForm
           userId={userId}
           availableEvents={['user.created', 'user.deleted']}
-          onSubmit={(payload) => createWebhook.mutateAsync(payload)}
+          onSubmit={async (payload) => { await createWebhook.mutateAsync(payload); }}
           loading={loading}
           error={error}
         />
