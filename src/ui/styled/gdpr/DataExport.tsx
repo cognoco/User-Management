@@ -18,10 +18,8 @@ import { Label } from "@/ui/primitives/label";
 import { Progress } from "@/ui/primitives/progress";
 import { useToast } from "@/lib/hooks/use-toast";
 import { useIsMobile } from "@/lib/utils/responsive";
-import {
-  DataExport as HeadlessDataExport,
-  ExportFormat,
-} from "../../headless/settings/DataExport";
+import { DataExport as HeadlessDataExport } from "../../headless/settings/DataExport";
+import { ExportFormat } from "@/lib/utils/data-export";
 
 export function DataExport() {
   const { t } = useTranslation();
@@ -38,7 +36,7 @@ export function DataExport() {
         setSelectedFormat,
         isLoading,
         error,
-        handleExport,
+        initiateExport,
       }) => (
         <Card className="w-full max-w-md mx-auto">
           <CardHeader>
@@ -110,7 +108,7 @@ export function DataExport() {
                 const interval = setInterval(() => {
                   setProgress((p) => Math.min(p + Math.random() * 10, 90));
                 }, 500);
-                await handleExport();
+                await initiateExport();
                 clearInterval(interval);
                 setProgress(100);
                 toast({

@@ -19,7 +19,7 @@ export default function DataExport() {
           )
         )
       }
-      render={({ isLoading, error, handleExport }) => (
+      render={({ isLoading, error, initiateExport }) => (
         <Card className="rounded border p-4 max-w-lg mx-auto bg-white shadow mt-6">
           <CardHeader>
             <CardTitle>{t('profile.dataExport.title', 'Export Your Data')}</CardTitle>
@@ -44,7 +44,7 @@ export default function DataExport() {
             </CardContent>
           )}
           <CardFooter>
-            <Button onClick={handleExport} disabled={isLoading} {...(isLoading ? { role: 'status' } : {})}>
+            <Button onClick={initiateExport} disabled={isLoading} {...(isLoading ? { role: 'status' } : {})}>
               {isLoading ? t('profile.dataExport.generating', 'Generating export...') : t('profile.dataExport.button', 'Download My Data')}
             </Button>
           </CardFooter>
