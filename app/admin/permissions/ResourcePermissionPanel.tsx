@@ -6,7 +6,7 @@ import { Select } from '@/ui/primitives/select';
 import { UserManagementConfiguration } from '@/core/config';
 import type { PermissionService } from '@/core/permission/interfaces';
 import { usePermission } from '@/hooks/permission/usePermissions';
-import { PermissionValues } from '@/core/permission/models';
+import { PermissionValues, type Permission } from '@/core/permission/models';
 
 interface ResourcePermission {
   userId: string;
@@ -37,7 +37,7 @@ export default function ResourcePermissionPanel() {
     if (!permissionService || !userId || !permission || !resourceId) return;
     await permissionService.assignResourcePermission(
       userId,
-      permission,
+      permission as Permission,
       resourceType,
       resourceId,
     );
@@ -46,7 +46,7 @@ export default function ResourcePermissionPanel() {
 
   const revokePermission = async (uid: string, perm: string) => {
     if (!permissionService) return;
-    await permissionService.removeResourcePermission(uid, perm, resourceType, resourceId);
+    await permissionService.removeResourcePermission(uid, perm as Permission, resourceType, resourceId);
     fetchPermissions();
   };
 

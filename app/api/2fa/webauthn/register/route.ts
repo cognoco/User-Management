@@ -12,6 +12,9 @@ const RequestSchema = z.object({
 const handler = createApiHandler(
   RequestSchema,
   async (req, auth, data, services) => {
+    if (!auth.userId) {
+      throw new ApiError(ERROR_CODES.UNAUTHORIZED, 'Authentication required', 401);
+    }
     const userId = auth.userId;
     const ipAddress = req.headers.get('x-forwarded-for') || 'unknown';
     const userAgent = req.headers.get('user-agent') || 'unknown';
