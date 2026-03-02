@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { withRouteAuth, type RouteAuthContext } from './auth';
+import { withRouteAuth, type RouteAuthContext, type RouteAuthOptions } from './auth';
 import { checkRateLimit } from './rate-limit';
 import { ApiError, ERROR_CODES } from '@/lib/api/common';
 import { createErrorResponse } from '@/lib/api/common/response-formatter';
@@ -36,9 +36,9 @@ export function withProtectedRoute(
       return withRouteAuth(
         (r, auth) => handler(r, auth, ctx),
         req,
-        options.requiredPermission
+        (options.requiredPermission
           ? { requiredPermissions: [options.requiredPermission] }
-          : {}
+          : {}) as RouteAuthOptions
       );
     } catch (error) {
       const apiError =

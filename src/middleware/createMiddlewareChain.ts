@@ -113,7 +113,7 @@ export function createMiddlewareChainFromConfig(
     mws.push(errorHandlingMiddleware());
   }
   if (cfg.auth) {
-    mws.push(routeAuthMiddleware(cfg.auth));
+    mws.push(routeAuthMiddleware(cfg.auth as RouteAuthOptions));
   }
   if (cfg.validationSchema) {
     mws.push(validationMiddleware(cfg.validationSchema));

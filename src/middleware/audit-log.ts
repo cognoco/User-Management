@@ -145,7 +145,7 @@ async function saveAuditLog(logEntry: AuditLogEntry): Promise<void> {
   try {
     const { error } = await supabase
       .from('audit_logs')
-      .insert([logEntry]);
+      .insert([logEntry as any]);
 
     if (error) {
       console.error('Error saving audit log:', error);

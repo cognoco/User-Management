@@ -1,6 +1,6 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
-import { getSessionTimeout } from '../../../lib/security/security-policy.service';
+import { getSessionTimeout } from '@/lib/security/security-policy.service';
 
 // Define paths that require authentication
 const protectedPaths = ['/account/profile', '/settings', '/account/complete-profile'];
