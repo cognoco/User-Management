@@ -91,7 +91,7 @@ async function removeMember(memberId: string): Promise<void> {
   }
 }
 
-export function TeamManagement(): JSX.Element {
+export function TeamManagement(): React.ReactElement {
   const [isUpdateOpen, setIsUpdateOpen] = useState<boolean>(false);
   const [newSeatCount, setNewSeatCount] = useState<string>('');
   const queryClient = useQueryClient();
@@ -252,7 +252,7 @@ export function TeamManagement(): JSX.Element {
           </div>
 
           {isNearLimit && (
-            <Alert variant="warning" className="mb-4">
+            <Alert variant="destructive" className="mb-4">
               <AlertTriangle className="h-4 w-4" />
               <AlertTitle>Running Low on Seats</AlertTitle>
               <AlertDescription>
