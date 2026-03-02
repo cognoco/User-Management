@@ -1,9 +1,11 @@
 'use client';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useAdminUsers } from '@/hooks/admin/useAdminUsers';
 import RoleManagementPanel from '@/ui/styled/admin/RoleManagementPanel';
 import { usePermission } from '@/hooks/permission/usePermissions';
 import { PermissionValues } from '@/core/permission/models';
+import { User } from '@/types/user';
+import { UserType } from '@/types/user-type';
 
 export default function UserRoleAssignmentPanel() {
   const { users, searchUsers } = useAdminUsers();
@@ -22,5 +24,22 @@ export default function UserRoleAssignmentPanel() {
     return null;
   }
 
-  return <RoleManagementPanel users={users} />;
+  // Map hook's admin user shape to canonical User type
+  const mappedUsers: User[] = useMemo(
+    () =>
+      users.map((u) => ({
+        id: u.id,
+        email: u.email,
+        firstName: u.firstName,
+        lastName: u.lastName,
+        fullName: `${u.firstName} ${u.lastName}`.trim(),
+        isActive: u.status === 'active',
+        isVerified: true,
+        userType: UserType.PRIVATE,
+        createdAt: u.createdAt,
+      })),
+    [users],
+  );
+
+  return <RoleManagementPanel users={mappedUsers} />;
 }
