@@ -12,7 +12,6 @@ vi.mock('@/lib/audit/auditLogger', () => ({ logUserAction: vi.fn().mockResolvedV
 
 const service: Partial<ApiKeyService> = {
   revokeApiKey: vi.fn(),
-  getApiKey: vi.fn(),
 }
 const authService: Partial<AuthService> = {
   getCurrentUser: vi.fn().mockResolvedValue({ id: 'u1' }),

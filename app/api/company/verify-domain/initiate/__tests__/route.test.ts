@@ -21,7 +21,7 @@ describe('POST /api/company/verify-domain/initiate', () => {
 
   test('returns token on success', async () => {
     const req = new NextRequest('http://localhost/api/company/verify-domain/initiate');
-    const res = await POST(req as any, {} as any);
+    const res = await POST(req as any);
     const json = await res.json();
     expect(res.status).toBe(200);
     expect(json.data.verificationToken).toBe('token');
@@ -31,7 +31,7 @@ describe('POST /api/company/verify-domain/initiate', () => {
   test('returns 500 on error', async () => {
     service.initiateProfileDomainVerification.mockRejectedValueOnce(new Error('fail'));
     const req = new NextRequest('http://localhost/api/company/verify-domain/initiate');
-    const res = await POST(req as any, {} as any);
+    const res = await POST(req as any);
     const json = await res.json();
     expect(res.status).toBe(500);
     expect(json.error).toBeDefined();
