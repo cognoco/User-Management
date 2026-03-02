@@ -20,7 +20,7 @@ export default function CheckEmailPage() {
         error,
         successMessage,
         clearError,
-        clearSuccessMessage
+        clearSuccess
     } = useAuth();
 
     useEffect(() => {
@@ -32,7 +32,7 @@ export default function CheckEmailPage() {
             setIsReregisterAttempt(reregisterFlag);
             setIsValidAccess(true);
             clearError();
-            clearSuccessMessage();
+            clearSuccess();
         } else {
             console.warn('CheckEmailPage accessed without email parameter.');
             setIsValidAccess(false);
@@ -40,9 +40,9 @@ export default function CheckEmailPage() {
 
         return () => {
             clearError();
-            clearSuccessMessage();
+            clearSuccess();
         }
-    }, [searchParams, clearError, clearSuccessMessage]);
+    }, [searchParams, clearError, clearSuccess]);
 
     const handleResend = async () => {
         if (!email) {
@@ -50,7 +50,7 @@ export default function CheckEmailPage() {
             return;
         }
         clearError();
-        clearSuccessMessage();
+        clearSuccess();
         console.log(`Resending verification email to: ${email}`);
         await sendVerificationEmail(email);
     };

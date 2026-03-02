@@ -16,7 +16,7 @@ export default function VerifyEmailPage() {
       isLoading: storeLoading,
       error: storeError, 
       clearError, 
-      clearSuccessMessage 
+      clearSuccess 
   } = useAuth();
   
   const [status, setStatus] = useState<'verifying' | 'success' | 'error' | 'idle'>('verifying');
@@ -72,7 +72,7 @@ export default function VerifyEmailPage() {
         setEmail(decodeURIComponent(emailFromQuery));
     }
     clearError();
-    clearSuccessMessage();
+    clearSuccess();
     // Don't reset status/error if already set by fragment processing
     if (status !== 'error') {
         setErrorMessage(null);
@@ -187,7 +187,7 @@ export default function VerifyEmailPage() {
 
     setResendStatus(null);
     clearError(); // Clear store errors
-    clearSuccessMessage();
+    clearSuccess();
     console.log(`Attempting to resend verification email to: ${targetEmail}`);
     const result = await sendVerificationEmail(targetEmail); // Use the determined email
     if (result.success) {
