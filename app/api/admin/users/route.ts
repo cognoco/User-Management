@@ -58,7 +58,7 @@ async function handleGet(
 
 const getMiddleware = createMiddlewareChain([
   errorHandlingMiddleware(),
-  routeAuthMiddleware({ requiredPermissions: ["admin.users.list"] }),
+  routeAuthMiddleware({ requiredPermissions: ["ADMIN_ACCESS"] }),
   validationMiddleware(querySchema),
 ]);
 

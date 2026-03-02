@@ -8,12 +8,12 @@ import {
   errorHandlingMiddleware,
   routeAuthMiddleware,
   rateLimitMiddleware,
-  type AuthContext,
+  type RouteAuthContext,
 } from '@/middleware/createMiddlewareChain';
 import { withSecurity } from '@/middleware/with-security';
 
 
-async function handleGet(req: NextRequest, auth: AuthContext) {
+async function handleGet(req: NextRequest, auth: RouteAuthContext) {
   const user = auth.user;
   if (!user) {
     return new NextResponse(JSON.stringify({ error: 'Unauthorized' }), {
@@ -43,7 +43,7 @@ async function handleGet(req: NextRequest, auth: AuthContext) {
     });
   }
   const permissionService = getApiPermissionService();
-  const isAdmin = await permissionService.hasRole(user.id, 'admin');
+  const isAdmin = await permissionService.hasRole(user.id, 'ADMIN');
   if (!isAdmin) {
     // Log forbidden export attempt
     await logUserAction({

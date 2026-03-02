@@ -2,13 +2,12 @@ import { stripe, createCustomer, createSubscription } from '@/lib/payments/strip
 import { createSupabaseSubscriptionProvider } from '@/adapters/subscription/factory';
 import { z } from 'zod';
 import { NextResponse, type NextRequest } from 'next/server';
-import type { AuthContext } from '@/core/config/interfaces';
-import { withRouteAuth } from '@/middleware/auth';
+import { withRouteAuth, type RouteAuthContext } from '@/middleware/auth';
 import type { SubscriptionStatus } from '@/types/subscription';
 
 const SubscriptionSchema = z.object({ plan: z.string() });
 
-async function handleGet(_req: NextRequest, auth: AuthContext) {
+async function handleGet(_req: NextRequest, auth: RouteAuthContext) {
   const provider = createSupabaseSubscriptionProvider({
     supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL!,
     supabaseKey: process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -34,7 +33,7 @@ async function handleGet(_req: NextRequest, auth: AuthContext) {
 export const GET = (req: NextRequest) =>
   withRouteAuth((r, auth) => handleGet(r, auth), req);
 
-async function handlePost(request: NextRequest, auth: AuthContext) {
+async function handlePost(request: NextRequest, auth: RouteAuthContext) {
   const provider = createSupabaseSubscriptionProvider({
     supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL!,
     supabaseKey: process.env.SUPABASE_SERVICE_ROLE_KEY!
