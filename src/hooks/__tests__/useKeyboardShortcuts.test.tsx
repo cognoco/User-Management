@@ -18,7 +18,7 @@ describe('useKeyboardShortcuts', () => {
     const { unmount } = renderHook(() => useKeyboardShortcuts(keyMap));
     const input = document.createElement('input');
     document.body.appendChild(input);
-    const event = new KeyboardEvent('keydown', { key: 'r', target: input });
+    const event = new KeyboardEvent('keydown', { key: 'r' });
     input.dispatchEvent(event);
     expect(handler).not.toHaveBeenCalled();
     unmount();

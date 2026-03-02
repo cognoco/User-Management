@@ -16,7 +16,7 @@ describe('DeleteAccountDialog', () => {
   beforeEach(() => {
     // Reset mocks before each test
     handleClose = vi.fn();
-    mockDeleteAccount = vi.fn<[], Promise<void>>();
+    mockDeleteAccount = vi.fn<() => Promise<void>>();
     mockUseDeleteAccount.mockReturnValue({
       deleteAccount: mockDeleteAccount as () => Promise<void>,
       isLoading: false,

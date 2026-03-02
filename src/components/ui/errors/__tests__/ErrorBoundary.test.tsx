@@ -10,7 +10,7 @@ vi.mock('@/lib/utils/analytics', () => ({
 
 const { analytics } = await import('@/lib/utils/analytics');
 
-function ProblemChild() {
+function ProblemChild(): React.ReactElement {
   throw new Error('boom');
 }
 

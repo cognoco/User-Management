@@ -7,7 +7,7 @@ global.URL.createObjectURL = vi.fn(() => 'blob:url');
 
 describe('CompanyDataExport', () => {
   let originalCreateElement: typeof document.createElement;
-  let createElementSpy: ReturnType<typeof vi.spyOn>;
+  let createElementSpy: any;
   let originalCreateObjectURL: typeof URL.createObjectURL;
 
   beforeEach(() => {
