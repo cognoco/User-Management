@@ -48,7 +48,7 @@ const defaultCSPDirectives: CSPDirectives = {
   'upgrade-insecure-requests': [],
 };
 
-const defaultOptions: Required<SecurityHeadersOptions> = {
+const defaultOptions: Required<Omit<SecurityHeadersOptions, 'additionalHeaders' | 'onError'>> = {
   contentSecurityPolicy: {
     directives: defaultCSPDirectives,
   },
