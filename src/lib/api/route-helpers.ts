@@ -41,7 +41,7 @@ export type ApiHandler<T = any> = (
  * @returns NextJS route handler
  */
 export function createApiHandler<T>(
-  schema: z.ZodSchema<T>,
+  schema: z.ZodType<T, z.ZodTypeDef, unknown>,
   handler: ApiHandler<T>,
   options: ApiHandlerOptions = {}
 ): (request: NextRequest) => Promise<NextResponse> {
@@ -115,7 +115,7 @@ export function createApiHandler<T>(
  * Create a simple authenticated GET handler
  */
 export function createAuthenticatedGetHandler<T>(
-  schema: z.ZodSchema<T>,
+  schema: z.ZodType<T, z.ZodTypeDef, unknown>,
   handler: ApiHandler<T>,
   options: Omit<ApiHandlerOptions, 'requireAuth'> = {}
 ) {
@@ -129,7 +129,7 @@ export function createAuthenticatedGetHandler<T>(
  * Create a simple public handler (no authentication required)
  */
 export function createPublicHandler<T>(
-  schema: z.ZodSchema<T>,
+  schema: z.ZodType<T, z.ZodTypeDef, unknown>,
   handler: ApiHandler<T>,
   options: Omit<ApiHandlerOptions, 'requireAuth'> = {}
 ) {

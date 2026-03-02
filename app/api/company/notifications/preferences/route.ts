@@ -1,3 +1,4 @@
+import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createApiHandler, emptySchema } from '@/lib/api/route-helpers';
 import type { AuthContext, ServiceContainer } from '@/core/config/interfaces';
@@ -10,19 +11,19 @@ const preferenceSchema = z.object({
   channel: z.enum(['email', 'in_app', 'both']).default('both'),
 });
 
-async function handleGet(_req: Request, auth: AuthContext, _data: unknown, services: ServiceContainer) {
+async function handleGet(_req: NextRequest, auth: AuthContext, _data: unknown, services: ServiceContainer) {
   const preferences = await services.companyNotification!.getPreferencesForUser(auth.userId!);
-  return new Response(JSON.stringify({ preferences }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+  return NextResponse.json({ preferences });
 }
 
-async function handlePost(_req: Request, auth: AuthContext, data: z.infer<typeof preferenceSchema>, services: ServiceContainer) {
+async function handlePost(_req: NextRequest, auth: AuthContext, data: z.infer<typeof preferenceSchema>, services: ServiceContainer) {
   const pref = await services.companyNotification!.createPreference(auth.userId!, {
     companyId: data.company_id,
     notificationType: data.notification_type,
     enabled: data.enabled,
     channel: data.channel,
   });
-  return new Response(JSON.stringify(pref), { status: 200, headers: { 'Content-Type': 'application/json' } });
+  return NextResponse.json(pref);
 }
 
 export const GET = createApiHandler(emptySchema, handleGet, { requireAuth: true });
