@@ -7,7 +7,7 @@ import type { AuthResult, LoginPayload } from '@/core/auth/models';
 function createAdapter(
   overrides: Partial<AuthDataProvider> = {},
 ): AuthDataProvider {
-  return {
+  return ({
     login: vi.fn(),
     register: vi.fn(),
     logout: vi.fn(),
@@ -27,8 +27,10 @@ function createAdapter(
     disableMFA: vi.fn(),
     refreshToken: vi.fn(),
     onAuthStateChanged: vi.fn().mockReturnValue(() => {}),
+    handleSessionTimeout: vi.fn(),
+    verifyPasswordResetToken: vi.fn().mockResolvedValue({ valid: false }),
     ...overrides,
-  };
+  }) as AuthDataProvider;
 }
 
 describe("DefaultAuthService", () => {

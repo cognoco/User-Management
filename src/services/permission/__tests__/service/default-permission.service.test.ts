@@ -34,7 +34,7 @@ describe("DefaultPermissionService", () => {
       getPermissionsForResource: vi.fn(),
       getUsersWithResourcePermission: vi.fn(),
     };
-    resolver = { getEffectivePermissions: vi.fn().mockResolvedValue([]) } as ResourcePermissionResolver;
+    resolver = { getEffectivePermissions: vi.fn().mockResolvedValue([]) } as unknown as ResourcePermissionResolver;
     vi.mocked(logPermissionChange).mockClear();
     service = new DefaultPermissionService(provider, { getEffectivePermissions: vi.fn() } as any, resolver);
     const redis = new Redis({ url: 'x', token: 'x' });

@@ -24,7 +24,7 @@ beforeEach(() => {
 })
 
 describe('api key delete route', () => {
-  const params = { keyId: 'k1' }
+  const params = Promise.resolve({ keyId: 'k1' })
 
   it('revokes key', async () => {
     (service.revokeApiKey as vi.Mock).mockResolvedValue({ success: true, key: { id: 'k1', name: 'n', prefix: 'p', scopes: [], createdAt: '', isRevoked: false } })

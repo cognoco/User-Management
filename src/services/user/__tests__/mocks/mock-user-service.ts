@@ -86,7 +86,7 @@ export class MockUserService implements UserService {
       ...this.mockProfiles[userId],
       ...profileData,
       updatedAt: new Date().toISOString()
-    };
+    } as UserProfile;
 
     // If firstName or lastName changed, update fullName
     if (profileData.firstName || profileData.lastName) {

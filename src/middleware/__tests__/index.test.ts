@@ -127,7 +127,7 @@ describe('Middleware Integration', () => {
       const middleware = createApiMiddleware({
         rateLimit: { max: 50 },
         securityHeaders: { xFrameOptions: 'DENY' },
-        cors: { origin: 'https://example.com' },
+        cors: { allowedOrigins: ['https://example.com'] },
         csrf: { cookieName: 'custom-csrf' },
       });
       const next = vi.fn();
@@ -136,7 +136,7 @@ describe('Middleware Integration', () => {
 
       expect(rateLimit).toHaveBeenCalledWith({ max: 50 });
       expect(securityHeaders).toHaveBeenCalledWith({ xFrameOptions: 'DENY' });
-      expect(cors).toHaveBeenCalledWith({ origin: 'https://example.com' });
+      expect(cors).toHaveBeenCalledWith({ allowedOrigins: ['https://example.com'] });
       expect(csrf).toHaveBeenCalledWith({ cookieName: 'custom-csrf' });
     });
   });

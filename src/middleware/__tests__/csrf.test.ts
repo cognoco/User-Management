@@ -4,7 +4,7 @@ import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 
 // Mock crypto module properly using importOriginal
 vi.mock('crypto', async (importOriginal) => {
-  const actual = await importOriginal();
+  const actual = await importOriginal<typeof import('crypto')>();
   return {
     ...actual,
     randomBytes: () => ({
