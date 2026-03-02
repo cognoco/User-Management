@@ -22,8 +22,7 @@ describe('SupabasePermissionProvider', () => {
 
   it('checks user permission', async () => {
     const provider = new SupabasePermissionProvider(NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY);
-    const perm: Permission = { name: 'edit', resource: 'doc' };
-    const result = await provider.hasPermission('user-1', perm);
+    const result = await provider.hasPermission('user-1', 'edit' as Permission);
 
     expect(result).toBe(true);
   });

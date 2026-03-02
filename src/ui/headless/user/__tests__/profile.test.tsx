@@ -3,6 +3,7 @@ import { vi } from 'vitest';
 import Profile from '../Profile';
 import { TestWrapper } from '../../../../tests/utils/test-wrapper';
 import { MockUserService } from '../../../../services/user/__tests__/mocks/mock-user-service';
+import { UserType } from '../../../../types/user-type';
 
 vi.unmock('@/hooks/auth/useAuth');
 
@@ -18,7 +19,7 @@ describe('Headless Profile', () => {
       fullName: 'Test User',
       isActive: true,
       isVerified: true,
-      userType: 'private'
+      userType: UserType.PRIVATE
     });
 
     render(

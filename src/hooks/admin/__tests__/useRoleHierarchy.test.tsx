@@ -10,7 +10,7 @@ describe('useRoleHierarchy', () => {
   const fetchApi = vi.fn();
 
   beforeEach(() => {
-    vi.mocked(useApi).mockReturnValue({ isLoading: false, error: null, fetchApi });
+    vi.mocked(useApi).mockReturnValue({ isLoading: false, error: null, fetchApi, apiPost: vi.fn(), apiPatch: vi.fn(), apiDelete: vi.fn() });
     fetchApi.mockResolvedValue({});
   });
 

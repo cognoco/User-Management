@@ -92,9 +92,10 @@ function setupAuthStoreMock(authMock: any) {
 }
 
 let props: any;
-const renderForm = (p = {}) =>
+const renderForm = (p: Record<string, any> = {}) =>
   render(
     <LoginForm
+      onSubmit={p.onSubmit ?? vi.fn()}
       {...p}
       render={(rp) => {
         props = rp;
