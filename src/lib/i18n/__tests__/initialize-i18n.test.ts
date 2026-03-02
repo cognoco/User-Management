@@ -4,11 +4,11 @@ import { initializeI18n, languages } from '../index';
 describe('initializeI18n', () => {
   it('registers custom resources and returns translations', () => {
     const instance = initializeI18n({
-      resources: { de: { userManagement: { greeting: 'Hallo' } } },
-      defaultLanguage: 'de',
+      resources: { fr: { userManagement: { greeting: 'Bonjour' } } },
+      defaultLanguage: 'fr',
     });
 
-    expect(instance.t('greeting')).toBe('Hallo');
+    expect(instance.t('greeting')).toBe('Bonjour');
   });
 
   it('exposes the list of supported languages', () => {

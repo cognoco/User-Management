@@ -18,7 +18,6 @@ describe('Node.js Platform', () => {
 
   afterAll(() => {
     // Restore original window object
-    // @ts-expect-error - Restoring browser globals
     global.window = originalWindow;
   });
 

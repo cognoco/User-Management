@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { createHealthService, getHealthService } from '../factory';
-import { DefaultHealthService } from '../default-health.service';
+import { DefaultHealthMonitoringService } from '../default-health.service';
 import { AdapterRegistry } from '@/adapters/registry';
 
 vi.mock('../../adapters/registry', () => ({
@@ -26,7 +26,7 @@ describe('createHealthService', () => {
     const adapter = {} as any;
     mockGetAdapter.mockReturnValue(adapter);
     const svc = createHealthService();
-    expect(svc).toBeInstanceOf(DefaultHealthService);
+    expect(svc).toBeInstanceOf(DefaultHealthMonitoringService);
     expect(mockGetAdapter).toHaveBeenCalledWith('health');
   });
 });
@@ -34,7 +34,7 @@ describe('createHealthService', () => {
 describe('getHealthService', () => {
   it('returns new service instance', () => {
     const svc = getHealthService();
-    expect(svc).toBeInstanceOf(DefaultHealthService);
+    expect(svc).toBeInstanceOf(DefaultHealthMonitoringService);
     expect(mockGetAdapter).toHaveBeenCalledWith('health');
   });
 });
