@@ -1,8 +1,8 @@
 import React from 'react';
-import type { AuditLogEntry } from '@/core/audit/models';
+import type { AuditLog } from '@/ui/headless/audit/AuditLogViewer';
 
 export interface PermissionHistoryViewProps {
-  logs: AuditLogEntry[];
+  logs: AuditLog[];
 }
 
 export function PermissionHistoryView({ logs }: PermissionHistoryViewProps) {

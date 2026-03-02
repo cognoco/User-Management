@@ -12,12 +12,12 @@ export function PermissionAuditDashboard(props: Omit<PermissionAuditDashboardPro
       {({ logs }) => (
         <div className="space-y-4">
           <PermissionSummary logs={logs} />
-          <PermissionLogTimeline logs={logs} renderItem={(log) => <div key={log.id}>{String(log.createdAt)} - {log.action}</div>} />
+          <PermissionLogTimeline logs={logs} renderItem={(log) => <div key={log.id}>{log.timestamp} - {log.action}</div>} />
           <PermissionHistoryView logs={logs} />
           {logs.length >= 2 && (
             <PermissionDiffViewer
-              before={logs[0].details?.before ?? logs[0].details?.after}
-              after={logs[logs.length - 1].details?.after ?? logs[logs.length - 1].details?.before}
+              before={{ action: logs[0].action, status: logs[0].status }}
+              after={{ action: logs[logs.length - 1].action, status: logs[logs.length - 1].status }}
             />
           )}
         </div>

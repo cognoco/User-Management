@@ -6,7 +6,7 @@ export function PermissionLogTimeline(props: PermissionLogTimelineProps) {
   return (
     <HeadlessTimeline {...props} renderItem={log => (
       <div className="p-2 border-b" key={log.id}>
-        <span>{log.createdAt}</span> - {log.action}
+        <span>{log.timestamp}</span> - {log.action}
       </div>
     )} />
   );

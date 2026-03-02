@@ -1,9 +1,9 @@
 import React from 'react';
-import type { AuditLogEntry } from '@/core/audit/models';
+import type { AuditLog } from '@/ui/headless/audit/AuditLogViewer';
 import { usePermissionAuditLogs, UsePermissionAuditLogsOptions } from '@/hooks/audit/usePermissionAuditLogs';
 
 export interface PermissionAuditDashboardProps extends UsePermissionAuditLogsOptions {
-  children: (props: { logs: AuditLogEntry[]; isLoading: boolean; }) => React.ReactNode;
+  children: (props: { logs: AuditLog[]; isLoading: boolean; }) => React.ReactNode;
 }
 
 export function PermissionAuditDashboard({ children, ...options }: PermissionAuditDashboardProps) {

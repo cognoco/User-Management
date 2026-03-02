@@ -1,9 +1,9 @@
 import React from 'react';
-import type { AuditLogEntry } from '@/core/audit/models';
+import type { AuditLog } from '@/ui/headless/audit/AuditLogViewer';
 
 export interface PermissionLogTimelineProps {
-  logs: AuditLogEntry[];
-  renderItem: (log: AuditLogEntry) => React.ReactNode;
+  logs: AuditLog[];
+  renderItem: (log: AuditLog) => React.ReactNode;
 }
 
 export function PermissionLogTimeline({ logs, renderItem }: PermissionLogTimelineProps) {
