@@ -80,7 +80,7 @@ export function ProfileTypeConversion({ onConverted, render }: ProfileTypeConver
         companyDomain: formValues.companyDomain,
       });
       if (result.success) onConverted?.();
-      else if (result.error) setErrors(prev => ({ ...prev, form: result.error }));
+      else if (result.error) setErrors(prev => ({ ...prev, form: result.error! }));
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Conversion failed';
       setErrors(prev => ({ ...prev, form: msg }));

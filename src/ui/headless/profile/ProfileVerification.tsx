@@ -13,6 +13,8 @@ export type VerificationType = 'email' | 'domain';
 
 export interface ProfileVerificationProps {
   type: VerificationType;
+  /** Email address to verify (required when type is 'email') */
+  email?: string;
   /** Optional domain id for domain verification */
   domainId?: string;
   /** Called when verification succeeds */
@@ -29,7 +31,7 @@ export interface ProfileVerificationRenderProps {
   verify: (token: string) => Promise<void>;
 }
 
-export function ProfileVerification({ type, domainId, onVerified, render }: ProfileVerificationProps) {
+export function ProfileVerification({ type, email, domainId, onVerified, render }: ProfileVerificationProps) {
   const { sendVerificationEmail, verifyEmail, isLoading, error } = useRegistration();
   const [status, setStatus] = useState<'unverified' | 'pending' | 'verified'>('unverified');
   const [localError, setLocalError] = useState<string | undefined>();
@@ -38,7 +40,11 @@ export function ProfileVerification({ type, domainId, onVerified, render }: Prof
     setLocalError(undefined);
     try {
       if (type === 'email') {
-        const token = await sendVerificationEmail();
+        if (!email) {
+          setLocalError('Email address is required for email verification');
+          return;
+        }
+        const token = await sendVerificationEmail(email);
         if (token.success) setStatus('pending');
         else setLocalError(token.error);
       } else if (type === 'domain' && domainId) {

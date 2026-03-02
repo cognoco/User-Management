@@ -17,7 +17,7 @@ export interface SecuritySettingsRenderProps {
   mfaEnabled: boolean;
   toggleMfa: () => Promise<void>;
   policies: any | null;
-  updatePolicies: (p: any) => Promise<void>;
+  updatePolicies: (p: any) => Promise<boolean>;
   loading: boolean;
   error?: string;
 }
