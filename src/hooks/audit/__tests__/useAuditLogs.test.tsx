@@ -20,7 +20,7 @@ describe('useAuditLogs', () => {
     UserManagementConfiguration.reset();
     service = {
       logEvent: vi.fn(),
-      getLogs: vi.fn().mockResolvedValue({ logs: [], total: 0 }),
+      getLogs: vi.fn().mockResolvedValue({ logs: [], count: 0 }),
       exportLogs: vi.fn().mockResolvedValue(new Blob())
     };
     UserManagementConfiguration.configureServiceProviders({ auditService: service });
@@ -31,7 +31,7 @@ describe('useAuditLogs', () => {
   });
 
   it('fetches logs from the service', async () => {
-    vi.mocked(service.getLogs).mockResolvedValueOnce({ logs: [{ id: '1', action: 'A', entityType: 'user', entityId: '1', userId: '1', timestamp: new Date() }], total: 1 });
+    vi.mocked(service.getLogs).mockResolvedValueOnce({ logs: [{ id: '1', action: 'A', status: 'SUCCESS', targetResourceType: 'user', targetResourceId: '1', userId: '1', createdAt: new Date().toISOString() }], count: 1 });
 
     const { result } = renderHook(() => useAuditLogs(), { wrapper: createWrapper() });
 
