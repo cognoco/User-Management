@@ -18,7 +18,6 @@ vi.mock(
       authenticationInfo: { newCounter: 2 },
     })),
   }),
-  { virtual: true },
 );
 
 import {
