@@ -79,13 +79,17 @@ export class SupabaseAuthProvider implements AuthDataProvider {
       email: supabaseUser.email || '',
       firstName: supabaseUser.user_metadata?.firstName || '',
       lastName: supabaseUser.user_metadata?.lastName || '',
-      emailVerified: supabaseUser.email_confirmed_at !== null,
-      phoneNumber: supabaseUser.phone || '',
       createdAt: supabaseUser.created_at ? new Date(supabaseUser.created_at).toISOString() : new Date().toISOString(),
       updatedAt: supabaseUser.updated_at ? new Date(supabaseUser.updated_at).toISOString() : new Date().toISOString(),
-      lastLoginAt: supabaseUser.last_sign_in_at ? new Date(supabaseUser.last_sign_in_at).toISOString() : undefined,
       mfaEnabled: supabaseUser.factors?.length > 0 || false,
-      isActive: true // Supabase doesn't have a built-in active flag, we'd need to store this in a separate table
+      user_metadata: {
+        ...supabaseUser.user_metadata,
+        emailVerified: supabaseUser.email_confirmed_at !== null,
+        phoneNumber: supabaseUser.phone || '',
+        lastLoginAt: supabaseUser.last_sign_in_at ? new Date(supabaseUser.last_sign_in_at).toISOString() : undefined,
+        isActive: true,
+      },
+      app_metadata: supabaseUser.app_metadata,
     };
   }
   

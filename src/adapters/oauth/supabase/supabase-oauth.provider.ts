@@ -11,7 +11,7 @@ export class SupabaseOAuthProvider implements IOAuthDataProvider {
 
   async getAuthorizationUrl(provider: OAuthProvider, state?: string): Promise<string> {
     const { data, error } = await this.supabase.auth.signInWithOAuth({
-      provider,
+      provider: provider as string as any,
       options: {
         queryParams: state ? { state } : undefined,
       },

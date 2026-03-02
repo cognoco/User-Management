@@ -22,7 +22,11 @@ export function createOrganizationProvider(config?: {
     return createDefaultOrganizationProvider();
   }
   if (config.type === 'supabase') {
-    return createSupabaseOrganizationProvider(config.options || {});
+    const opts = config.options || {};
+    if (!opts.supabaseUrl || !opts.supabaseKey) {
+      throw new Error('Supabase organization provider requires supabaseUrl and supabaseKey options');
+    }
+    return createSupabaseOrganizationProvider(opts as { supabaseUrl: string; supabaseKey: string });
   }
   throw new Error(`Unsupported organization provider type: ${config.type}`);
 }
