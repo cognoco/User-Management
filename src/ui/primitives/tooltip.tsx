@@ -10,7 +10,7 @@ const Tooltip: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <span className="relative inline-block">{children}</span>
 );
 
-const TooltipTrigger: React.FC<React.ComponentProps<'span'>> = ({ children, ...props }) => (
+const TooltipTrigger: React.FC<React.ComponentProps<'span'> & { asChild?: boolean }> = ({ children, asChild, ...props }) => (
   <span {...props}>{children}</span>
 );
 
