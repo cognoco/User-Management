@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { getSessionFromToken } from '@/services/auth/factory';
 import { getApiProfileService } from '@/services/profile/factory';
 import { getApiPermissionService } from '@/services/permission/factory';
+import { PermissionValues } from '@/core/permission/models';
 import { checkRateLimit } from '@/middleware/rate-limit';
 import { profileSchema } from '@/types/database'; // Corrected import path
 
@@ -108,9 +109,9 @@ export async function PATCH(request: NextRequest) {
 
     // Permission check using RBAC service
     const permissionService = getApiPermissionService();
-    const hasPermission = await permissionService.checkUserPermission(
+    const hasPermission = await permissionService.hasPermission(
       user.id,
-      'profile.business.update'
+      PermissionValues.EDIT_USER_PROFILES
     );
 
     if (!hasPermission) {

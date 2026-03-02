@@ -22,7 +22,7 @@ async function handleGet(
   const permissions = new Set<Permission>();
   for (const role of roles) {
     const roleData = await services.permission.getRoleById(role.roleId);
-    roleData?.permissions.forEach((p) => permissions.add(p));
+    roleData?.permissions.forEach((p: Permission) => permissions.add(p));
   }
   return createSuccessResponse({ permissions: Array.from(permissions) });
 }

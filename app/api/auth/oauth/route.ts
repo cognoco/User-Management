@@ -134,7 +134,7 @@ export const POST = createApiHandler(
     }
 
     const state = generateState();
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     cookieStore.set({
       name: `oauth_state_${data.provider}`,
       value: state,

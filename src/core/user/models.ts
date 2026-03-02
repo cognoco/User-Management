@@ -306,6 +306,11 @@ export interface ProfileUpdatePayload {
   website?: string;
 
   /**
+   * User's phone number (optional)
+   */
+  phoneNumber?: string;
+
+  /**
    * URL to the user's avatar (optional)
    */
   avatarUrl?: string;

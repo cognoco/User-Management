@@ -1,4 +1,4 @@
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getApiResourceRelationshipService } from "@/services/resource-relationship/factory";
 import {
@@ -23,7 +23,7 @@ const middleware = createMiddlewareChain([
   validationMiddleware(relationshipSchema),
 ]);
 
-async function handleGet(req: NextRequest) {
+async function handleGet(req: NextRequest): Promise<NextResponse> {
   const url = new URL(req.url);
   const parentType = url.searchParams.get("parentType");
   const parentId = url.searchParams.get("parentId");
@@ -31,7 +31,7 @@ async function handleGet(req: NextRequest) {
   const childId = url.searchParams.get("childId");
 
   if (!((parentType && parentId) || (childType && childId))) {
-    return Response.json(
+    return NextResponse.json(
       { error: "Must provide either parent or child resource identifiers" },
       { status: 400 },
     );

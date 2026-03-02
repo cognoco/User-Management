@@ -5,6 +5,7 @@ import { logUserAction } from '@/lib/audit/auditLogger';
 import { checkRateLimit } from '@/middleware/rate-limit';
 import { PermissionValues } from '@/types/rbac';
 import { personalProfileUpdateSchema } from '@/lib/schemas/profile.schema';
+import type { ProfileUpdatePayload } from '@/core/user/models';
 
 
 // GET handler - Fetch user profile
@@ -98,7 +99,7 @@ export const PATCH = createApiHandler(
     }
 
     try {
-      const result = await services.user.updateUserProfile(userId, data);
+      const result = await services.user.updateUserProfile(userId, data as ProfileUpdatePayload);
       await logUserAction({
         userId,
         action: 'USER_PROFILE_UPDATE_SUCCESS',

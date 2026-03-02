@@ -10,11 +10,11 @@ const middleware = createMiddlewareChain([
 async function handleGet() {
   try {
     const healthService = getHealthService();
-    const status = await healthService.checkSystemHealth();
+    const coreHealth = healthService.getServiceHealth('core');
     return NextResponse.json({
-      status: 'healthy',
+      status: coreHealth.status,
       timestamp: new Date().toISOString(),
-      services: status
+      services: { core: coreHealth }
     });
   } catch (error: any) {
     return NextResponse.json(
