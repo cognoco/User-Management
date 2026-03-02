@@ -203,6 +203,21 @@ export class BasicOAuthProvider implements OAuthDataProvider {
   async verifyEmail(_token: string): Promise<void> {
     throw new Error('Method not implemented.');
   }
+  async verifyPasswordResetToken(_token: string): Promise<{ valid: boolean; user?: User; token?: string; error?: string }> {
+    return { valid: false, error: 'Not implemented' };
+  }
+  async updatePasswordWithToken(_token: string, _newPassword: string): Promise<AuthResult> {
+    return { success: false, error: 'Not implemented' };
+  }
+  async invalidateSessions(_userId: string): Promise<void> {
+    throw new Error('Method not implemented.');
+  }
+  async sendMagicLink(_email: string): Promise<{ success: boolean; error?: string }> {
+    return { success: false, error: 'Not implemented' };
+  }
+  async verifyMagicLink(_token: string): Promise<AuthResult> {
+    return { success: false, error: 'Not implemented' };
+  }
   async deleteAccount(_password?: string): Promise<void> {
     throw new Error('Method not implemented.');
   }
