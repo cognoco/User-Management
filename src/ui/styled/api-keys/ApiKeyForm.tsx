@@ -7,7 +7,7 @@ import {
   ApiKeyFormProps as HeadlessApiKeyFormProps,
 } from '@/ui/headless/api-keys/ApiKeyForm';
 
-export interface ApiKeyFormProps extends HeadlessApiKeyFormProps {
+export interface ApiKeyFormProps extends Omit<HeadlessApiKeyFormProps, 'children'> {
   availablePermissions: string[];
 }
 

@@ -41,11 +41,14 @@ export function useApiKeys(userId?: string) {
       setError(null);
       try {
         const payload = { name, scopes: permissions, expiresAt: expiresInDays ? new Date(Date.now() + expiresInDays * 86400000).toISOString() : undefined };
-        const key: ApiKey = userId
+        const result = userId
           ? await apiKeyService.createApiKey(userId, payload)
           : await apiKeyService.createApiKey(payload);
-        setApiKeys((prev: ApiKey[]) => [...prev, key]);
-        return key;
+        // Service may return ApiKeyCreateResult or ApiKey directly; extract the key entity
+        const apiKey: ApiKey = result.key ?? result;
+        const plaintext: string | undefined = result.plaintext;
+        setApiKeys((prev: ApiKey[]) => [...prev, apiKey]);
+        return { key: plaintext ?? '', ...apiKey } as { key: string } & ApiKey;
       } catch (err) {
         setError((err as Error).message);
         throw err;
@@ -83,9 +86,10 @@ export function useApiKeys(userId?: string) {
         const result = userId
           ? await apiKeyService.regenerateApiKey(userId, id)
           : await apiKeyService.regenerateApiKey(id);
-        const key: ApiKey = result.key || result;
-        setApiKeys((prev: ApiKey[]) => prev.map((k: ApiKey) => (k.id === id ? key : k)));
-        return key;
+        const apiKey: ApiKey = result.key ?? result;
+        const plaintext: string | undefined = result.plaintext;
+        setApiKeys((prev: ApiKey[]) => prev.map((k: ApiKey) => (k.id === id ? apiKey : k)));
+        return { key: plaintext ?? '', ...apiKey } as { key: string } & ApiKey;
       } catch (err) {
         setError((err as Error).message);
         throw err;
