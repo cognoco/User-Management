@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { Download } from 'lucide-react';
 import { Button } from '@/ui/primitives/button';
-import { Select } from '@/ui/primitives/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/ui/primitives/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/ui/primitives/popover';
 
 interface ExportOptionsProps {
@@ -54,13 +54,17 @@ export function ExportOptions({ searchParams }: ExportOptionsProps) {
               Format
             </label>
             <Select
-              id="export-format"
               value={format}
               onValueChange={(value) => setFormat(value as 'csv' | 'json')}
               disabled={isExporting}
             >
-              <option value="csv">CSV</option>
-              <option value="json">JSON</option>
+              <SelectTrigger id="export-format">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="csv">CSV</SelectItem>
+                <SelectItem value="json">JSON</SelectItem>
+              </SelectContent>
             </Select>
           </div>
           <Button size="sm" className="w-full" onClick={handleExport} disabled={isExporting}>

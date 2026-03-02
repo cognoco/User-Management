@@ -63,7 +63,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onSubmit: customOnSubmit }) => {
         {/** WebAuthn option if available */}
         <WebAuthnLogin userId={''} onSuccess={() => handleLoginSuccess({})} />
         <MFAVerificationForm
-          accessToken={tempAccessToken}
+          sessionId={tempAccessToken}
           onSuccess={() => handleMfaSuccess({}, '')}
           onCancel={handleMfaCancel}
         />

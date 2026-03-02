@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import Cropper from 'react-cropper';
+import Cropper, { ReactCropperElement } from 'react-cropper';
 import 'cropperjs/dist/cropper.css';
 import { Button } from '@/ui/primitives/button';
 import { Input } from '@/ui/primitives/input';
@@ -19,7 +19,7 @@ export function ProfileEditor() {
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [isAvatarDialogOpen, setIsAvatarDialogOpen] = useState(false);
   const [tempAvatar, setTempAvatar] = useState<string | null>(null);
-  const cropperRef = useRef<Cropper>(null);
+  const cropperRef = useRef<ReactCropperElement>(null);
 
   useEffect(() => {
     if (profile) {
@@ -58,7 +58,7 @@ export function ProfileEditor() {
 
   const handleCropComplete = async () => {
     if (cropperRef.current) {
-      const canvas = cropperRef.current.getCroppedCanvas();
+      const canvas = cropperRef.current.cropper.getCroppedCanvas();
       canvas.toBlob(async (blob) => {
         if (blob) {
           await uploadAvatar(new File([blob], 'avatar.jpg', { type: blob.type }));

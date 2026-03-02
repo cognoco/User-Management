@@ -3,7 +3,7 @@ import { MFAVerificationForm as HeadlessMFAVerificationForm, MFAVerificationForm
 import { Button } from '@/ui/primitives/button';
 import { Input } from '@/ui/primitives/input';
 import { Alert, AlertDescription } from '@/ui/primitives/alert';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/ui/primitives/form';
+import { Label } from '@/ui/primitives/label';
 import { api } from '@/lib/api/axios';
 
 export interface StyledMFAVerificationFormProps
@@ -89,35 +89,28 @@ export function MFAVerificationForm({
             </Alert>
           )}
 
-          <Form>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <FormField
-                name="code"
-                render={() => (
-                  <FormItem>
-                    <FormLabel>
-                      {isUsingBackupCode
-                        ? '[i18n:auth.mfa.backupCodeLabel]'
-                        : '[i18n:auth.mfa.codeLabel]'}
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        value={verificationCode}
-                        onChange={(e) => setVerificationCode(e.target.value)}
-                        onBlur={handleBlur}
-                        placeholder={isUsingBackupCode ? 'XXXX-XXXX' : '000000'}
-                        autoComplete="one-time-code"
-                        autoFocus
-                        aria-invalid={touched.verificationCode && !!errors.verificationCode}
-                        aria-describedby={touched.verificationCode && errors.verificationCode ? 'mfa-code-error' : undefined}
-                      />
-                    </FormControl>
-                    {touched.verificationCode && errors.verificationCode && (
-                      <FormMessage id="mfa-code-error">{errors.verificationCode}</FormMessage>
-                    )}
-                  </FormItem>
+          <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="mfa-code">
+                  {isUsingBackupCode
+                    ? '[i18n:auth.mfa.backupCodeLabel]'
+                    : '[i18n:auth.mfa.codeLabel]'}
+                </Label>
+                <Input
+                  id="mfa-code"
+                  value={verificationCode}
+                  onChange={(e) => setVerificationCode(e.target.value)}
+                  onBlur={handleBlur}
+                  placeholder={isUsingBackupCode ? 'XXXX-XXXX' : '000000'}
+                  autoComplete="one-time-code"
+                  autoFocus
+                  aria-invalid={touched.verificationCode && !!errors.verificationCode}
+                  aria-describedby={touched.verificationCode && errors.verificationCode ? 'mfa-code-error' : undefined}
+                />
+                {touched.verificationCode && errors.verificationCode && (
+                  <p id="mfa-code-error" className="text-sm text-destructive">{errors.verificationCode}</p>
                 )}
-              />
+              </div>
 
               {enableRememberDevice && !isUsingBackupCode && (
                 <div className="flex items-center gap-2">
@@ -172,7 +165,6 @@ export function MFAVerificationForm({
                 )}
               </div>
             </form>
-          </Form>
         </div>
       )}
     />

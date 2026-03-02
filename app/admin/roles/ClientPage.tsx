@@ -49,10 +49,6 @@ export default function RolesManagementPageClient(): React.ReactElement {
         </Alert>
       ) : (
         <RoleManager
-          roles={roles || []}
-          permissions={permissions || []}
-          selectedRole={selectedRole}
-          onSelectRole={setSelectedRole}
           onCreateRole={async (data) => { await createRole(data); }}
           onUpdateRole={async (id, data) => { await updateRole(id, data); }}
           onDeleteRole={async (id) => { await deleteRole(id); }}

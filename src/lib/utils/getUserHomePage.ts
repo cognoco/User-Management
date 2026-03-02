@@ -1,12 +1,14 @@
-import type { User } from '@/types/user';
-
 /**
- * Determines the homepage/dashboard route for a user based on company and individual preferences.
- * Falls back to /dashboard if no preference is set.
+ * Determines the homepage/dashboard route for a user based on preferences.
+ * Falls back to /dashboard/overview if no preference is set.
  *
- * Extend this logic as needed for more complex scenarios.
+ * Accepts any user-like object with optional metadata.
  */
-export function getUserHomePage(user: User): string {
+export function getUserHomePage(user: {
+  metadata?: Record<string, any> | null;
+  company?: { homepage?: string } | null;
+  [key: string]: any;
+}): string {
   // 1. Company-level homepage preference
   if (user.company && typeof user.company === 'object' && 'homepage' in user.company && user.company.homepage) {
     return user.company.homepage as string;
